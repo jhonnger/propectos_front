@@ -6,7 +6,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { FormsModule } from '@angular/forms';
 import { UpdateProspectDialogComponent } from './common/update-prospect-dialog.component';
-import { MatPaginator, MatPaginatorModule } from '@angular/material/paginator';
+import {MatPaginator, MatPaginatorModule, PageEvent} from '@angular/material/paginator';
 import { ProspectoService } from './service/prospecto.service';
 import {NavbarComponent} from '../../shared/navbar/navbar.component';
 
@@ -27,13 +27,7 @@ import {NavbarComponent} from '../../shared/navbar/navbar.component';
 })
 export class DashboardComponent implements OnInit {
   ngOnInit(): void {
-    this.prospectoService.getProspects().subscribe((data) => {
-      console.log(data);
-      this.prospects = data.resultados;
-
-      this.totalResultados = data.total;
-      this.dataSource.data = this.prospects;
-    });
+    this.buscar()
   }
 
   callsToday = 10;
@@ -41,6 +35,8 @@ export class DashboardComponent implements OnInit {
   answeredCalls = 120;
   rejectedCalls = 30;
   totalResultados = 0;
+  paginaActual = 1;
+  tamanioPagina = 10;
   @ViewChild(MatPaginator) paginator!: MatPaginator;
 
 
@@ -55,6 +51,34 @@ export class DashboardComponent implements OnInit {
     private prospectoService: ProspectoService
   ) {}
 
+  siguientePagina(): void {
+    this.paginaActual++;
+    this.buscar();
+  }
+  onPageEvent(event: PageEvent): void {
+    console.log('Evento de paginación:', event);
+    this.paginaActual = event.pageIndex;
+    this.tamanioPagina = event.pageSize;
+
+    // Lógica para cargar datos según la nueva página o tamaño
+    this.buscar();
+  }
+  buscar(){
+
+    const busqueda = {
+      pagina: this.paginaActual,
+      tamanioPagina: this.tamanioPagina,
+      filtros: {
+      },
+    };
+    this.prospectoService.getProspects(busqueda).subscribe((data) => {
+      console.log(data);
+      this.prospects = data.resultados;
+
+      this.totalResultados = data.total;
+      this.dataSource.data = this.prospects;
+    });
+  }
   openDialog(prospect: any): void {
     const dialogRef = this.dialog.open(UpdateProspectDialogComponent, {
       width: '400px',

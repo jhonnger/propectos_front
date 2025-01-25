@@ -65,7 +65,9 @@
       <!-- Paginador -->
       <mat-paginator
         [length]="totalResultados"
+        [pageSize]="tamanioPagina"
         [pageSizeOptions]="[5, 10, 20]"
+        (page)="onPageEvent($event)"
         showFirstLastButtons></mat-paginator>
     </div>
   </div>
