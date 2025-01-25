@@ -1,19 +1,82 @@
-.login-container {
-    max-width: 400px;
-    margin: 2rem auto;
-    padding: 2rem;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-    border-radius: 8px;
-    background-color: #fff;
+/* Estilos generales para el login */
+.login-wrapper {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+    font-family: 'Roboto', sans-serif;
+  }
   
-    h1 {
-      text-align: center;
-      margin-bottom: 1.5rem;
+  .login-card {
+    background-color: #fff;
+    border-radius: 8px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    padding: 2rem;
+    width: 100%;
+    max-width: 400px;
+    text-align: center;
+  }
+  
+  h1 {
+    margin-bottom: 1.5rem;
+    font-size: 1.8rem;
+    color: #333;
+  }
+  
+  .full-width {
+    width: 100%;
+    margin-bottom: 1rem;
+  }
+  
+  button {
+    width: 100%;
+    padding: 0.8rem;
+    font-size: 1rem;
+  }
+  
+  .forgot-password {
+    margin-top: 1rem;
+    font-size: 0.9rem;
+    color: #555;
+  
+    a {
+      color: #2575fc;
+      text-decoration: none;
+  
+      &:hover {
+        text-decoration: underline;
+      }
+    }
+  }
+  button {
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  
+    
+  }
+
+  button > .loading-spinner {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+  }
+  
+  /* Responsividad */
+  @media (max-width: 768px) {
+    .login-card {
+      padding: 1.5rem;
     }
   
-    .full-width {
-      width: 100%;
-      margin-bottom: 1rem;
+    h1 {
+      font-size: 1.5rem;
+    }
+  
+    button {
+      padding: 0.7rem;
     }
   }
   

@@ -1,0 +1,12 @@
+<h1 mat-dialog-title>Actualizar Prospecto</h1>
+<div mat-dialog-content>
+  <p>¿Quieres marcar a <strong>{{ data.name }}</strong> como llamado?</p>
+  <mat-form-field appearance="outline" class="full-width">
+    <mat-label>Comentario</mat-label>
+    <textarea matInput placeholder="Escribe un comentario..." [(ngModel)]="comment"></textarea>
+  </mat-form-field>
+</div>
+<div mat-dialog-actions>
+  <button mat-button (click)="onCancel()">Cancelar</button>
+  <button mat-raised-button color="primary" (click)="onConfirm()">Actualizar</button>
+</div>

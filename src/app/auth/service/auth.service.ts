@@ -18,7 +18,7 @@ import { map } from 'rxjs/operators';
           map((response: any) => {
             console.log(response)
             if (response) {
-              this.saveToken(response);
+              this.saveToken(response.token);
               this.isAuthenticatedSubject.next(true);
               return true;
             }
@@ -42,6 +42,7 @@ import { map } from 'rxjs/operators';
     }
   
     private saveToken(token: string): void {
+        console.log(token)
       localStorage.setItem(this.tokenKey, token);
     }
   

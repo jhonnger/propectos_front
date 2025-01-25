@@ -1,0 +1,128 @@
+/* Estilo general para el dashboard */
+.dashboard {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+    padding: 2rem;
+    background-color: #f9fafc;
+    font-family: 'Roboto', sans-serif;
+    color: #333;
+  }
+  
+  /* Sección de métricas */
+  .metrics {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1.5rem;
+  }
+  
+  .metric {
+    background-color: #ffffff;
+    border-radius: 8px;
+    padding: 1.5rem;
+    text-align: center;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+  }
+  
+  .metric:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.15);
+  }
+  
+  .metric h2 {
+    font-size: 1.2rem;
+    margin-bottom: 0.5rem;
+    color: #555;
+  }
+  
+  .metric p {
+    font-size: 1.8rem;
+    font-weight: bold;
+    color: #3f51b5;
+    margin: 0;
+  }
+  
+  /* Tabla de prospectos */
+  .prospect-list {
+    background-color: #ffffff;
+    padding: 2rem;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  }
+  
+  .prospect-list h2 {
+    margin-bottom: 1rem;
+    color: #3f51b5;
+    font-size: 1.4rem;
+    font-weight: 500;
+  }
+  
+  /* Tabla personalizada */
+  .custom-table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  
+  .custom-table th {
+    background-color: #3f51b5;
+    color: white;
+    font-weight: bold;
+    text-align: left;
+    padding: 1rem;
+    font-size: 0.95rem;
+    border: none;
+  }
+  
+  .custom-table td {
+    padding: 1rem;
+    font-size: 0.9rem;
+    color: #333;
+    border-bottom: 1px solid #e0e0e0;
+  }
+  
+  .custom-table tr:hover {
+    background-color: #f1f1f1;
+  }
+  
+  /* Botones en las acciones */
+  .custom-table button {
+    font-size: 0.85rem;
+    padding: 0.5rem 1rem;
+    border: none;
+    border-radius: 4px;
+    background-color: #3f51b5;
+    color: white;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+  }
+  
+  .custom-table button:hover {
+    background-color: #303f9f;
+  }
+  
+  /* Paginador */
+  .mat-paginator {
+    margin-top: 1rem;
+  }
+  
+  .mat-paginator .mat-button {
+    color: #3f51b5;
+  }
+  
+  .mat-paginator-range-label {
+    font-size: 0.9rem;
+    color: #555;
+  }
+  
+  /* Responsividad */
+  @media (max-width: 768px) {
+    .metrics {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  
+    .metric p {
+      font-size: 1.5rem;
+    }
+  }
+  

@@ -6,15 +6,17 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
 import { CommonModule } from '@angular/common'; 
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 
 @Component({
   selector: 'app-login',
   imports: [
-    CommonModule, // Directivas comunes como *ngIf y *ngFor
-    ReactiveFormsModule, // Manejo de formularios reactivos
-    MatFormFieldModule, // Angular Material: campos de formulario
-    MatInputModule, // Angular Material: inputs
-    MatButtonModule, // Angular Material: botones
+    CommonModule, 
+    ReactiveFormsModule, 
+    MatFormFieldModule,
+    MatInputModule,
+    MatButtonModule,
+    MatProgressSpinnerModule
   ],
   templateUrl: './login.component.html',
   styleUrl: './login.component.css'
@@ -22,6 +24,7 @@ import { CommonModule } from '@angular/common';
 export class LoginComponent {
   loginForm: FormGroup;
   errorMessage: string | null = null;
+  isLoading = false;
 
   constructor(private fb: FormBuilder, private authService: AuthService, private router: Router) {
     this.loginForm = this.fb.group({
@@ -32,15 +35,18 @@ export class LoginComponent {
 
   onSubmit() {
     if (this.loginForm.valid) {
+      this.isLoading = true; 
       const { email, password } = this.loginForm.value;
       this.authService.login(email, password).subscribe({
         next: (success) => {
+          this.isLoading = false;
           console.log(' success ', success)
           if (success) {
             this.router.navigate(['/dashboard']); // Redirige después de un login exitoso
           }
         },
         error: (err) => {
+          this.isLoading = false;
           this.errorMessage = 'Credenciales incorrectas. Inténtalo de nuevo.';
           console.error(err);
         }
