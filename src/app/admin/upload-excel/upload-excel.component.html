@@ -1,0 +1,15 @@
+<div class="upload-container">
+  <h1>Cargar Archivo Excel</h1>
+  <p>Selecciona un archivo Excel para cargar los prospectos al sistema.</p>
+
+  <!-- Input para cargar el archivo -->
+  <input type="file" (change)="onFileSelected($event)" accept=".xlsx, .xls" />
+
+  <!-- Botón para enviar el archivo -->
+  <button mat-raised-button color="primary" [disabled]="!selectedFile" (click)="uploadFile()">
+    Subir Archivo
+  </button>
+
+  <!-- Mensaje de éxito o error -->
+  <div *ngIf="message" class="message">{{ message }}</div>
+</div>

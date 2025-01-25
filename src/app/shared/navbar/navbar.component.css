@@ -1,0 +1,49 @@
+/* Navbar principal */
+.navbar {
+  background-color: #3f51b5;
+  color: white;
+  padding: 1rem 2rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.navbar-container {
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+}
+
+.navbar-logo h2 {
+  font-size: 1.5rem;
+  margin: 0;
+  color: white;
+}
+
+.navbar-user {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.username {
+  font-size: 1rem;
+  font-weight: 500;
+}
+
+button {
+  color: white;
+}
+/* Ajustes del menú */
+
+/* Responsividad */
+@media (max-width: 768px) {
+  .navbar-logo h2 {
+    font-size: 1.2rem;
+  }
+
+  .username {
+    font-size: 0.9rem;
+  }
+}

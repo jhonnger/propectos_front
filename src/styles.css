@@ -2,3 +2,28 @@
 
 html, body { height: 100%; }
 body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
+.custom-menu {
+  background-color: #f9f9f9; /* Fondo claro */
+  color: #333; /* Texto oscuro */
+  border-radius: 8px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  padding: 0.5rem 0;
+}
+
+.custom-menu .mat-menu-item {
+  font-size: 0.9rem;
+  font-weight: 500;
+  padding: 0.8rem 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.custom-menu .mat-menu-item:hover {
+  background-color: #e0e0e0; /* Fondo claro al pasar el cursor */
+}
+
+.custom-menu mat-icon {
+  font-size: 1.2rem;
+  color: #555; /* Color de los íconos */
+}

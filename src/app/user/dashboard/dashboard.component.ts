@@ -8,6 +8,7 @@ import { FormsModule } from '@angular/forms';
 import { UpdateProspectDialogComponent } from './common/update-prospect-dialog.component';
 import { MatPaginator, MatPaginatorModule } from '@angular/material/paginator';
 import { ProspectoService } from './service/prospecto.service';
+import {NavbarComponent} from '../../shared/navbar/navbar.component';
 
 @Component({
   selector: 'app-dashboard',
@@ -18,7 +19,8 @@ import { ProspectoService } from './service/prospecto.service';
     MatFormFieldModule,
     MatInputModule,
     FormsModule,
-    MatPaginatorModule
+    MatPaginatorModule,
+    NavbarComponent
   ],
   templateUrl: './dashboard.component.html',
   styleUrl: './dashboard.component.css'
@@ -27,8 +29,10 @@ export class DashboardComponent implements OnInit {
   ngOnInit(): void {
     this.prospectoService.getProspects().subscribe((data) => {
       console.log(data);
-      //this.prospects = data;
-      // this.dataSource.data = this.prospects;
+      this.prospects = data.resultados;
+
+      this.totalResultados = data.total;
+      this.dataSource.data = this.prospects;
     });
   }
 
@@ -36,15 +40,15 @@ export class DashboardComponent implements OnInit {
   callsThisMonth = 150;
   answeredCalls = 120;
   rejectedCalls = 30;
+  totalResultados = 0;
   @ViewChild(MatPaginator) paginator!: MatPaginator;
 
-  prospects = [
-    { name: 'Juan Pérez', phone: '123456789', status: 'Pendiente' },
-    { name: 'Ana López', phone: '987654321', status: 'Pendiente' },
-    { name: 'Carlos Gómez', phone: '456123789', status: 'Pendiente' },
+
+  prospects: any[] = [
+
   ];
 
-  displayedColumns: string[] = ['name', 'phone', 'actions'];
+  displayedColumns: string[] = ['nombre', 'documentoIdentidad', 'campania', 'celular', 'actions'];
   dataSource = new MatTableDataSource<any>(this.prospects);
 
   constructor(private dialog: MatDialog,
@@ -57,12 +61,12 @@ export class DashboardComponent implements OnInit {
       data: prospect,
     });
 
-    dialogRef.afterClosed().subscribe((result) => {
+    dialogRef.afterClosed().subscribe((result: any) => {
       if (result) {
         // Actualiza el estado del prospecto
         const updatedProspect = this.prospects.find((p) => p.phone === prospect.phone);
         if (updatedProspect) {
-          updatedProspect.status = 'Llamado';
+          // updatedProspect.status = 'Llamado';
         }
       }
     });
