@@ -5,14 +5,14 @@ import { Router } from '@angular/router';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
-import { CommonModule } from '@angular/common'; 
+import { CommonModule } from '@angular/common';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 
 @Component({
   selector: 'app-login',
   imports: [
-    CommonModule, 
-    ReactiveFormsModule, 
+    CommonModule,
+    ReactiveFormsModule,
     MatFormFieldModule,
     MatInputModule,
     MatButtonModule,
@@ -35,14 +35,15 @@ export class LoginComponent {
 
   onSubmit() {
     if (this.loginForm.valid) {
-      this.isLoading = true; 
+      this.isLoading = true;
       const { email, password } = this.loginForm.value;
       this.authService.login(email, password).subscribe({
         next: (success) => {
           this.isLoading = false;
           console.log(' success ', success)
           if (success) {
-            this.router.navigate(['/dashboard']); // Redirige después de un login exitoso
+            console.log('success');
+            this.router.navigate(['/user/app/dashboard']); // Redirige después de un login exitoso
           }
         },
         error: (err) => {

@@ -5,6 +5,7 @@ import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { FormsModule } from '@angular/forms';
+import { CommonModule } from '@angular/common';
 import { UpdateProspectDialogComponent } from './common/update-prospect-dialog.component';
 import {MatPaginator, MatPaginatorModule, PageEvent} from '@angular/material/paginator';
 import { ProspectoService } from './service/prospecto.service';
@@ -13,6 +14,7 @@ import {NavbarComponent} from '../../shared/navbar/navbar.component';
 @Component({
   selector: 'app-dashboard',
   imports: [
+    CommonModule,
     MatTableModule,
     MatButtonModule,
     MatDialogModule,
@@ -57,7 +59,7 @@ export class DashboardComponent implements OnInit {
   }
   onPageEvent(event: PageEvent): void {
     console.log('Evento de paginación:', event);
-    this.paginaActual = event.pageIndex;
+    this.paginaActual = event.pageIndex + 1;
     this.tamanioPagina = event.pageSize;
 
     // Lógica para cargar datos según la nueva página o tamaño
@@ -81,17 +83,30 @@ export class DashboardComponent implements OnInit {
   }
   openDialog(prospect: any): void {
     const dialogRef = this.dialog.open(UpdateProspectDialogComponent, {
-      width: '400px',
-      data: prospect,
+      width: '500px',
+      data: {
+        id: prospect.id,
+        name: `${prospect.nombre} ${prospect.apellido}`,
+        phone: prospect.celular
+      },
     });
 
     dialogRef.afterClosed().subscribe((result: any) => {
       if (result) {
-        // Actualiza el estado del prospecto
-        const updatedProspect = this.prospects.find((p) => p.phone === prospect.phone);
-        if (updatedProspect) {
-          // updatedProspect.status = 'Llamado';
-        }
+        console.log('Registrando contacto:', result);
+        
+        // Llamar al servicio para registrar el contacto
+        this.prospectoService.registrarContacto(result).subscribe({
+          next: (response) => {
+            console.log('Contacto registrado exitosamente:', response);
+            // Opcional: Recargar la lista de prospectos
+            this.buscar();
+          },
+          error: (error) => {
+            console.error('Error al registrar contacto:', error);
+            // Aquí puedes mostrar un mensaje de error al usuario
+          }
+        });
       }
     });
   }

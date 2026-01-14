@@ -4,6 +4,12 @@ import { BehaviorSubject, Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 import {BusquedaRequest} from '../../../common/types/BusquedaRequest.interface';
 
+export interface ContactoRegistro {
+  prospectoId: number;
+  comentario: string;
+  contestoLlamada: boolean;
+  interesado: boolean;
+}
 
 @Injectable({
     providedIn: 'root'
@@ -11,7 +17,8 @@ import {BusquedaRequest} from '../../../common/types/BusquedaRequest.interface';
   export class ProspectoService {
 
     private tokenKey = 'authToken';
-    private baseUrl = 'http://localhost:8081/api/prospectos'; // Cambia por tu URL base de la API private
+    private baseUrl = 'http://localhost:8081/api/prospectos';
+    private contactoBaseUrl = 'http://localhost:8081/api/contactos';
 
   constructor(private http: HttpClient) {}
 
@@ -32,5 +39,33 @@ import {BusquedaRequest} from '../../../common/types/BusquedaRequest.interface';
     });
 
     return this.http.get(`${this.baseUrl}/busqueda`, { headers, params: httpParams });
+  }
+
+  /**
+   * Registra un contacto para un prospecto
+   * @param contactoData Datos del contacto a registrar
+   * @returns Observable con la respuesta del servidor
+   */
+  registrarContacto(contactoData: ContactoRegistro): Observable<any> {
+    const headers = new HttpHeaders({
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${this.getToken()}`,
+    });
+
+    return this.http.post(this.contactoBaseUrl, contactoData, { headers });
+  }
+
+  /**
+   * Obtiene la lista de prospectos interesados
+   * @param busqueda Parámetros de búsqueda
+   * @returns Observable con los datos de los prospectos interesados
+   */
+  getProspectosInteresados(busqueda: any): Observable<any> {
+    const httpParams = new HttpParams({ fromObject: busqueda });
+    const headers = new HttpHeaders({
+      Authorization: `Bearer ${this.getToken()}`,
+    });
+
+    return this.http.get(`${this.baseUrl}/interesados`, { headers, params: httpParams });
   }
   }

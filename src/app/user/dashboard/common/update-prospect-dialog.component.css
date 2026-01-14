@@ -1,0 +1,24 @@
+.full-width {
+  width: 100%;
+}
+
+mat-form-field {
+  width: 100%;
+  margin-bottom: 1rem;
+}
+
+mat-dialog-content {
+  padding: 1rem 0;
+  min-width: 400px;
+}
+
+mat-dialog-actions {
+  padding: 0.5rem 0;
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+}
+
+mat-error {
+  font-size: 0.8rem;
+}

@@ -1,12 +1,39 @@
-<h1 mat-dialog-title>Actualizar Prospecto</h1>
+<h1 mat-dialog-title>Registrar Contacto</h1>
 <div mat-dialog-content>
-  <p>¿Quieres marcar a <strong>{{ data.name }}</strong> como llamado?</p>
-  <mat-form-field appearance="outline" class="full-width">
-    <mat-label>Comentario</mat-label>
-    <textarea matInput placeholder="Escribe un comentario..." [(ngModel)]="comment"></textarea>
-  </mat-form-field>
+  <p>Registrar contacto para <strong>{{ data.name }}</strong></p>
+  
+  <form [formGroup]="contactForm" (ngSubmit)="onConfirm()">
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>¿Contestó la llamada?</mat-label>
+      <mat-select formControlName="contestoLlamada" required>
+        <mat-option [value]="true">Sí</mat-option>
+        <mat-option [value]="false">No</mat-option>
+      </mat-select>
+      <mat-error *ngIf="contactForm.get('contestoLlamada')?.hasError('required')">
+        Este campo es obligatorio
+      </mat-error>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>¿Está interesado?</mat-label>
+      <mat-select formControlName="interesado" required>
+        <mat-option [value]="true">Sí</mat-option>
+        <mat-option [value]="false">No</mat-option>
+      </mat-select>
+      <mat-error *ngIf="contactForm.get('interesado')?.hasError('required')">
+        Este campo es obligatorio
+      </mat-error>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>Comentario</mat-label>
+      <textarea matInput placeholder="Escribe un comentario..." formControlName="comentario" rows="3"></textarea>
+    </mat-form-field>
+  </form>
 </div>
 <div mat-dialog-actions>
   <button mat-button (click)="onCancel()">Cancelar</button>
-  <button mat-raised-button color="primary" (click)="onConfirm()">Actualizar</button>
+  <button mat-raised-button color="primary" (click)="onConfirm()" [disabled]="!contactForm.valid">
+    Registrar Contacto
+  </button>
 </div>

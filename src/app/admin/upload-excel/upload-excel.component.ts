@@ -2,18 +2,25 @@ import { Component } from '@angular/core';
 import {AdminService} from '../services/admin.service';
 import {CommonModule} from '@angular/common';
 import {MatButtonModule} from '@angular/material/button';
+import {MatIconModule} from '@angular/material/icon';
+import {MatCardModule} from '@angular/material/card';
+import {MatProgressSpinnerModule} from '@angular/material/progress-spinner';
+import {MatSnackBar, MatSnackBarModule} from '@angular/material/snack-bar';
+import {NavbarComponent} from '../../shared/navbar/navbar.component';
 
 @Component({
   selector: 'app-upload-excel',
-  imports: [MatButtonModule, CommonModule],
+  imports: [MatButtonModule, CommonModule, MatIconModule, MatCardModule, MatProgressSpinnerModule, MatSnackBarModule],
   templateUrl: './upload-excel.component.html',
   styleUrl: './upload-excel.component.css'
 })
 export class UploadExcelComponent {
   selectedFile: File | null = null;
   message: string | null = null;
+  isUploading: boolean = false;
+  isDragOver: boolean = false;
 
-  constructor(private adminService: AdminService) {}
+  constructor(private adminService: AdminService, private snackBar: MatSnackBar) {}
 
   /**
    * Manejar la selección de archivo
@@ -21,33 +28,118 @@ export class UploadExcelComponent {
   onFileSelected(event: Event): void {
     const input = event.target as HTMLInputElement;
     if (input.files && input.files.length > 0) {
-      this.selectedFile = input.files[0];
-      this.message = null; // Limpiar mensajes previos
+      this.handleFile(input.files[0]);
     }
+  }
+
+  /**
+   * Manejar drag and drop
+   */
+  onDragOver(event: DragEvent): void {
+    event.preventDefault();
+    this.isDragOver = true;
+  }
+
+  onDragLeave(event: DragEvent): void {
+    event.preventDefault();
+    this.isDragOver = false;
+  }
+
+  onDrop(event: DragEvent): void {
+    event.preventDefault();
+    this.isDragOver = false;
+    const files = event.dataTransfer?.files;
+    if (files && files.length > 0) {
+      this.handleFile(files[0]);
+    }
+  }
+
+  /**
+   * Procesar archivo seleccionado
+   */
+  private handleFile(file: File): void {
+    if (this.isValidFile(file)) {
+      this.selectedFile = file;
+      this.message = null;
+    } else {
+      this.snackBar.open('Por favor selecciona un archivo Excel válido (.xlsx, .xls)', 'Cerrar', {
+        duration: 3000,
+        panelClass: ['error-snackbar']
+      });
+    }
+  }
+
+  /**
+   * Validar tipo de archivo
+   */
+  private isValidFile(file: File): boolean {
+    const validTypes = [
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      'application/vnd.ms-excel'
+    ];
+    return validTypes.includes(file.type) || file.name.endsWith('.xlsx') || file.name.endsWith('.xls');
+  }
+
+  /**
+   * Remover archivo seleccionado
+   */
+  removeFile(): void {
+    this.selectedFile = null;
+    this.message = null;
+  }
+
+  /**
+   * Formatear tamaño de archivo
+   */
+  formatFileSize(bytes: number): string {
+    if (bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
   }
 
   /**
    * Subir el archivo al backend
    */
   uploadFile(): void {
-    if (this.selectedFile) {
+    if (this.selectedFile && !this.isUploading) {
+      this.isUploading = true;
+      this.message = null;
+
       const reader = new FileReader();
       reader.onload = () => {
-        const fileBase64 = reader.result?.toString().split(',')[1]; // Obtener el contenido Base64
+        const fileBase64 = reader.result?.toString().split(',')[1];
         if (fileBase64) {
-          this.adminService.uploadExcel(fileBase64).subscribe({
+          this.adminService.uploadExcel(fileBase64, this.selectedFile?.name!).subscribe({
             next: () => {
-              this.message = 'Archivo subido con éxito.';
+              this.isUploading = false;
               this.selectedFile = null;
+              this.snackBar.open('Archivo subido con éxito', 'Cerrar', {
+                duration: 3000,
+                panelClass: ['success-snackbar']
+              });
             },
             error: (err) => {
+              this.isUploading = false;
               console.error('Error al subir el archivo:', err);
-              this.message = 'Ocurrió un error al subir el archivo.';
+              this.snackBar.open('Error al subir el archivo. Por favor intenta nuevamente.', 'Cerrar', {
+                duration: 5000,
+                panelClass: ['error-snackbar']
+              });
             },
           });
         }
       };
-      reader.readAsDataURL(this.selectedFile); // Leer el archivo como DataURL
+      reader.readAsDataURL(this.selectedFile);
     }
+  }
+
+  /**
+   * Trigger file input click
+   */
+  triggerFileInput(): void {
+    const fileInput = document.getElementById('fileInput') as HTMLInputElement;
+    fileInput?.click();
   }
 }

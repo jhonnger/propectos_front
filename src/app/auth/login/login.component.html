@@ -1,35 +1,53 @@
-<div class="login-wrapper">
-    <div class="login-card">
-      <h1>Iniciar Sesión</h1>
-      <form [formGroup]="loginForm" (ngSubmit)="onSubmit()">
-        <mat-form-field appearance="outline" class="full-width">
+<div class="login-container">
+  <div class="login-card">
+    <div class="login-header">
+      <div class="logo">
+        <span class="logo-icon">📋</span>
+        <h1>Prospectos</h1>
+      </div>
+      <p class="subtitle">Gestiona tus leads de manera eficiente</p>
+    </div>
+
+    <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="login-form">
+      <div class="form-group">
+        <mat-form-field appearance="outline" class="input-field">
           <mat-label>Usuario</mat-label>
           <input matInput type="text" formControlName="email" required />
           <mat-error *ngIf="loginForm.get('email')?.hasError('required')">
-            El usuario es obligatorio.
-          </mat-error>
-          <mat-error *ngIf="loginForm.get('email')?.hasError('email')">
-            Ingresa un usuario válido.
+            El usuario es obligatorio
           </mat-error>
         </mat-form-field>
-  
-        <mat-form-field appearance="outline" class="full-width">
+      </div>
+
+      <div class="form-group">
+        <mat-form-field appearance="outline" class="input-field">
           <mat-label>Contraseña</mat-label>
           <input matInput type="password" formControlName="password" required />
           <mat-error *ngIf="loginForm.get('password')?.hasError('required')">
-            La contraseña es obligatoria.
+            La contraseña es obligatoria
           </mat-error>
         </mat-form-field>
-  
-        <button mat-raised-button color="primary" type="submit" [disabled]="loginForm.invalid || isLoading">
-            <mat-spinner *ngIf="isLoading" diameter="24" class="loading-spinner"></mat-spinner>
-            <span *ngIf="!isLoading">Iniciar Sesión</span>
-          </button>
-  
-        <p class="forgot-password">
-          ¿Olvidaste tu contraseña? <a href="#">Recupérala aquí</a>
-        </p>
-      </form>
-    </div>
+      </div>
+
+      <div class="error-message" *ngIf="errorMessage">
+        <span class="error-icon">⚠️</span>
+        {{ errorMessage }}
+      </div>
+
+      <button 
+        mat-flat-button 
+        type="submit" 
+        class="login-button"
+        [disabled]="loginForm.invalid || isLoading">
+        <mat-spinner *ngIf="isLoading" diameter="20" class="button-spinner"></mat-spinner>
+        <span *ngIf="!isLoading">Iniciar Sesión</span>
+        <span *ngIf="isLoading">Iniciando...</span>
+      </button>
+
+      <div class="help-text">
+        ¿Problemas para acceder? <br>
+        <span>Contacta al administrador del sistema</span>
+      </div>
+    </form>
   </div>
-  
+</div>

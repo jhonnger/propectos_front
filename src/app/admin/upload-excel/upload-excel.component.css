@@ -1,36 +1,349 @@
+/* Container principal */
 .upload-container {
-  max-width: 600px;
-  margin: 0 auto;
+  min-height: 100vh;
+  background: #f8f9fa;
   padding: 2rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Header */
+.upload-header {
   text-align: center;
-  background-color: #f9f9f9;
-  border-radius: 8px;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  margin-bottom: 2rem;
+  color: #2c3e50;
 }
 
-h1 {
-  font-size: 1.8rem;
+.upload-icon {
+  font-size: 3rem;
+  width: 3rem;
+  height: 3rem;
   margin-bottom: 1rem;
-  color: #3f51b5;
+  color: #667eea;
 }
 
-p {
+.upload-header h1 {
+  font-size: 2.5rem;
+  font-weight: 300;
+  margin: 0 0 0.5rem 0;
+  letter-spacing: -0.025em;
+}
+
+.upload-header p {
+  font-size: 1.125rem;
+  margin: 0;
+  color: #6c757d;
+  font-weight: 300;
+}
+
+/* Card principal */
+.upload-card {
+  width: 100%;
+  max-width: 600px;
+  padding: 2.5rem;
+  border-radius: 16px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+  background: white;
+  border: none;
+}
+
+/* Zona de drag and drop */
+.drop-zone {
+  border: 2px dashed #e0e0e0;
+  border-radius: 12px;
+  padding: 3rem 2rem;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  background: #fafafa;
+}
+
+.drop-zone:hover {
+  border-color: #667eea;
+  background: #f8f9ff;
+}
+
+.drop-zone.drag-over {
+  border-color: #667eea;
+  background: #f0f2ff;
+  transform: scale(1.02);
+}
+
+.drop-zone-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+}
+
+.drop-icon {
+  font-size: 3rem;
+  width: 3rem;
+  height: 3rem;
+  color: #667eea;
+  opacity: 0.7;
+}
+
+.drop-text h3 {
+  font-size: 1.25rem;
+  font-weight: 500;
+  margin: 0;
+  color: #333;
+}
+
+.drop-text p {
   font-size: 1rem;
-  margin-bottom: 1.5rem;
-  color: #555;
+  margin: 0.5rem 0 0 0;
+  color: #666;
 }
 
-input[type="file"] {
-  display: block;
-  margin: 0 auto 1.5rem auto;
+.link-text {
+  color: #667eea;
+  font-weight: 500;
 }
 
-button {
+.file-types {
+  display: flex;
+  gap: 0.5rem;
   margin-top: 1rem;
 }
 
-.message {
+.file-type {
+  background: #667eea;
+  color: white;
+  padding: 0.25rem 0.75rem;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  letter-spacing: 0.5px;
+}
+
+/* Archivo seleccionado */
+.selected-file {
   margin-top: 1.5rem;
+  padding: 1rem;
+  background: #f8f9ff;
+  border-radius: 8px;
+  border: 1px solid #e3e8ff;
+}
+
+.file-info {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.file-icon {
+  color: #667eea;
+  font-size: 1.5rem;
+  width: 1.5rem;
+  height: 1.5rem;
+}
+
+.file-details {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.file-name {
+  font-weight: 500;
+  color: #333;
+  font-size: 0.875rem;
+}
+
+.file-size {
+  color: #666;
+  font-size: 0.75rem;
+}
+
+.remove-btn {
+  color: #ff5252;
+}
+
+.remove-btn:hover {
+  background: #ffebee;
+}
+
+/* Botones de acción */
+.action-buttons {
+  display: flex;
+  justify-content: center;
+  margin-top: 2rem;
+}
+
+.upload-btn {
+  padding: 0.75rem 2rem;
   font-size: 1rem;
-  color: #4caf50;
+  font-weight: 500;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-width: 160px;
+  justify-content: center;
+}
+
+.upload-btn mat-icon {
+  font-size: 1.25rem;
+  width: 1.25rem;
+  height: 1.25rem;
+}
+
+/* Información adicional */
+.upload-info {
+  margin-top: 2rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid #e0e0e0;
+}
+
+.info-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+  font-size: 0.875rem;
+  color: #666;
+}
+
+.info-item:last-child {
+  margin-bottom: 0;
+}
+
+.info-icon {
+  font-size: 1.125rem;
+  width: 1.125rem;
+  height: 1.125rem;
+  color: #667eea;
+}
+
+/* Snackbar styles */
+::ng-deep .success-snackbar {
+  background: #4caf50 !important;
+  color: white !important;
+}
+
+::ng-deep .error-snackbar {
+  background: #f44336 !important;
+  color: white !important;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .upload-container {
+    padding: 1rem;
+  }
+  
+  .upload-header h1 {
+    font-size: 2rem;
+  }
+  
+  .upload-header p {
+    font-size: 1rem;
+  }
+  
+  .upload-card {
+    padding: 1.5rem;
+  }
+  
+  .drop-zone {
+    padding: 2rem 1rem;
+  }
+  
+  .drop-icon {
+    font-size: 2.5rem;
+    width: 2.5rem;
+    height: 2.5rem;
+  }
+  
+  .drop-text h3 {
+    font-size: 1.125rem;
+  }
+  
+  .upload-btn {
+    width: 100%;
+  }
+}
+
+@media (max-width: 480px) {
+  .upload-container {
+    padding: 0.5rem;
+  }
+  
+  .upload-header {
+    margin-bottom: 1rem;
+  }
+  
+  .upload-header h1 {
+    font-size: 1.75rem;
+  }
+  
+  .upload-card {
+    padding: 1rem;
+  }
+  
+  .drop-zone {
+    padding: 1.5rem 0.5rem;
+  }
+  
+  .file-info {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+  
+  .remove-btn {
+    align-self: flex-end;
+  }
+}
+
+/* Animaciones */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.upload-card {
+  animation: fadeIn 0.6s ease-out;
+}
+
+.selected-file {
+  animation: fadeIn 0.4s ease-out;
+}
+
+/* Estados del spinner */
+mat-spinner {
+  display: inline-block;
+}
+
+/* Mejoras de accesibilidad */
+.drop-zone:focus {
+  outline: 2px solid #667eea;
+  outline-offset: 2px;
+}
+
+.upload-btn:focus {
+  outline: 2px solid #667eea;
+  outline-offset: 2px;
+}
+
+/* Hover effects */
+.file-type:hover {
+  transform: scale(1.05);
+  transition: transform 0.2s ease;
+}
+
+.upload-btn:not(:disabled):hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+  transition: all 0.2s ease;
 }

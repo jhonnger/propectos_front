@@ -1,0 +1,49 @@
+<mat-sidenav-container class="sidenav-container">
+  <!-- Sidenav -->
+  <mat-sidenav #sidenav mode="over" opened class="sidenav">
+
+    <div>
+
+    </div>
+
+    <mat-nav-list>
+      <!-- Opción: Cargar Excel -->
+      <a mat-list-item routerLink="/admin/upload-excel" routerLinkActive="active-link">
+        <mat-icon>upload_file</mat-icon>
+        <span>Cargar Excel</span>
+      </a>
+
+      <!-- Opción: Asignar Prospectos -->
+      <a mat-list-item routerLink="/admin/assign-prospects" routerLinkActive="active-link">
+        <mat-icon>assignment</mat-icon>
+        <span>Asignar Prospectos</span>
+      </a>
+
+      <!-- Opción: Ver Reportes -->
+      <a mat-list-item routerLink="/admin/reports" routerLinkActive="active-link">
+        <mat-icon>bar_chart</mat-icon>
+        <span>Ver Reportes</span>
+      </a>
+
+      <!-- Opción: Crear Usuarios -->
+      <a mat-list-item routerLink="/admin/create-user" routerLinkActive="active-link">
+        <mat-icon>person_add</mat-icon>
+        <span>Crear Usuarios</span>
+      </a>
+    </mat-nav-list>
+  </mat-sidenav>
+
+  <!-- Contenido principal -->
+  <mat-sidenav-content class="sidenav-content">
+    <mat-toolbar class="main-header">
+      <button mat-icon-button (click)="sidenav.toggle()" class="toggle-button">
+        <mat-icon>menu</mat-icon>
+      </button>
+      <span>Panel de Administración</span>
+    </mat-toolbar>
+
+    <div class="content">
+      <router-outlet></router-outlet>
+    </div>
+  </mat-sidenav-content>
+</mat-sidenav-container>

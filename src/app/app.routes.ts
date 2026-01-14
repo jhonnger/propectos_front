@@ -5,9 +5,19 @@ import { authGuard } from './auth/auth.guard';
 import {UploadExcelComponent} from './admin/upload-excel/upload-excel.component';
 
 export const routes: Routes = [
-    { path: '', redirectTo: '/login', pathMatch: 'full' },
   { path: 'login', component: LoginComponent },
-  { path: 'admin', component: UploadExcelComponent },
-  { path: 'dashboard', component: DashboardComponent, canActivate: [authGuard] },
-  { path: '**', redirectTo: '/login' }
+  // Rutas para admin
+  {
+    path: 'admin',
+    loadChildren: () => import('./admin/admin.routes').then(m => m.adminRoutes),
+  },
+  // Rutas para user
+  {
+    path: 'user',
+    loadChildren: () => import('./user/user.routes').then(m => m.userRoutes),
+  },
+  // Redirección por defecto
+  { path: '', redirectTo: '/user/dashboard', pathMatch: 'full' },
+  // Ruta para 404
+  { path: '**', redirectTo: '/login' },
 ];

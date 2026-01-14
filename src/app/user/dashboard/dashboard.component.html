@@ -1,73 +1,174 @@
 <app-navbar></app-navbar>
-<div class="dashboard">
-    <!-- Resumen de métricas -->
-    <div class="metrics">
-      <div class="metric">
-        <h2>Llamadas Hoy</h2>
-        <p>{{ callsToday }}</p>
-      </div>
-      <div class="metric">
-        <h2>Total Mes</h2>
-        <p>{{ callsThisMonth }}</p>
-      </div>
-      <div class="metric">
-        <h2>Contestadas</h2>
-        <p>{{ answeredCalls }}</p>
-      </div>
-      <div class="metric">
-        <h2>Rechazadas</h2>
-        <p>{{ rejectedCalls }}</p>
+
+<div class="dashboard-container">
+  <!-- Header Section -->
+  <div class="dashboard-header">
+    <div class="header-content">
+      <h1 class="page-title">Dashboard</h1>
+      <p class="page-subtitle">Gestiona tus prospectos y revisa métricas clave</p>
+    </div>
+  </div>
+
+  <!-- Metrics Cards -->
+  <div class="metrics-section">
+    <div class="metric-card">
+      <div class="metric-icon calls-today">📞</div>
+      <div class="metric-content">
+        <h3 class="metric-label">Llamadas Hoy</h3>
+        <p class="metric-value">{{ callsToday }}</p>
       </div>
     </div>
 
-    <!-- Listado de prospectos -->
-    <div class="prospect-list">
-      <h2>Prospectos Pendientes</h2>
-      <table mat-table [dataSource]="dataSource" class="mat-elevation-z8 custom-table">
-        <!-- Nombre -->
+    <div class="metric-card">
+      <div class="metric-icon calls-month">📅</div>
+      <div class="metric-content">
+        <h3 class="metric-label">Total Mes</h3>
+        <p class="metric-value">{{ callsThisMonth }}</p>
+      </div>
+    </div>
+
+    <div class="metric-card">
+      <div class="metric-icon answered">✅</div>
+      <div class="metric-content">
+        <h3 class="metric-label">Contestadas</h3>
+        <p class="metric-value">{{ answeredCalls }}</p>
+      </div>
+    </div>
+
+    <div class="metric-card">
+      <div class="metric-icon rejected">❌</div>
+      <div class="metric-content">
+        <h3 class="metric-label">Rechazadas</h3>
+        <p class="metric-value">{{ rejectedCalls }}</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Prospects Table Section -->
+  <div class="prospects-section">
+    <div class="section-header">
+      <h2 class="section-title">Prospectos Pendientes</h2>
+      <div class="section-actions">
+        <button mat-stroked-button class="refresh-btn" (click)="buscar()">
+          🔄 Actualizar
+        </button>
+      </div>
+    </div>
+
+    <!-- Desktop Table View -->
+    <div class="table-container desktop-only">
+      <table mat-table [dataSource]="dataSource" class="prospects-table">
+        
+        <!-- Nombre Column -->
         <ng-container matColumnDef="nombre">
-          <th mat-header-cell *matHeaderCellDef> Nombre </th>
-          <td mat-cell *matCellDef="let prospect"> {{ prospect.nombre }} {{ prospect.apellido }} </td>
+          <th mat-header-cell *matHeaderCellDef class="table-header">Nombre Completo</th>
+          <td mat-cell *matCellDef="let prospect" class="table-cell">
+            <div class="prospect-name">
+              <span class="name-primary">{{ prospect.nombre }} {{ prospect.apellido }}</span>
+            </div>
+          </td>
         </ng-container>
 
-        <!-- Celular -->
-        <ng-container matColumnDef="celular">
-          <th mat-header-cell *matHeaderCellDef> Celular </th>
-          <td mat-cell *matCellDef="let prospect"> {{ prospect.celular }} </td>
-        </ng-container>
-
-        <!-- Celular -->
+        <!-- DNI Column -->
         <ng-container matColumnDef="documentoIdentidad">
-          <th mat-header-cell *matHeaderCellDef> DNI </th>
-          <td mat-cell *matCellDef="let prospect"> {{ prospect.documentoIdentidad }} </td>
+          <th mat-header-cell *matHeaderCellDef class="table-header">DNI</th>
+          <td mat-cell *matCellDef="let prospect" class="table-cell">
+            <span class="dni-text">{{ prospect.documentoIdentidad }}</span>
+          </td>
         </ng-container>
 
-        <!-- Celular -->
+        <!-- Campaña Column -->
         <ng-container matColumnDef="campania">
-          <th mat-header-cell *matHeaderCellDef> Campaña </th>
-          <td mat-cell *matCellDef="let prospect"> {{ prospect.campania }} </td>
+          <th mat-header-cell *matHeaderCellDef class="table-header">Campaña</th>
+          <td mat-cell *matCellDef="let prospect" class="table-cell">
+            <span class="campaign-badge">{{ prospect.campania }}</span>
+          </td>
         </ng-container>
 
-        <!-- Acción -->
+        <!-- Celular Column -->
+        <ng-container matColumnDef="celular">
+          <th mat-header-cell *matHeaderCellDef class="table-header">Teléfono</th>
+          <td mat-cell *matCellDef="let prospect" class="table-cell">
+            <a href="tel:{{ prospect.celular }}" class="phone-link">{{ prospect.celular }}</a>
+          </td>
+        </ng-container>
+
+        <!-- Actions Column -->
         <ng-container matColumnDef="actions">
-          <th mat-header-cell *matHeaderCellDef> Acción </th>
-          <td mat-cell *matCellDef="let prospect">
-            <button mat-raised-button color="primary" (click)="openDialog(prospect)">
-              Actualizar Estado
+          <th mat-header-cell *matHeaderCellDef class="table-header">Acciones</th>
+          <td mat-cell *matCellDef="let prospect" class="table-cell">
+            <button 
+              mat-flat-button 
+              class="action-btn" 
+              (click)="openDialog(prospect)">
+              Actualizar
             </button>
           </td>
         </ng-container>
 
-        <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-        <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+        <tr mat-header-row *matHeaderRowDef="displayedColumns" class="table-header-row"></tr>
+        <tr mat-row *matRowDef="let row; columns: displayedColumns;" class="table-row"></tr>
       </table>
 
-      <!-- Paginador -->
+      <!-- Empty State Desktop -->
+      <div class="empty-state" *ngIf="prospects.length === 0">
+        <div class="empty-icon">📋</div>
+        <h3>No hay prospectos disponibles</h3>
+        <p>Los prospectos aparecerán aquí cuando sean asignados</p>
+      </div>
+    </div>
+
+    <!-- Mobile Cards View -->
+    <div class="mobile-cards-container mobile-only">
+      <div class="prospect-card" *ngFor="let prospect of prospects">
+        <div class="card-header">
+          <div class="prospect-info">
+            <h3 class="prospect-name-mobile">{{ prospect.nombre }} {{ prospect.apellido }}</h3>
+            <span class="prospect-dni">DNI: {{ prospect.documentoIdentidad }}</span>
+          </div>
+          <div class="prospect-actions">
+            <button 
+              mat-fab 
+              color="primary" 
+              class="action-btn-mobile" 
+              (click)="openDialog(prospect)"
+              aria-label="Actualizar prospecto">
+              ✏️
+            </button>
+          </div>
+        </div>
+        
+        <div class="card-content">
+          <div class="info-row">
+            <span class="info-label">📞 Teléfono:</span>
+            <a href="tel:{{ prospect.celular }}" class="phone-link-mobile">{{ prospect.celular }}</a>
+          </div>
+          
+          <div class="info-row">
+            <span class="info-label">🎯 Campaña:</span>
+            <span class="campaign-badge-mobile">{{ prospect.campania }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Empty State Mobile -->
+      <div class="empty-state-mobile" *ngIf="prospects.length === 0">
+        <div class="empty-icon">📋</div>
+        <h3>No hay prospectos disponibles</h3>
+        <p>Los prospectos aparecerán aquí cuando sean asignados</p>
+      </div>
+    </div>
+
+    <!-- Pagination -->
+    <div class="pagination-container">
       <mat-paginator
         [length]="totalResultados"
         [pageSize]="tamanioPagina"
-        [pageSizeOptions]="[5, 10, 20]"
+        [pageSizeOptions]="[5, 10, 20, 50]"
         (page)="onPageEvent($event)"
-        showFirstLastButtons></mat-paginator>
+        showFirstLastButtons
+        class="custom-paginator">
+      </mat-paginator>
     </div>
   </div>
+</div>
