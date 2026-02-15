@@ -3,6 +3,7 @@ import {HttpClient, HttpHeaders, HttpParams} from '@angular/common/http';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 import {BusquedaRequest} from '../../../common/types/BusquedaRequest.interface';
+import { environment } from '../../../../environments/environment';
 
 export interface ContactoRegistro {
   prospectoId: number;
@@ -17,8 +18,8 @@ export interface ContactoRegistro {
   export class ProspectoService {
 
     private tokenKey = 'authToken';
-    private baseUrl = 'http://localhost:8081/api/prospectos';
-    private contactoBaseUrl = 'http://localhost:8081/api/contactos';
+    private baseUrl = `${environment.apiUrl}/api/prospectos`;
+    private contactoBaseUrl = `${environment.apiUrl}/api/contactos`;
 
   constructor(private http: HttpClient) {}
 

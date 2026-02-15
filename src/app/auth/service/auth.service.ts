@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
+import { environment } from '../../../environments/environment';
 
 @Injectable({
     providedIn: 'root'
@@ -14,7 +15,7 @@ import { map } from 'rxjs/operators';
     constructor(private http: HttpClient) {}
 
     login(username: string, password: string): Observable<string | null> {
-      return this.http.post<{ token: string; rol: string }>('http://localhost:8081/api/auth/login', { username, password })
+      return this.http.post<{ token: string; rol: string }>(`${environment.apiUrl}/api/auth/login`, { username, password })
         .pipe(
           map((response) => {
             if (response) {
