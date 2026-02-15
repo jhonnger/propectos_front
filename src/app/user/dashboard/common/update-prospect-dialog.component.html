@@ -14,7 +14,7 @@
       </mat-error>
     </mat-form-field>
 
-    <mat-form-field appearance="outline" class="full-width">
+    <mat-form-field appearance="outline" class="full-width" *ngIf="mostrarInteresado">
       <mat-label>¿Está interesado?</mat-label>
       <mat-select formControlName="interesado" required>
         <mat-option [value]="true">Sí</mat-option>

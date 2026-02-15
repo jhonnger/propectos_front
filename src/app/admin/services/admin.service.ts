@@ -51,6 +51,45 @@ export interface UsuarioDTO {
   rolNombre: string;
 }
 
+export interface RolDTO {
+  id: number;
+  nombre: string;
+  descripcion: string;
+}
+
+export interface CreateUserRequest {
+  nombre: string;
+  apellidos: string;
+  usuario: string;
+  email: string;
+  password: string;
+  rolId: number;
+}
+
+export interface CreateUserResponse {
+  success: boolean;
+  mensaje: string;
+  usuarioId?: number;
+}
+
+export interface UpdateUserRequest {
+  nombre: string;
+  apellidos: string;
+  email: string;
+  password?: string;
+  rolId: number;
+}
+
+export interface UpdateUserResponse {
+  success: boolean;
+  mensaje: string;
+}
+
+export interface DeleteUserResponse {
+  success: boolean;
+  mensaje: string;
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -195,7 +234,91 @@ export class AdminService {
     });
 
     return this.http.get<UsuarioDTO[]>(
-      `${this.usuarioUrl}/activos`, 
+      `${this.usuarioUrl}/activos`,
+      { headers }
+    );
+  }
+
+  /**
+   * Crear un nuevo usuario
+   * @param userData Datos del usuario a crear
+   * @returns Observable con la respuesta de creación
+   */
+  createUser(userData: CreateUserRequest): Observable<CreateUserResponse> {
+    const headers = new HttpHeaders({
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${this.getToken()}`,
+    });
+
+    return this.http.post<CreateUserResponse>(
+      `${this.usuarioUrl}`,
+      userData,
+      { headers }
+    );
+  }
+
+  /**
+   * Obtener todos los roles disponibles
+   * @returns Observable con la lista de roles
+   */
+  getRoles(): Observable<RolDTO[]> {
+    const headers = new HttpHeaders({
+      'Authorization': `Bearer ${this.getToken()}`,
+    });
+
+    return this.http.get<RolDTO[]>(
+      `${this.usuarioUrl}/roles`,
+      { headers }
+    );
+  }
+
+  /**
+   * Obtener un usuario por ID
+   * @param id ID del usuario
+   * @returns Observable con los datos del usuario
+   */
+  getUserById(id: number): Observable<UsuarioDTO> {
+    const headers = new HttpHeaders({
+      'Authorization': `Bearer ${this.getToken()}`,
+    });
+
+    return this.http.get<UsuarioDTO>(
+      `${this.usuarioUrl}/${id}`,
+      { headers }
+    );
+  }
+
+  /**
+   * Actualizar un usuario existente
+   * @param id ID del usuario a actualizar
+   * @param userData Datos actualizados del usuario
+   * @returns Observable con la respuesta de actualización
+   */
+  updateUser(id: number, userData: UpdateUserRequest): Observable<UpdateUserResponse> {
+    const headers = new HttpHeaders({
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${this.getToken()}`,
+    });
+
+    return this.http.put<UpdateUserResponse>(
+      `${this.usuarioUrl}/${id}`,
+      userData,
+      { headers }
+    );
+  }
+
+  /**
+   * Desactivar un usuario (soft delete)
+   * @param id ID del usuario a desactivar
+   * @returns Observable con la respuesta de eliminación
+   */
+  deleteUser(id: number): Observable<DeleteUserResponse> {
+    const headers = new HttpHeaders({
+      'Authorization': `Bearer ${this.getToken()}`,
+    });
+
+    return this.http.delete<DeleteUserResponse>(
+      `${this.usuarioUrl}/${id}`,
       { headers }
     );
   }

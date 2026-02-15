@@ -1,9 +1,9 @@
 <mat-sidenav-container class="sidenav-container">
   <!-- Sidenav -->
-  <mat-sidenav #sidenav mode="over" opened class="sidenav">
-
-    <div>
-
+  <mat-sidenav #sidenav mode="side" opened class="sidenav">
+    <div class="sidenav-header">
+      <mat-icon>admin_panel_settings</mat-icon>
+      <span>Admin Panel</span>
     </div>
 
     <mat-nav-list>
@@ -25,10 +25,10 @@
         <span>Ver Reportes</span>
       </a>
 
-      <!-- Opción: Crear Usuarios -->
-      <a mat-list-item routerLink="/admin/create-user" routerLinkActive="active-link">
-        <mat-icon>person_add</mat-icon>
-        <span>Crear Usuarios</span>
+      <!-- Opción: Gestión de Usuarios -->
+      <a mat-list-item routerLink="/admin/users" routerLinkActive="active-link">
+        <mat-icon>group</mat-icon>
+        <span>Usuarios</span>
       </a>
     </mat-nav-list>
   </mat-sidenav>

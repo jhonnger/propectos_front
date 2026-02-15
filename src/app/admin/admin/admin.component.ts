@@ -6,7 +6,6 @@ import {MatIconModule} from '@angular/material/icon';
 import {MatButtonModule} from '@angular/material/button';
 import {RouterModule} from '@angular/router';
 import {CommonModule} from '@angular/common';
-import {NavbarComponent} from '../../shared/navbar/navbar.component';
 
 @Component({
   selector: 'app-admin',
@@ -17,8 +16,7 @@ import {NavbarComponent} from '../../shared/navbar/navbar.component';
     MatIconModule,
     MatButtonModule,
     RouterModule,
-    CommonModule,
-    NavbarComponent
+    CommonModule
   ],
   templateUrl: './admin.component.html',
   styleUrl: './admin.component.css'

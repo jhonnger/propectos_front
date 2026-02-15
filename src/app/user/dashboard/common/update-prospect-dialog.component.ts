@@ -31,6 +31,7 @@ export interface ContactoRegistro {
 })
 export class UpdateProspectDialogComponent {
   contactForm: FormGroup;
+  mostrarInteresado = false;
 
   constructor(
     public dialogRef: MatDialogRef<UpdateProspectDialogComponent>,
@@ -39,8 +40,22 @@ export class UpdateProspectDialogComponent {
   ) {
     this.contactForm = this.fb.group({
       contestoLlamada: [null, [Validators.required]],
-      interesado: [null, [Validators.required]],
+      interesado: [null],
       comentario: ['']
+    });
+
+    // Escuchar cambios en contestoLlamada
+    this.contactForm.get('contestoLlamada')?.valueChanges.subscribe((value) => {
+      this.mostrarInteresado = value === true;
+      const interesadoControl = this.contactForm.get('interesado');
+
+      if (this.mostrarInteresado) {
+        interesadoControl?.setValidators([Validators.required]);
+      } else {
+        interesadoControl?.clearValidators();
+        interesadoControl?.setValue(null);
+      }
+      interesadoControl?.updateValueAndValidity();
     });
   }
 

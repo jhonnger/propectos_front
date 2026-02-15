@@ -1,0 +1,135 @@
+<div class="users-list-container">
+  <div class="users-list-header">
+    <div class="header-content">
+      <mat-icon class="header-icon">group</mat-icon>
+      <div>
+        <h1>Gestión de Usuarios</h1>
+        <p>Administra los usuarios del sistema</p>
+      </div>
+    </div>
+    <button
+      mat-raised-button
+      color="primary"
+      (click)="onCreateUser()"
+      class="create-btn">
+      <mat-icon>person_add</mat-icon>
+      Nuevo Usuario
+    </button>
+  </div>
+
+  <div class="users-list-content">
+    <!-- Buscador -->
+    <mat-form-field appearance="outline" class="search-field">
+      <mat-label>Buscar usuarios</mat-label>
+      <input
+        matInput
+        (keyup)="applyFilter($event)"
+        placeholder="Busca por nombre, usuario, email o rol"
+        [attr.aria-label]="'Buscar usuarios'">
+      <mat-icon matPrefix>search</mat-icon>
+    </mat-form-field>
+
+    <!-- Estado de carga -->
+    <div *ngIf="isLoading" class="loading-container">
+      <mat-spinner diameter="50"></mat-spinner>
+      <p>Cargando usuarios...</p>
+    </div>
+
+    <!-- Tabla de usuarios -->
+    <div *ngIf="!isLoading" class="table-container">
+      <table mat-table [dataSource]="dataSource" matSort class="users-table">
+
+        <!-- Columna: Nombre Completo -->
+        <ng-container matColumnDef="nombreCompleto">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header>Nombre Completo</th>
+          <td mat-cell *matCellDef="let usuario">
+            <div class="user-name">
+              <mat-icon class="user-icon">account_circle</mat-icon>
+              {{ usuario.nombreCompleto }}
+            </div>
+          </td>
+        </ng-container>
+
+        <!-- Columna: Usuario -->
+        <ng-container matColumnDef="usuario">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header>Usuario</th>
+          <td mat-cell *matCellDef="let usuario">
+            <span class="username">{{ usuario.usuario }}</span>
+          </td>
+        </ng-container>
+
+        <!-- Columna: Email -->
+        <ng-container matColumnDef="email">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header>Email</th>
+          <td mat-cell *matCellDef="let usuario">
+            <span class="email">{{ usuario.email }}</span>
+          </td>
+        </ng-container>
+
+        <!-- Columna: Rol -->
+        <ng-container matColumnDef="rolNombre">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header>Rol</th>
+          <td mat-cell *matCellDef="let usuario">
+            <span class="rol-badge">{{ usuario.rolNombre }}</span>
+          </td>
+        </ng-container>
+
+        <!-- Columna: Estado -->
+        <ng-container matColumnDef="estado">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header>Estado</th>
+          <td mat-cell *matCellDef="let usuario">
+            <mat-chip-set>
+              <mat-chip [ngClass]="getEstadoClass(usuario.estado)">
+                {{ getEstadoTexto(usuario.estado) }}
+              </mat-chip>
+            </mat-chip-set>
+          </td>
+        </ng-container>
+
+        <!-- Columna: Acciones -->
+        <ng-container matColumnDef="acciones">
+          <th mat-header-cell *matHeaderCellDef class="actions-header">Acciones</th>
+          <td mat-cell *matCellDef="let usuario" class="actions-cell">
+            <button
+              mat-icon-button
+              color="primary"
+              (click)="onEditUser(usuario)"
+              matTooltip="Editar usuario"
+              [attr.aria-label]="'Editar usuario ' + usuario.nombreCompleto">
+              <mat-icon>edit</mat-icon>
+            </button>
+            <button
+              mat-icon-button
+              color="warn"
+              (click)="onDeleteUser(usuario)"
+              matTooltip="Desactivar usuario"
+              [attr.aria-label]="'Desactivar usuario ' + usuario.nombreCompleto">
+              <mat-icon>delete</mat-icon>
+            </button>
+          </td>
+        </ng-container>
+
+        <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+        <tr mat-row *matRowDef="let row; columns: displayedColumns;" class="user-row"></tr>
+
+        <!-- Fila cuando no hay datos -->
+        <tr class="mat-row" *matNoDataRow>
+          <td class="mat-cell no-data" [attr.colspan]="displayedColumns.length">
+            <div class="no-data-container">
+              <mat-icon class="no-data-icon">info</mat-icon>
+              <p>No se encontraron usuarios con los criterios de búsqueda.</p>
+            </div>
+          </td>
+        </tr>
+      </table>
+
+      <!-- Paginador -->
+      <mat-paginator
+        [pageSizeOptions]="[5, 10, 25, 50]"
+        [pageSize]="10"
+        showFirstLastButtons
+        aria-label="Seleccionar página de usuarios">
+      </mat-paginator>
+    </div>
+  </div>
+</div>

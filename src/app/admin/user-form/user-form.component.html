@@ -1,0 +1,218 @@
+<div class="create-user-container">
+  <div class="create-user-header">
+    <mat-icon class="header-icon">{{ isEditMode ? 'edit' : 'person_add' }}</mat-icon>
+    <h1>{{ getFormTitle() }}</h1>
+    <p>{{ isEditMode ? 'Actualiza los datos del usuario' : 'Completa los datos para crear un nuevo usuario en el sistema' }}</p>
+  </div>
+
+  <!-- Loading state -->
+  <div *ngIf="isLoadingUser" class="loading-container">
+    <mat-spinner diameter="50"></mat-spinner>
+    <p>Cargando datos del usuario...</p>
+  </div>
+
+  <mat-card *ngIf="!isLoadingUser" class="create-user-card">
+    <form [formGroup]="userForm" (ngSubmit)="onSubmit()">
+
+      <!-- Información Personal -->
+      <div class="form-section">
+        <h2 class="section-title">
+          <mat-icon>badge</mat-icon>
+          Información Personal
+        </h2>
+
+        <div class="form-row">
+          <mat-form-field appearance="outline" class="form-field">
+            <mat-label>Nombre</mat-label>
+            <input
+              matInput
+              formControlName="nombre"
+              placeholder="Ingresa el nombre"
+              maxlength="50"
+              autocomplete="given-name"
+              [attr.aria-label]="'Nombre del usuario'"
+              [attr.aria-required]="true">
+            <mat-icon matPrefix>person</mat-icon>
+            <mat-error *ngIf="hasError('nombre')">
+              {{ getErrorMessage('nombre') }}
+            </mat-error>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="form-field">
+            <mat-label>Apellidos</mat-label>
+            <input
+              matInput
+              formControlName="apellidos"
+              placeholder="Ingresa los apellidos"
+              maxlength="50"
+              autocomplete="family-name"
+              [attr.aria-label]="'Apellidos del usuario'"
+              [attr.aria-required]="true">
+            <mat-icon matPrefix>person_outline</mat-icon>
+            <mat-error *ngIf="hasError('apellidos')">
+              {{ getErrorMessage('apellidos') }}
+            </mat-error>
+          </mat-form-field>
+        </div>
+      </div>
+
+      <!-- Credenciales de Acceso -->
+      <div class="form-section">
+        <h2 class="section-title">
+          <mat-icon>vpn_key</mat-icon>
+          Credenciales de Acceso
+        </h2>
+
+        <div class="form-row">
+          <mat-form-field appearance="outline" class="form-field">
+            <mat-label>Usuario</mat-label>
+            <input
+              matInput
+              formControlName="usuario"
+              placeholder="Ingresa el nombre de usuario"
+              maxlength="20"
+              autocomplete="username"
+              [attr.aria-label]="'Nombre de usuario para login'"
+              [attr.aria-required]="true">
+            <mat-icon matPrefix>account_circle</mat-icon>
+            <mat-hint>Solo letras, números y guiones bajos</mat-hint>
+            <mat-error *ngIf="hasError('usuario')">
+              {{ getErrorMessage('usuario') }}
+            </mat-error>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="form-field">
+            <mat-label>Email</mat-label>
+            <input
+              matInput
+              type="email"
+              formControlName="email"
+              placeholder="ejemplo@correo.com"
+              autocomplete="email"
+              [attr.aria-label]="'Email del usuario'"
+              [attr.aria-required]="true">
+            <mat-icon matPrefix>email</mat-icon>
+            <mat-error *ngIf="hasError('email')">
+              {{ getErrorMessage('email') }}
+            </mat-error>
+          </mat-form-field>
+        </div>
+
+        <div class="form-row">
+          <mat-form-field appearance="outline" class="form-field">
+            <mat-label>Contraseña</mat-label>
+            <input
+              matInput
+              type="password"
+              formControlName="password"
+              [placeholder]="isEditMode ? 'Dejar en blanco para no cambiar' : 'Ingresa la contraseña'"
+              maxlength="50"
+              autocomplete="new-password"
+              [attr.aria-label]="'Contraseña del usuario'"
+              [attr.aria-required]="!isEditMode">
+            <mat-icon matPrefix>lock</mat-icon>
+            <mat-hint>{{ isEditMode ? 'Opcional - Dejar en blanco para mantener la actual' : 'Mínimo 6 caracteres' }}</mat-hint>
+            <mat-error *ngIf="hasError('password')">
+              {{ getErrorMessage('password') }}
+            </mat-error>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="form-field">
+            <mat-label>Confirmar Contraseña</mat-label>
+            <input
+              matInput
+              type="password"
+              formControlName="confirmPassword"
+              [placeholder]="isEditMode ? 'Confirma si ingresaste nueva contraseña' : 'Confirma la contraseña'"
+              maxlength="50"
+              autocomplete="new-password"
+              [attr.aria-label]="'Confirmación de contraseña'"
+              [attr.aria-required]="!isEditMode">
+            <mat-icon matPrefix>lock_outline</mat-icon>
+            <mat-error *ngIf="hasError('confirmPassword')">
+              {{ getErrorMessage('confirmPassword') }}
+            </mat-error>
+          </mat-form-field>
+        </div>
+      </div>
+
+      <!-- Rol y Permisos -->
+      <div class="form-section">
+        <h2 class="section-title">
+          <mat-icon>admin_panel_settings</mat-icon>
+          Rol y Permisos
+        </h2>
+
+        <div class="form-row single-field">
+          <mat-form-field appearance="outline" class="form-field">
+            <mat-label>Rol</mat-label>
+            <mat-select
+              formControlName="rolId"
+              placeholder="Selecciona un rol"
+              [disabled]="isLoadingRoles"
+              [attr.aria-label]="'Rol del usuario'"
+              [attr.aria-required]="true">
+              <mat-option *ngFor="let rol of roles" [value]="rol.id">
+                {{ rol.nombre }}
+                <span class="rol-description" *ngIf="rol.descripcion">- {{ rol.descripcion }}</span>
+              </mat-option>
+            </mat-select>
+            <mat-icon matPrefix>shield</mat-icon>
+            <mat-spinner *ngIf="isLoadingRoles" diameter="20" matSuffix></mat-spinner>
+            <mat-error *ngIf="hasError('rolId')">
+              {{ getErrorMessage('rolId') }}
+            </mat-error>
+          </mat-form-field>
+        </div>
+      </div>
+
+      <!-- Botones de Acción -->
+      <div class="form-actions">
+        <button
+          mat-raised-button
+          type="button"
+          (click)="onCancel()"
+          [disabled]="isSubmitting"
+          class="cancel-btn">
+          <mat-icon>cancel</mat-icon>
+          Cancelar
+        </button>
+
+        <button
+          mat-raised-button
+          color="primary"
+          type="submit"
+          [disabled]="isSubmitting || isLoadingRoles"
+          class="submit-btn">
+          <mat-icon *ngIf="!isSubmitting">{{ getActionButtonIcon() }}</mat-icon>
+          <mat-spinner *ngIf="isSubmitting" diameter="20"></mat-spinner>
+          <span>{{ getActionButtonText() }}</span>
+        </button>
+      </div>
+    </form>
+
+    <!-- Información Adicional -->
+    <div class="info-section">
+      <div class="info-item">
+        <mat-icon class="info-icon">info</mat-icon>
+        <span>{{ isEditMode ? 'Los campos marcados son obligatorios' : 'Todos los campos son obligatorios' }}</span>
+      </div>
+      <div class="info-item" *ngIf="!isEditMode">
+        <mat-icon class="info-icon">security</mat-icon>
+        <span>La contraseña debe tener al menos 6 caracteres</span>
+      </div>
+      <div class="info-item" *ngIf="isEditMode">
+        <mat-icon class="info-icon">security</mat-icon>
+        <span>La contraseña es opcional - Solo ingresa una nueva si deseas cambiarla</span>
+      </div>
+      <div class="info-item" *ngIf="isEditMode">
+        <mat-icon class="info-icon">lock</mat-icon>
+        <span>El nombre de usuario no puede ser modificado</span>
+      </div>
+      <div class="info-item">
+        <mat-icon class="info-icon">verified_user</mat-icon>
+        <span>El rol determina los permisos y accesos del usuario</span>
+      </div>
+    </div>
+  </mat-card>
+</div>
