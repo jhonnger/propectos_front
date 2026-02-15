@@ -2,6 +2,7 @@ import { Routes } from '@angular/router';
 import { LoginComponent } from './auth/login/login.component';
 import { DashboardComponent } from './user/dashboard/dashboard.component';
 import { authGuard } from './auth/auth.guard';
+import { adminGuard } from './auth/admin.guard';
 import {UploadExcelComponent} from './admin/upload-excel/upload-excel.component';
 
 export const routes: Routes = [
@@ -9,6 +10,7 @@ export const routes: Routes = [
   // Rutas para admin
   {
     path: 'admin',
+    canActivate: [adminGuard],
     loadChildren: () => import('./admin/admin.routes').then(m => m.adminRoutes),
   },
   // Rutas para user

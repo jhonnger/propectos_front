@@ -1,0 +1,81 @@
+<h2 mat-dialog-title class="dialog-title">
+  <mat-icon>{{ isEditMode ? 'edit' : 'person_add' }}</mat-icon>
+  {{ title }}
+</h2>
+
+<mat-dialog-content class="dialog-content">
+  <form [formGroup]="form" class="user-form">
+    <div class="form-row">
+      <mat-form-field appearance="outline" class="form-field">
+        <mat-label>Nombre</mat-label>
+        <input matInput formControlName="nombre" placeholder="Nombre">
+        <mat-icon matPrefix>person</mat-icon>
+        <mat-error *ngIf="form.get('nombre')?.hasError('required')">El nombre es requerido</mat-error>
+        <mat-error *ngIf="form.get('nombre')?.hasError('minlength')">Minimo 2 caracteres</mat-error>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="form-field">
+        <mat-label>Apellidos</mat-label>
+        <input matInput formControlName="apellidos" placeholder="Apellidos">
+        <mat-icon matPrefix>person_outline</mat-icon>
+        <mat-error *ngIf="form.get('apellidos')?.hasError('required')">Los apellidos son requeridos</mat-error>
+        <mat-error *ngIf="form.get('apellidos')?.hasError('minlength')">Minimo 2 caracteres</mat-error>
+      </mat-form-field>
+    </div>
+
+    <div class="form-row">
+      <mat-form-field appearance="outline" class="form-field">
+        <mat-label>Usuario</mat-label>
+        <input matInput formControlName="usuario" placeholder="Nombre de usuario">
+        <mat-icon matPrefix>account_circle</mat-icon>
+        <mat-error *ngIf="form.get('usuario')?.hasError('required')">El usuario es requerido</mat-error>
+        <mat-error *ngIf="form.get('usuario')?.hasError('minlength')">Minimo 3 caracteres</mat-error>
+        <mat-hint *ngIf="isEditMode">El usuario no puede ser modificado</mat-hint>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="form-field">
+        <mat-label>Email</mat-label>
+        <input matInput formControlName="email" placeholder="correo@ejemplo.com" type="email">
+        <mat-icon matPrefix>email</mat-icon>
+        <mat-error *ngIf="form.get('email')?.hasError('required')">El email es requerido</mat-error>
+        <mat-error *ngIf="form.get('email')?.hasError('email')">Ingrese un email valido</mat-error>
+      </mat-form-field>
+    </div>
+
+    <div class="form-row">
+      <mat-form-field appearance="outline" class="form-field">
+        <mat-label>{{ isEditMode ? 'Nueva Contrasena (opcional)' : 'Contrasena' }}</mat-label>
+        <input matInput formControlName="password" [type]="hidePassword ? 'password' : 'text'" placeholder="Contrasena">
+        <mat-icon matPrefix>lock</mat-icon>
+        <button mat-icon-button matSuffix type="button" (click)="hidePassword = !hidePassword">
+          <mat-icon>{{ hidePassword ? 'visibility_off' : 'visibility' }}</mat-icon>
+        </button>
+        <mat-error *ngIf="form.get('password')?.hasError('required')">La contrasena es requerida</mat-error>
+        <mat-error *ngIf="form.get('password')?.hasError('minlength')">Minimo 6 caracteres</mat-error>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="form-field">
+        <mat-label>Rol</mat-label>
+        <mat-select formControlName="rolId" placeholder="Seleccionar rol">
+          <mat-option *ngFor="let rol of roles" [value]="rol.id">
+            {{ rol.nombre }}
+          </mat-option>
+        </mat-select>
+        <mat-icon matPrefix>badge</mat-icon>
+        <mat-error *ngIf="form.get('rolId')?.hasError('required')">El rol es requerido</mat-error>
+      </mat-form-field>
+    </div>
+  </form>
+</mat-dialog-content>
+
+<mat-dialog-actions class="dialog-actions" align="end">
+  <button mat-stroked-button (click)="onCancel()" [disabled]="isSaving">
+    Cancelar
+  </button>
+  <button mat-raised-button color="primary" (click)="onSave()" [disabled]="isSaving || form.invalid">
+    <mat-spinner *ngIf="isSaving" diameter="20"></mat-spinner>
+    <mat-icon *ngIf="!isSaving">{{ isEditMode ? 'save' : 'person_add' }}</mat-icon>
+    <span *ngIf="!isSaving">{{ isEditMode ? 'Guardar Cambios' : 'Crear Usuario' }}</span>
+    <span *ngIf="isSaving">Guardando...</span>
+  </button>
+</mat-dialog-actions>

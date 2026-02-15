@@ -38,12 +38,14 @@ export class LoginComponent {
       this.isLoading = true;
       const { email, password } = this.loginForm.value;
       this.authService.login(email, password).subscribe({
-        next: (success) => {
+        next: (rol) => {
           this.isLoading = false;
-          console.log(' success ', success)
-          if (success) {
-            console.log('success');
-            this.router.navigate(['/user/app/dashboard']); // Redirige después de un login exitoso
+          if (rol) {
+            if (rol === 'ADMINISTRADOR') {
+              this.router.navigate(['/admin']);
+            } else {
+              this.router.navigate(['/user/app/dashboard']);
+            }
           }
         },
         error: (err) => {

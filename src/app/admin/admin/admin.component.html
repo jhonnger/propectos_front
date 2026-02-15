@@ -1,45 +1,46 @@
 <mat-sidenav-container class="sidenav-container">
-  <!-- Sidenav -->
-  <mat-sidenav #sidenav mode="side" opened class="sidenav">
+  <mat-sidenav #sidenav mode="side" [opened]="true" class="sidenav">
     <div class="sidenav-header">
-      <mat-icon>admin_panel_settings</mat-icon>
-      <span>Admin Panel</span>
+      <mat-icon class="sidenav-logo">admin_panel_settings</mat-icon>
+      <span class="sidenav-title">Admin Panel</span>
     </div>
 
-    <mat-nav-list>
-      <!-- Opción: Cargar Excel -->
+    <mat-nav-list class="sidenav-nav">
       <a mat-list-item routerLink="/admin/upload-excel" routerLinkActive="active-link">
-        <mat-icon>upload_file</mat-icon>
-        <span>Cargar Excel</span>
+        <mat-icon matListItemIcon>upload_file</mat-icon>
+        <span matListItemTitle>Cargar Excel</span>
       </a>
 
-      <!-- Opción: Asignar Prospectos -->
       <a mat-list-item routerLink="/admin/assign-prospects" routerLinkActive="active-link">
-        <mat-icon>assignment</mat-icon>
-        <span>Asignar Prospectos</span>
+        <mat-icon matListItemIcon>assignment</mat-icon>
+        <span matListItemTitle>Asignar Prospectos</span>
       </a>
 
-      <!-- Opción: Ver Reportes -->
       <a mat-list-item routerLink="/admin/reports" routerLinkActive="active-link">
-        <mat-icon>bar_chart</mat-icon>
-        <span>Ver Reportes</span>
+        <mat-icon matListItemIcon>bar_chart</mat-icon>
+        <span matListItemTitle>Ver Reportes</span>
       </a>
 
-      <!-- Opción: Gestión de Usuarios -->
-      <a mat-list-item routerLink="/admin/users" routerLinkActive="active-link">
-        <mat-icon>group</mat-icon>
-        <span>Usuarios</span>
+      <a mat-list-item routerLink="/admin/manage-users" routerLinkActive="active-link">
+        <mat-icon matListItemIcon>group</mat-icon>
+        <span matListItemTitle>Gestionar Usuarios</span>
       </a>
     </mat-nav-list>
+
+    <div class="sidenav-footer">
+      <a mat-list-item (click)="logout()">
+        <mat-icon>logout</mat-icon>
+        <span>Cerrar Sesion</span>
+      </a>
+    </div>
   </mat-sidenav>
 
-  <!-- Contenido principal -->
   <mat-sidenav-content class="sidenav-content">
     <mat-toolbar class="main-header">
       <button mat-icon-button (click)="sidenav.toggle()" class="toggle-button">
         <mat-icon>menu</mat-icon>
       </button>
-      <span>Panel de Administración</span>
+      <span>Panel de Administracion</span>
     </mat-toolbar>
 
     <div class="content">

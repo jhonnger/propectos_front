@@ -1,0 +1,56 @@
+.dialog-title {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 1.25rem;
+  font-weight: 500;
+  color: #2c3e50;
+  margin: 0;
+  padding: 1rem 1.5rem 0;
+}
+
+.dialog-title mat-icon {
+  color: #667eea;
+}
+
+.dialog-content {
+  padding: 1.5rem;
+  min-width: 500px;
+}
+
+.user-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.form-row {
+  display: flex;
+  gap: 1rem;
+}
+
+.form-field {
+  flex: 1;
+}
+
+.dialog-actions {
+  padding: 0.5rem 1.5rem 1rem;
+  gap: 0.5rem;
+}
+
+.dialog-actions button {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+@media (max-width: 600px) {
+  .dialog-content {
+    min-width: unset;
+  }
+
+  .form-row {
+    flex-direction: column;
+    gap: 0;
+  }
+}

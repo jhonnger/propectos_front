@@ -1,0 +1,197 @@
+<div class="manage-container">
+  <!-- Header -->
+  <div class="manage-header">
+    <mat-icon class="manage-icon">group</mat-icon>
+    <h1>Gestionar Usuarios</h1>
+    <p>Administra los usuarios del sistema</p>
+  </div>
+
+  <!-- Estadisticas -->
+  <div class="stats-container">
+    <mat-card class="stat-card">
+      <div class="stat-content">
+        <mat-icon class="stat-icon total">group</mat-icon>
+        <div class="stat-info">
+          <span class="stat-number">{{ users.length }}</span>
+          <span class="stat-label">Total</span>
+        </div>
+      </div>
+    </mat-card>
+
+    <mat-card class="stat-card">
+      <div class="stat-content">
+        <mat-icon class="stat-icon active">check_circle</mat-icon>
+        <div class="stat-info">
+          <span class="stat-number">{{ getActiveCount() }}</span>
+          <span class="stat-label">Activos</span>
+        </div>
+      </div>
+    </mat-card>
+
+    <mat-card class="stat-card">
+      <div class="stat-content">
+        <mat-icon class="stat-icon inactive">cancel</mat-icon>
+        <div class="stat-info">
+          <span class="stat-number">{{ getInactiveCount() }}</span>
+          <span class="stat-label">Inactivos</span>
+        </div>
+      </div>
+    </mat-card>
+  </div>
+
+  <!-- Tabla -->
+  <mat-card class="table-card">
+    <mat-card-header>
+      <mat-card-title>
+        <mat-icon>table_chart</mat-icon>
+        Lista de Usuarios
+      </mat-card-title>
+      <div class="header-actions">
+        <button mat-raised-button color="primary" (click)="openCreateDialog()" class="add-btn">
+          <mat-icon>person_add</mat-icon>
+          Nuevo Usuario
+        </button>
+      </div>
+    </mat-card-header>
+
+    <mat-card-content>
+      <!-- Loading -->
+      <div *ngIf="isLoading" class="loading-container">
+        <mat-spinner diameter="40"></mat-spinner>
+        <p>Cargando usuarios...</p>
+      </div>
+
+      <!-- Empty state -->
+      <div *ngIf="!isLoading && users.length === 0" class="empty-state">
+        <mat-icon class="empty-icon">person_off</mat-icon>
+        <h3>No hay usuarios registrados</h3>
+        <p>Crea un nuevo usuario para comenzar</p>
+      </div>
+
+      <!-- Desktop table -->
+      <div class="table-container desktop-view" *ngIf="!isLoading && users.length > 0">
+        <table mat-table [dataSource]="users" class="users-table">
+          <ng-container matColumnDef="nombre">
+            <th mat-header-cell *matHeaderCellDef>
+              <mat-icon class="header-icon">person</mat-icon>
+              Nombre
+            </th>
+            <td mat-cell *matCellDef="let user">{{ user.nombre }}</td>
+          </ng-container>
+
+          <ng-container matColumnDef="apellidos">
+            <th mat-header-cell *matHeaderCellDef>
+              <mat-icon class="header-icon">person_outline</mat-icon>
+              Apellidos
+            </th>
+            <td mat-cell *matCellDef="let user">{{ user.apellidos }}</td>
+          </ng-container>
+
+          <ng-container matColumnDef="usuario">
+            <th mat-header-cell *matHeaderCellDef>
+              <mat-icon class="header-icon">account_circle</mat-icon>
+              Usuario
+            </th>
+            <td mat-cell *matCellDef="let user">{{ user.usuario }}</td>
+          </ng-container>
+
+          <ng-container matColumnDef="email">
+            <th mat-header-cell *matHeaderCellDef>
+              <mat-icon class="header-icon">email</mat-icon>
+              Email
+            </th>
+            <td mat-cell *matCellDef="let user">{{ user.email }}</td>
+          </ng-container>
+
+          <ng-container matColumnDef="rol">
+            <th mat-header-cell *matHeaderCellDef>
+              <mat-icon class="header-icon">badge</mat-icon>
+              Rol
+            </th>
+            <td mat-cell *matCellDef="let user">
+              <mat-chip class="role-chip">{{ user.rolNombre }}</mat-chip>
+            </td>
+          </ng-container>
+
+          <ng-container matColumnDef="estado">
+            <th mat-header-cell *matHeaderCellDef>
+              <mat-icon class="header-icon">info</mat-icon>
+              Estado
+            </th>
+            <td mat-cell *matCellDef="let user">
+              <mat-chip [class]="user.estado ? 'status-active' : 'status-inactive'">
+                <mat-icon matChipAvatar>{{ user.estado ? 'check_circle' : 'cancel' }}</mat-icon>
+                {{ user.estado ? 'Activo' : 'Inactivo' }}
+              </mat-chip>
+            </td>
+          </ng-container>
+
+          <ng-container matColumnDef="acciones">
+            <th mat-header-cell *matHeaderCellDef>
+              <mat-icon class="header-icon">more_vert</mat-icon>
+              Acciones
+            </th>
+            <td mat-cell *matCellDef="let user">
+              <div class="actions-container">
+                <button mat-icon-button matTooltip="Editar" class="edit-btn" (click)="openEditDialog(user)">
+                  <mat-icon>edit</mat-icon>
+                </button>
+                <button mat-icon-button matTooltip="Desactivar" class="deactivate-btn" (click)="deleteUser(user)" *ngIf="user.estado">
+                  <mat-icon>person_off</mat-icon>
+                </button>
+                <button mat-icon-button matTooltip="Eliminar permanentemente" class="delete-btn" (click)="eliminarUser(user)">
+                  <mat-icon>delete_forever</mat-icon>
+                </button>
+              </div>
+            </td>
+          </ng-container>
+
+          <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+          <tr mat-row *matRowDef="let row; columns: displayedColumns;" class="table-row"></tr>
+        </table>
+      </div>
+
+      <!-- Mobile view -->
+      <div class="mobile-view" *ngIf="!isLoading && users.length > 0">
+        <div class="mobile-card" *ngFor="let user of users">
+          <div class="mobile-card-header">
+            <div class="user-info-mobile">
+              <mat-icon class="user-avatar-icon">account_circle</mat-icon>
+              <div>
+                <h3 class="user-fullname">{{ user.nombreCompleto }}</h3>
+                <span class="user-username">{{ user.usuario }}</span>
+              </div>
+            </div>
+            <mat-chip [class]="user.estado ? 'status-active' : 'status-inactive'" class="mobile-chip">
+              {{ user.estado ? 'Activo' : 'Inactivo' }}
+            </mat-chip>
+          </div>
+          <div class="mobile-card-content">
+            <div class="mobile-field">
+              <mat-icon>email</mat-icon>
+              <span>{{ user.email }}</span>
+            </div>
+            <div class="mobile-field">
+              <mat-icon>badge</mat-icon>
+              <span>{{ user.rolNombre }}</span>
+            </div>
+          </div>
+          <div class="mobile-actions">
+            <button mat-stroked-button class="mobile-edit-btn" (click)="openEditDialog(user)">
+              <mat-icon>edit</mat-icon>
+              Editar
+            </button>
+            <button mat-stroked-button class="mobile-deactivate-btn" (click)="deleteUser(user)" *ngIf="user.estado">
+              <mat-icon>person_off</mat-icon>
+              Desactivar
+            </button>
+            <button mat-stroked-button class="mobile-delete-btn" (click)="eliminarUser(user)">
+              <mat-icon>delete_forever</mat-icon>
+              Eliminar
+            </button>
+          </div>
+        </div>
+      </div>
+    </mat-card-content>
+  </mat-card>
+</div>

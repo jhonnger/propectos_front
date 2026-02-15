@@ -7,22 +7,23 @@ import { map } from 'rxjs/operators';
     providedIn: 'root'
   })
   export class AuthService {
-    private tokenKey = 'authToken'; // Llave para almacenar el token en localStorage
+    private tokenKey = 'authToken';
+    private roleKey = 'userRole';
     private isAuthenticatedSubject = new BehaviorSubject<boolean>(this.hasToken());
 
     constructor(private http: HttpClient) {}
 
-    login(username: string, password: string): Observable<boolean> {
-      return this.http.post<{ token: string }>('http://localhost:8081/api/auth/login', { username, password })
+    login(username: string, password: string): Observable<string | null> {
+      return this.http.post<{ token: string; rol: string }>('http://localhost:8081/api/auth/login', { username, password })
         .pipe(
-          map((response: any) => {
-            console.log(response)
+          map((response) => {
             if (response) {
               this.saveToken(response.token);
+              localStorage.setItem(this.roleKey, response.rol);
               this.isAuthenticatedSubject.next(true);
-              return true;
+              return response.rol;
             }
-            return false;
+            return null;
           })
         );
     }
@@ -34,15 +35,20 @@ import { map } from 'rxjs/operators';
 
     logout(): void {
       this.clearToken();
+      localStorage.removeItem(this.roleKey);
       this.isAuthenticatedSubject.next(false);
     }
 
     isAuthenticated(): Observable<boolean> {
       return this.isAuthenticatedSubject.asObservable();
     }
-  getUsername(): string | null {
+    getUsername(): string | null {
       return 'Juan';
-  }
+    }
+
+    getRole(): string | null {
+      return localStorage.getItem(this.roleKey);
+    }
 
     private saveToken(token: string): void {
         console.log(token)
