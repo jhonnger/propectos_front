@@ -3,6 +3,14 @@ import {HttpClient, HttpHeaders, HttpParams} from '@angular/common/http';
 import {Observable} from 'rxjs';
 import { environment } from '../../../environments/environment';
 
+export interface AsignacionResumenDTO {
+  usuarioId: number;
+  usuarioNombre: string;
+  usuarioApellidos: string;
+  usuarioNombreCompleto: string;
+  cantidadAsignada: number;
+}
+
 export interface AssignmentResponse {
   success: boolean;
   mensaje: string;
@@ -12,7 +20,7 @@ export interface AssignmentResponse {
   usuarioNombre: string;
   totalProspectos: number;
   nuevasAsignaciones: number;
-  reasignaciones: number;
+  prospectosSinAsignar: number;
   fechaAsignacion: string;
 }
 
@@ -38,6 +46,9 @@ export interface CargaMasivaDTO {
   usuarioAsignadoNombre: string | null;
   usuarioAsignadoApellidos: string | null;
   usuarioAsignadoCompleto: string | null;
+  prospectosAsignados: number;
+  prospectosSinAsignar: number;
+  resumenAsignaciones: AsignacionResumenDTO[];
 }
 
 export interface UsuarioDTO {
@@ -102,15 +113,19 @@ export class AdminService {
     return this.http.post(`${this.baseUrl}/importar`, payload, { headers });
   }
 
-  assignMassiveLoadToUser(cargaMasivaId: number, usuarioId: number): Observable<AssignmentResponse> {
+  assignMassiveLoadToUser(cargaMasivaId: number, usuarioId: number, cantidad?: number): Observable<AssignmentResponse> {
     const headers = new HttpHeaders({
       'Content-Type': 'application/x-www-form-urlencoded',
       'Authorization': `Bearer ${this.getToken()}`,
     });
 
-    const params = new HttpParams()
+    let params = new HttpParams()
       .set('cargaMasivaId', cargaMasivaId.toString())
       .set('usuarioId', usuarioId.toString());
+
+    if (cantidad !== undefined && cantidad !== null) {
+      params = params.set('cantidad', cantidad.toString());
+    }
 
     return this.http.post<AssignmentResponse>(
       `${this.assignmentUrl}/asignar-carga-masiva`,

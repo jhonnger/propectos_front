@@ -20,6 +20,16 @@
 
     <mat-card class="stat-card">
       <div class="stat-content">
+        <mat-icon class="stat-icon partial">pie_chart</mat-icon>
+        <div class="stat-info">
+          <span class="stat-number">{{ getPartialCount() }}</span>
+          <span class="stat-label">Parciales</span>
+        </div>
+      </div>
+    </mat-card>
+
+    <mat-card class="stat-card">
+      <div class="stat-content">
         <mat-icon class="stat-icon assigned">assignment_turned_in</mat-icon>
         <div class="stat-info">
           <span class="stat-number">{{ getAssignedCount() }}</span>
@@ -47,7 +57,7 @@
         Cargas de Prospectos
       </mat-card-title>
       <mat-card-subtitle>
-        Selecciona un teleoperador para asignar cada carga
+        Selecciona un teleoperador y la cantidad de prospectos a asignar
       </mat-card-subtitle>
     </mat-card-header>
 
@@ -67,12 +77,12 @@
 
       <!-- Vista de escritorio -->
       <div class="table-container desktop-view" *ngIf="!isLoadingData && excelLoads.length > 0">
-        <table mat-table [dataSource]="excelLoads" class="assignments-table">
+        <table mat-table [dataSource]="excelLoads" class="assignments-table" multiTemplateDataRows>
           <!-- Nombre de la Carga -->
           <ng-container matColumnDef="name">
             <th mat-header-cell *matHeaderCellDef>
               <mat-icon class="header-icon">folder</mat-icon>
-              Nombre de la Carga
+              Nombre
             </th>
             <td mat-cell *matCellDef="let load">
               <div class="load-name">
@@ -86,7 +96,7 @@
           <ng-container matColumnDef="date">
             <th mat-header-cell *matHeaderCellDef>
               <mat-icon class="header-icon">schedule</mat-icon>
-              Fecha de Carga
+              Fecha
             </th>
             <td mat-cell *matCellDef="let load">
               <div class="date-info">
@@ -100,12 +110,26 @@
           <ng-container matColumnDef="prospectsCount">
             <th mat-header-cell *matHeaderCellDef>
               <mat-icon class="header-icon">people</mat-icon>
-              Prospectos
+              Total
             </th>
             <td mat-cell *matCellDef="let load">
               <div class="prospects-count">
                 <span class="count-number">{{ load.prospectsCount }}</span>
                 <span class="count-label">registros</span>
+              </div>
+            </td>
+          </ng-container>
+
+          <!-- Disponibles -->
+          <ng-container matColumnDef="available">
+            <th mat-header-cell *matHeaderCellDef>
+              <mat-icon class="header-icon">hourglass_empty</mat-icon>
+              Disponibles
+            </th>
+            <td mat-cell *matCellDef="let load">
+              <div class="prospects-count">
+                <span class="count-number" [class.zero-available]="load.prospectosSinAsignar === 0">{{ load.prospectosSinAsignar }}</span>
+                <span class="count-label">sin asignar</span>
               </div>
             </td>
           </ng-container>
@@ -118,9 +142,7 @@
             </th>
             <td mat-cell *matCellDef="let load">
               <mat-chip [class]="getStatusClass(load.status)">
-                <mat-icon matChipAvatar>
-                  {{ load.status === 'pending' ? 'pending' : 'check_circle' }}
-                </mat-icon>
+                <mat-icon matChipAvatar>{{ getStatusIcon(load.status) }}</mat-icon>
                 {{ getStatusText(load.status) }}
               </mat-chip>
             </td>
@@ -130,31 +152,51 @@
           <ng-container matColumnDef="assignedTo">
             <th mat-header-cell *matHeaderCellDef>
               <mat-icon class="header-icon">person</mat-icon>
-              Asignado a
+              Teleoperador
             </th>
             <td mat-cell *matCellDef="let load">
-              <mat-form-field appearance="outline" class="assignment-select">
-                <mat-select 
-                  [value]="load.usuarioAsignadoId" 
-                  (selectionChange)="onAssignmentChange(load, $event.value)"
-                  [disabled]="load.isLoading"
-                  placeholder="Seleccionar teleoperador">
-                  <mat-option [value]="null">
-                    <mat-icon>person_off</mat-icon>
-                    Sin asignar
-                  </mat-option>
-                  <mat-option *ngFor="let user of getActiveUsers()" [value]="user.id">
-                    <div class="user-option">
-                      <mat-icon>person</mat-icon>
-                      <div class="user-info">
-                        <span class="user-name">{{ user.nombreCompleto }}</span>
-                        <span class="user-role">{{ user.rolNombre }}</span>
+              <ng-container *ngIf="load.prospectosSinAsignar > 0; else fullyAssigned">
+                <mat-form-field appearance="outline" class="assignment-select">
+                  <mat-select
+                    [(ngModel)]="load.selectedUserId"
+                    [disabled]="load.isLoading"
+                    placeholder="Seleccionar teleoperador">
+                    <mat-option *ngFor="let user of getActiveUsers()" [value]="user.id">
+                      <div class="user-option">
+                        <mat-icon>person</mat-icon>
+                        <div class="user-info">
+                          <span class="user-name">{{ user.nombreCompleto }}</span>
+                          <span class="user-role">{{ user.rolNombre }}</span>
+                        </div>
                       </div>
-                    </div>
-                  </mat-option>
-                </mat-select>
-                <!-- Spinner para cuando está cargando -->
-                <mat-spinner *ngIf="load.isLoading" matSuffix diameter="20"></mat-spinner>
+                    </mat-option>
+                  </mat-select>
+                  <mat-spinner *ngIf="load.isLoading" matSuffix diameter="20"></mat-spinner>
+                </mat-form-field>
+              </ng-container>
+              <ng-template #fullyAssigned>
+                <span class="fully-assigned-label">
+                  <mat-icon>check_circle</mat-icon>
+                  Totalmente asignado
+                </span>
+              </ng-template>
+            </td>
+          </ng-container>
+
+          <!-- Cantidad -->
+          <ng-container matColumnDef="quantity">
+            <th mat-header-cell *matHeaderCellDef>
+              <mat-icon class="header-icon">tag</mat-icon>
+              Cantidad
+            </th>
+            <td mat-cell *matCellDef="let load">
+              <mat-form-field appearance="outline" class="quantity-input" *ngIf="load.prospectosSinAsignar > 0">
+                <input matInput
+                  type="number"
+                  [(ngModel)]="load.cantidad"
+                  [max]="load.prospectosSinAsignar"
+                  min="1"
+                  [placeholder]="'Todos (' + load.prospectosSinAsignar + ')'">
               </mat-form-field>
             </td>
           </ng-container>
@@ -167,29 +209,52 @@
             </th>
             <td mat-cell *matCellDef="let load">
               <div class="actions-container">
-                <button 
-                  mat-icon-button 
-                  *ngIf="load.assignedTo && !load.isLoading"
-                  (click)="removeAssignment(load)"
-                  matTooltip="Remover asignación"
-                  class="remove-btn">
-                  <mat-icon>person_remove</mat-icon>
+                <button
+                  mat-raised-button
+                  color="primary"
+                  *ngIf="load.prospectosSinAsignar > 0"
+                  (click)="assignPartial(load)"
+                  [disabled]="load.isLoading || !load.selectedUserId"
+                  matTooltip="Asignar prospectos"
+                  class="assign-btn">
+                  <mat-icon>assignment_ind</mat-icon>
+                  Asignar
                 </button>
-                <button 
-                  mat-icon-button 
-                  matTooltip="Ver detalles"
-                  [disabled]="load.isLoading"
+                <button
+                  mat-icon-button
+                  *ngIf="load.resumenAsignaciones && load.resumenAsignaciones.length > 0"
+                  (click)="toggleBreakdown(load)"
+                  matTooltip="Ver desglose de asignaciones"
                   class="details-btn">
-                  <mat-icon>visibility</mat-icon>
+                  <mat-icon>{{ load.showBreakdown ? 'expand_less' : 'expand_more' }}</mat-icon>
                 </button>
-                <!-- Indicador de carga -->
                 <mat-spinner *ngIf="load.isLoading" diameter="24"></mat-spinner>
+              </div>
+            </td>
+          </ng-container>
+
+          <!-- Fila expandible de desglose -->
+          <ng-container matColumnDef="expandedDetail">
+            <td mat-cell *matCellDef="let load" [attr.colspan]="displayedColumns.length">
+              <div class="breakdown-container" *ngIf="load.showBreakdown && load.resumenAsignaciones && load.resumenAsignaciones.length > 0">
+                <div class="breakdown-header">
+                  <mat-icon>group</mat-icon>
+                  <span>Desglose de asignaciones</span>
+                </div>
+                <div class="breakdown-list">
+                  <div class="breakdown-item" *ngFor="let resumen of load.resumenAsignaciones">
+                    <mat-icon>person</mat-icon>
+                    <span class="breakdown-name">{{ resumen.usuarioNombreCompleto }}</span>
+                    <span class="breakdown-count">{{ resumen.cantidadAsignada }} prospectos</span>
+                  </div>
+                </div>
               </div>
             </td>
           </ng-container>
 
           <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
           <tr mat-row *matRowDef="let row; columns: displayedColumns;" class="table-row"></tr>
+          <tr mat-row *matRowDef="let row; columns: ['expandedDetail']" class="breakdown-row"></tr>
         </table>
       </div>
 
@@ -205,68 +270,105 @@
                   <span class="date-text">{{ load.date | date: 'dd/MM/yyyy' }}</span>
                   <span class="separator">•</span>
                   <span class="prospects-text">{{ load.prospectsCount }} prospectos</span>
+                  <span class="separator">•</span>
+                  <span class="available-text">{{ load.prospectosSinAsignar }} disponibles</span>
                 </div>
               </div>
             </div>
             <mat-chip [class]="getStatusClass(load.status)" class="mobile-chip">
-              <mat-icon matChipAvatar>
-                {{ load.status === 'pending' ? 'pending' : 'check_circle' }}
-              </mat-icon>
+              <mat-icon matChipAvatar>{{ getStatusIcon(load.status) }}</mat-icon>
               {{ getStatusText(load.status) }}
             </mat-chip>
           </div>
 
           <div class="mobile-card-content">
-            <div class="assignment-section">
-              <label class="assignment-label">
-                <mat-icon>person</mat-icon>
-                Asignado a:
-              </label>
-              <mat-form-field appearance="outline" class="mobile-assignment-select">
-                <mat-select 
-                  [value]="load.usuarioAsignadoId" 
-                  (selectionChange)="onAssignmentChange(load, $event.value)"
-                  [disabled]="load.isLoading"
-                  placeholder="Seleccionar teleoperador">
-                  <mat-option [value]="null">
-                    <mat-icon>person_off</mat-icon>
-                    Sin asignar
-                  </mat-option>
-                  <mat-option *ngFor="let user of getActiveUsers()" [value]="user.id">
-                    <div class="user-option">
-                      <mat-icon>person</mat-icon>
-                      <div class="user-info">
-                        <span class="user-name">{{ user.nombreCompleto }}</span>
-                        <span class="user-role">{{ user.rolNombre }}</span>
+            <ng-container *ngIf="load.prospectosSinAsignar > 0">
+              <div class="assignment-section">
+                <label class="assignment-label">
+                  <mat-icon>person</mat-icon>
+                  Teleoperador:
+                </label>
+                <mat-form-field appearance="outline" class="mobile-assignment-select">
+                  <mat-select
+                    [(ngModel)]="load.selectedUserId"
+                    [disabled]="load.isLoading"
+                    placeholder="Seleccionar teleoperador">
+                    <mat-option *ngFor="let user of getActiveUsers()" [value]="user.id">
+                      <div class="user-option">
+                        <mat-icon>person</mat-icon>
+                        <div class="user-info">
+                          <span class="user-name">{{ user.nombreCompleto }}</span>
+                          <span class="user-role">{{ user.rolNombre }}</span>
+                        </div>
                       </div>
-                    </div>
-                  </mat-option>
-                </mat-select>
-                <!-- Spinner para móvil -->
-                <mat-spinner *ngIf="load.isLoading" matSuffix diameter="20"></mat-spinner>
-              </mat-form-field>
-            </div>
+                    </mat-option>
+                  </mat-select>
+                  <mat-spinner *ngIf="load.isLoading" matSuffix diameter="20"></mat-spinner>
+                </mat-form-field>
+              </div>
+
+              <div class="assignment-section">
+                <label class="assignment-label">
+                  <mat-icon>tag</mat-icon>
+                  Cantidad:
+                </label>
+                <mat-form-field appearance="outline" class="mobile-assignment-select">
+                  <input matInput
+                    type="number"
+                    [(ngModel)]="load.cantidad"
+                    [max]="load.prospectosSinAsignar"
+                    min="1"
+                    [placeholder]="'Todos (' + load.prospectosSinAsignar + ')'">
+                </mat-form-field>
+              </div>
+            </ng-container>
+
+            <ng-container *ngIf="load.prospectosSinAsignar <= 0">
+              <div class="assignment-section">
+                <span class="fully-assigned-label">
+                  <mat-icon>check_circle</mat-icon>
+                  Totalmente asignado
+                </span>
+              </div>
+            </ng-container>
 
             <div class="mobile-actions">
-              <button 
-                mat-stroked-button 
-                *ngIf="load.assignedTo && !load.isLoading"
-                (click)="removeAssignment(load)"
-                class="mobile-remove-btn">
-                <mat-icon>person_remove</mat-icon>
-                Remover
+              <button
+                mat-raised-button
+                color="primary"
+                *ngIf="load.prospectosSinAsignar > 0"
+                (click)="assignPartial(load)"
+                [disabled]="load.isLoading || !load.selectedUserId"
+                class="mobile-assign-btn">
+                <mat-icon>assignment_ind</mat-icon>
+                Asignar
               </button>
-              <button 
-                mat-stroked-button 
-                [disabled]="load.isLoading"
+              <button
+                mat-stroked-button
+                *ngIf="load.resumenAsignaciones && load.resumenAsignaciones.length > 0"
+                (click)="toggleBreakdown(load)"
                 class="mobile-details-btn">
-                <mat-icon>visibility</mat-icon>
-                Detalles
+                <mat-icon>{{ load.showBreakdown ? 'expand_less' : 'expand_more' }}</mat-icon>
+                Desglose
               </button>
-              <!-- Indicador de carga móvil -->
               <div *ngIf="load.isLoading" class="mobile-loading">
                 <mat-spinner diameter="24"></mat-spinner>
-                <span>Procesando asignación...</span>
+                <span>Procesando asignacion...</span>
+              </div>
+            </div>
+
+            <!-- Desglose móvil -->
+            <div class="breakdown-container" *ngIf="load.showBreakdown && load.resumenAsignaciones && load.resumenAsignaciones.length > 0">
+              <div class="breakdown-header">
+                <mat-icon>group</mat-icon>
+                <span>Desglose de asignaciones</span>
+              </div>
+              <div class="breakdown-list">
+                <div class="breakdown-item" *ngFor="let resumen of load.resumenAsignaciones">
+                  <mat-icon>person</mat-icon>
+                  <span class="breakdown-name">{{ resumen.usuarioNombreCompleto }}</span>
+                  <span class="breakdown-count">{{ resumen.cantidadAsignada }} prospectos</span>
+                </div>
               </div>
             </div>
           </div>
@@ -275,18 +377,18 @@
     </mat-card-content>
   </mat-card>
 
-  <!-- Botón de guardado -->
+  <!-- Botón de actualizar -->
   <div class="save-section">
-    <button 
-      mat-raised-button 
-      color="primary" 
-      (click)="saveAssignments()"
+    <button
+      mat-raised-button
+      color="primary"
+      (click)="refreshData()"
       [disabled]="isSaving"
       class="save-btn">
-      <mat-icon *ngIf="!isSaving">save</mat-icon>
+      <mat-icon *ngIf="!isSaving">refresh</mat-icon>
       <mat-spinner *ngIf="isSaving" diameter="20"></mat-spinner>
-      <span *ngIf="!isSaving">Guardar Asignaciones</span>
-      <span *ngIf="isSaving">Guardando...</span>
+      <span *ngIf="!isSaving">Actualizar Datos</span>
+      <span *ngIf="isSaving">Actualizando...</span>
     </button>
   </div>
 </div>
