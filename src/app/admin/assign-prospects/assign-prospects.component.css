@@ -78,10 +78,10 @@
 /* Contenedor de estadísticas */
 .stats-container {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  grid-template-columns: repeat(4, 1fr);
   gap: 1.5rem;
   margin-bottom: 2rem;
-  max-width: 1200px;
+  max-width: 1400px;
   margin-left: auto;
   margin-right: auto;
 }
@@ -149,7 +149,7 @@
 
 /* Card de tabla */
 .table-card {
-  max-width: 1200px;
+  max-width: 1400px;
   margin: 0 auto 2rem auto;
   border-radius: 12px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
@@ -187,6 +187,7 @@
 
 .assignments-table {
   width: 100%;
+  min-width: 900px;
   background: white;
 }
 
@@ -312,7 +313,7 @@
 /* Select de asignación */
 .assignment-select {
   width: 100%;
-  min-width: 180px;
+  min-width: 160px;
 }
 
 .assignment-select .mat-mdc-form-field-subscript-wrapper {
@@ -321,7 +322,7 @@
 
 /* Input de cantidad */
 .quantity-input {
-  width: 120px;
+  width: 110px;
 }
 
 .quantity-input .mat-mdc-form-field-subscript-wrapper {
@@ -453,7 +454,7 @@
 .save-section {
   display: flex;
   justify-content: center;
-  max-width: 1200px;
+  max-width: 1400px;
   margin: 0 auto;
 }
 
