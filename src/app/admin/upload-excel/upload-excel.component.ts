@@ -6,11 +6,11 @@ import {MatIconModule} from '@angular/material/icon';
 import {MatCardModule} from '@angular/material/card';
 import {MatProgressSpinnerModule} from '@angular/material/progress-spinner';
 import {MatSnackBar, MatSnackBarModule} from '@angular/material/snack-bar';
-import {NavbarComponent} from '../../shared/navbar/navbar.component';
+import {MatTooltipModule} from '@angular/material/tooltip';
 
 @Component({
   selector: 'app-upload-excel',
-  imports: [MatButtonModule, CommonModule, MatIconModule, MatCardModule, MatProgressSpinnerModule, MatSnackBarModule],
+  imports: [MatButtonModule, CommonModule, MatIconModule, MatCardModule, MatProgressSpinnerModule, MatSnackBarModule, MatTooltipModule],
   templateUrl: './upload-excel.component.html',
   styleUrl: './upload-excel.component.css'
 })

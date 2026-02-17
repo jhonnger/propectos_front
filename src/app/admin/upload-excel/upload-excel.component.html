@@ -1,64 +1,76 @@
 <div class="upload-container">
   <div class="upload-header">
-    <mat-icon class="upload-icon">cloud_upload</mat-icon>
+    <div class="header-icon-wrapper">
+      <mat-icon class="upload-header-icon">cloud_upload</mat-icon>
+    </div>
     <h1>Cargar Archivo Excel</h1>
     <p>Selecciona un archivo Excel para cargar los prospectos al sistema</p>
   </div>
 
-  <mat-card class="upload-card">
+  <div class="upload-card">
     <!-- Zona de drag and drop -->
-    <div 
-      class="drop-zone" 
+    <div
+      class="drop-zone"
       [class.drag-over]="isDragOver"
+      [class.has-file]="selectedFile"
       (dragover)="onDragOver($event)"
       (dragleave)="onDragLeave($event)"
       (drop)="onDrop($event)"
       (click)="triggerFileInput()">
-      
-      <div class="drop-zone-content">
-        <mat-icon class="drop-icon">file_upload</mat-icon>
+
+      <div class="drop-zone-content" *ngIf="!selectedFile">
+        <div class="drop-icon-wrapper">
+          <mat-icon class="drop-icon">file_upload</mat-icon>
+        </div>
         <div class="drop-text">
-          <h3>Arrastra tu archivo aquí</h3>
+          <h3>Arrastra tu archivo aqui</h3>
           <p>o <span class="link-text">haz clic para seleccionar</span></p>
         </div>
         <div class="file-types">
-          <span class="file-type">XLSX</span>
-          <span class="file-type">XLS</span>
+          <span class="file-type-badge">
+            <mat-icon>table_chart</mat-icon>
+            XLSX
+          </span>
+          <span class="file-type-badge">
+            <mat-icon>table_chart</mat-icon>
+            XLS
+          </span>
         </div>
       </div>
-    </div>
 
-    <!-- Input oculto para seleccionar archivo -->
-    <input 
-      id="fileInput"
-      type="file" 
-      (change)="onFileSelected($event)" 
-      accept=".xlsx,.xls"
-      hidden>
-
-    <!-- Archivo seleccionado -->
-    <div *ngIf="selectedFile" class="selected-file">
-      <div class="file-info">
-        <mat-icon class="file-icon">description</mat-icon>
+      <!-- Archivo seleccionado (dentro del dropzone) -->
+      <div class="selected-file-content" *ngIf="selectedFile">
+        <div class="file-icon-wrapper">
+          <mat-icon>description</mat-icon>
+        </div>
         <div class="file-details">
           <span class="file-name">{{ selectedFile.name }}</span>
           <span class="file-size">{{ formatFileSize(selectedFile.size) }}</span>
         </div>
-        <button 
-          mat-icon-button 
-          (click)="removeFile()"
+        <button
+          mat-icon-button
+          (click)="removeFile(); $event.stopPropagation()"
           class="remove-btn"
-          [disabled]="isUploading">
+          [disabled]="isUploading"
+          matTooltip="Quitar archivo">
           <mat-icon>close</mat-icon>
         </button>
       </div>
     </div>
 
-    <!-- Botones de acción -->
+    <!-- Input oculto para seleccionar archivo -->
+    <input
+      id="fileInput"
+      type="file"
+      (change)="onFileSelected($event)"
+      accept=".xlsx,.xls"
+      hidden>
+
+    <!-- Botones de accion -->
     <div class="action-buttons">
-      <button 
-        mat-raised-button 
-        color="primary" 
+      <button
+        mat-flat-button
+        color="primary"
         (click)="uploadFile()"
         [disabled]="!selectedFile || isUploading"
         class="upload-btn">
@@ -69,16 +81,26 @@
       </button>
     </div>
 
-    <!-- Información adicional -->
+    <!-- Informacion adicional -->
     <div class="upload-info">
       <div class="info-item">
-        <mat-icon class="info-icon">info</mat-icon>
+        <div class="info-icon-bg">
+          <mat-icon>info</mat-icon>
+        </div>
         <span>El archivo debe contener las columnas necesarias para los prospectos</span>
       </div>
       <div class="info-item">
-        <mat-icon class="info-icon">storage</mat-icon>
-        <span>Tamaño máximo: 10MB</span>
+        <div class="info-icon-bg">
+          <mat-icon>storage</mat-icon>
+        </div>
+        <span>Tamano maximo: 10MB</span>
+      </div>
+      <div class="info-item">
+        <div class="info-icon-bg">
+          <mat-icon>check_circle</mat-icon>
+        </div>
+        <span>Formatos aceptados: .xlsx y .xls</span>
       </div>
     </div>
-  </mat-card>
+  </div>
 </div>
