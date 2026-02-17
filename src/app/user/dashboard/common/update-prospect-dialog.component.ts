@@ -5,6 +5,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import {MatButtonModule} from '@angular/material/button';
 import {MatInputModule} from '@angular/material/input';
 import {MatSelectModule} from '@angular/material/select';
+import {MatIconModule} from '@angular/material/icon';
 import {CommonModule} from '@angular/common';
 
 export interface ContactoRegistro {
@@ -22,6 +23,7 @@ export interface ContactoRegistro {
       MatInputModule,
       MatButtonModule,
       MatSelectModule,
+      MatIconModule,
       FormsModule,
       CommonModule
     ],
@@ -44,7 +46,6 @@ export class UpdateProspectDialogComponent {
       comentario: ['']
     });
 
-    // Escuchar cambios en contestoLlamada
     this.contactForm.get('contestoLlamada')?.valueChanges.subscribe((value) => {
       this.mostrarInteresado = value === true;
       const interesadoControl = this.contactForm.get('interesado');
@@ -59,6 +60,11 @@ export class UpdateProspectDialogComponent {
     });
   }
 
+  getInitials(): string {
+    if (!this.data.name) return '?';
+    return this.data.name.split(' ').map((n: string) => n.charAt(0)).join('').substring(0, 2).toUpperCase();
+  }
+
   onCancel(): void {
     this.dialogRef.close();
   }
@@ -71,8 +77,7 @@ export class UpdateProspectDialogComponent {
         contestoLlamada: this.contactForm.get('contestoLlamada')?.value,
         interesado: this.contactForm.get('interesado')?.value
       };
-      
-      console.log('Datos del contacto:', contactoData);
+
       this.dialogRef.close(contactoData);
     }
   }

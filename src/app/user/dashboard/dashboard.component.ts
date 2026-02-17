@@ -88,6 +88,8 @@ export class DashboardComponent implements OnInit {
   openDialog(prospect: any): void {
     const dialogRef = this.dialog.open(UpdateProspectDialogComponent, {
       width: '500px',
+      maxWidth: '95vw',
+      panelClass: 'custom-dialog-panel',
       data: {
         id: prospect.id,
         name: `${prospect.nombre} ${prospect.apellido}`,

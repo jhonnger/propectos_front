@@ -1,24 +1,264 @@
+/* Dialog Wrapper */
+.dialog-wrapper {
+  padding: 0;
+}
+
+/* Header */
+.dialog-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.25rem 1.5rem;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 0.875rem;
+}
+
+.header-icon-wrapper {
+  width: 42px;
+  height: 42px;
+  border-radius: 10px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 3px 10px rgba(102, 126, 234, 0.3);
+}
+
+.header-icon-wrapper mat-icon {
+  font-size: 1.375rem;
+  width: 1.375rem;
+  height: 1.375rem;
+  color: white;
+}
+
+.dialog-title {
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0;
+  letter-spacing: -0.025em;
+}
+
+.dialog-subtitle {
+  font-size: 0.8125rem;
+  color: #94a3b8;
+  margin: 0.125rem 0 0 0;
+}
+
+.close-btn {
+  color: #94a3b8;
+  transition: all 0.2s ease;
+}
+
+.close-btn:hover {
+  color: #475569;
+  background: #f1f5f9;
+}
+
+/* Prospect Info */
+.prospect-info {
+  display: flex;
+  align-items: center;
+  gap: 0.875rem;
+  margin: 1.25rem 1.5rem;
+  padding: 0.875rem 1rem;
+  background: #f8fafc;
+  border-radius: 10px;
+  border: 1px solid #e2e8f0;
+}
+
+.prospect-avatar {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  letter-spacing: 0.025em;
+  flex-shrink: 0;
+}
+
+.prospect-details {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.prospect-name {
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: #0f172a;
+}
+
+.prospect-phone {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  color: #64748b;
+  font-size: 0.8125rem;
+}
+
+.phone-icon {
+  font-size: 0.875rem;
+  width: 0.875rem;
+  height: 0.875rem;
+  color: #667eea;
+}
+
+/* Form */
+.dialog-form {
+  padding: 0.25rem 1.5rem 0 1.5rem;
+}
+
+.form-section {
+  margin-bottom: 0.25rem;
+}
+
+.form-section-label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: #475569;
+  margin-bottom: 0.5rem;
+}
+
+.section-label-icon {
+  font-size: 1rem;
+  width: 1rem;
+  height: 1rem;
+  color: #667eea;
+}
+
 .full-width {
   width: 100%;
 }
 
-mat-form-field {
-  width: 100%;
-  margin-bottom: 1rem;
+.full-width ::ng-deep .mat-mdc-text-field-wrapper {
+  border-radius: 10px;
 }
 
-mat-dialog-content {
-  padding: 1rem 0;
-  min-width: 400px;
+.full-width ::ng-deep .mdc-notched-outline .mdc-notched-outline__leading {
+  border-radius: 10px 0 0 10px;
 }
 
-mat-dialog-actions {
-  padding: 0.5rem 0;
+.full-width ::ng-deep .mdc-notched-outline .mdc-notched-outline__trailing {
+  border-radius: 0 10px 10px 0;
+}
+
+/* Select Options */
+.option-content {
   display: flex;
-  justify-content: flex-end;
+  align-items: center;
   gap: 0.5rem;
 }
 
-mat-error {
-  font-size: 0.8rem;
+.option-icon {
+  font-size: 1.125rem;
+  width: 1.125rem;
+  height: 1.125rem;
+}
+
+.success-icon {
+  color: #16a34a;
+}
+
+.error-icon {
+  color: #dc2626;
+}
+
+/* Actions */
+.dialog-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.625rem;
+  padding: 1rem 1.5rem 1.25rem 1.5rem;
+  border-top: 1px solid #f1f5f9;
+}
+
+.cancel-btn {
+  border-radius: 8px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #64748b;
+  border-color: #e2e8f0;
+  padding: 0 1.25rem;
+  height: 40px;
+}
+
+.cancel-btn:hover {
+  background: #f8fafc;
+  border-color: #cbd5e1;
+}
+
+.confirm-btn {
+  border-radius: 8px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0 1.25rem;
+  height: 40px;
+  transition: all 0.2s ease;
+}
+
+.confirm-btn:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+}
+
+.confirm-btn:disabled {
+  background: #e2e8f0;
+  color: #94a3b8;
+}
+
+.confirm-btn mat-icon {
+  font-size: 1.125rem;
+  width: 1.125rem;
+  height: 1.125rem;
+}
+
+/* Global dialog overrides */
+::ng-deep .mat-mdc-dialog-container .mdc-dialog__surface {
+  border-radius: 16px !important;
+  overflow: hidden;
+}
+
+/* Responsive */
+@media (max-width: 480px) {
+  .dialog-header {
+    padding: 1rem 1.25rem;
+  }
+
+  .prospect-info {
+    margin: 1rem 1.25rem;
+  }
+
+  .dialog-form {
+    padding: 0.25rem 1.25rem 0 1.25rem;
+  }
+
+  .dialog-actions {
+    padding: 1rem 1.25rem;
+    flex-direction: column;
+  }
+
+  .cancel-btn,
+  .confirm-btn {
+    width: 100%;
+    justify-content: center;
+  }
 }

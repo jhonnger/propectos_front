@@ -27,3 +27,15 @@ body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
   font-size: 1.2rem;
   color: #555; /* Color de los íconos */
 }
+
+/* Dialog panel sin padding */
+.custom-dialog-panel .mdc-dialog__content {
+  padding: 0 !important;
+  overflow: hidden;
+}
+
+.custom-dialog-panel .mat-mdc-dialog-content {
+  padding: 0 !important;
+  max-height: 85vh;
+  overflow-y: auto;
+}
