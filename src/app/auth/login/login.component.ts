@@ -7,6 +7,7 @@ import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
 import { CommonModule } from '@angular/common';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatIconModule } from '@angular/material/icon';
 
 @Component({
   selector: 'app-login',
@@ -16,7 +17,8 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
     MatFormFieldModule,
     MatInputModule,
     MatButtonModule,
-    MatProgressSpinnerModule
+    MatProgressSpinnerModule,
+    MatIconModule
   ],
   templateUrl: './login.component.html',
   styleUrl: './login.component.css'
@@ -25,6 +27,7 @@ export class LoginComponent {
   loginForm: FormGroup;
   errorMessage: string | null = null;
   isLoading = false;
+  hidePassword = true;
 
   constructor(private fb: FormBuilder, private authService: AuthService, private router: Router) {
     this.loginForm = this.fb.group({
@@ -36,6 +39,7 @@ export class LoginComponent {
   onSubmit() {
     if (this.loginForm.valid) {
       this.isLoading = true;
+      this.errorMessage = null;
       const { email, password } = this.loginForm.value;
       this.authService.login(email, password).subscribe({
         next: (rol) => {
@@ -50,7 +54,7 @@ export class LoginComponent {
         },
         error: (err) => {
           this.isLoading = false;
-          this.errorMessage = 'Credenciales incorrectas. Inténtalo de nuevo.';
+          this.errorMessage = 'Credenciales incorrectas. Intentalo de nuevo.';
           console.error(err);
         }
       });

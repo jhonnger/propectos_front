@@ -1,53 +1,63 @@
 <div class="login-container">
   <div class="login-card">
     <div class="login-header">
-      <div class="logo">
-        <span class="logo-icon">📋</span>
-        <h1>Prospectos</h1>
+      <div class="logo-icon-wrapper">
+        <mat-icon class="logo-icon">assignment</mat-icon>
       </div>
+      <h1 class="app-title">Prospectos</h1>
       <p class="subtitle">Gestiona tus leads de manera eficiente</p>
     </div>
 
     <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="login-form">
-      <div class="form-group">
-        <mat-form-field appearance="outline" class="input-field">
-          <mat-label>Usuario</mat-label>
-          <input matInput type="text" formControlName="email" required />
-          <mat-error *ngIf="loginForm.get('email')?.hasError('required')">
-            El usuario es obligatorio
-          </mat-error>
-        </mat-form-field>
-      </div>
+      <mat-form-field appearance="outline" class="input-field">
+        <mat-label>Usuario</mat-label>
+        <mat-icon matPrefix class="field-icon">person</mat-icon>
+        <input matInput type="text" formControlName="email" autocomplete="username" />
+        <mat-error *ngIf="loginForm.get('email')?.hasError('required')">
+          El usuario es obligatorio
+        </mat-error>
+      </mat-form-field>
 
-      <div class="form-group">
-        <mat-form-field appearance="outline" class="input-field">
-          <mat-label>Contraseña</mat-label>
-          <input matInput type="password" formControlName="password" required />
-          <mat-error *ngIf="loginForm.get('password')?.hasError('required')">
-            La contraseña es obligatoria
-          </mat-error>
-        </mat-form-field>
-      </div>
+      <mat-form-field appearance="outline" class="input-field">
+        <mat-label>Contrasena</mat-label>
+        <mat-icon matPrefix class="field-icon">lock</mat-icon>
+        <input matInput [type]="hidePassword ? 'password' : 'text'" formControlName="password" autocomplete="current-password" />
+        <button mat-icon-button matSuffix type="button" (click)="hidePassword = !hidePassword" class="toggle-password">
+          <mat-icon>{{ hidePassword ? 'visibility_off' : 'visibility' }}</mat-icon>
+        </button>
+        <mat-error *ngIf="loginForm.get('password')?.hasError('required')">
+          La contrasena es obligatoria
+        </mat-error>
+      </mat-form-field>
 
       <div class="error-message" *ngIf="errorMessage">
-        <span class="error-icon">⚠️</span>
-        {{ errorMessage }}
+        <mat-icon class="error-icon">error_outline</mat-icon>
+        <span>{{ errorMessage }}</span>
       </div>
 
-      <button 
-        mat-flat-button 
-        type="submit" 
+      <button
+        mat-flat-button
+        type="submit"
         class="login-button"
         [disabled]="loginForm.invalid || isLoading">
         <mat-spinner *ngIf="isLoading" diameter="20" class="button-spinner"></mat-spinner>
-        <span *ngIf="!isLoading">Iniciar Sesión</span>
-        <span *ngIf="isLoading">Iniciando...</span>
+        <mat-icon *ngIf="!isLoading">login</mat-icon>
+        <span>{{ isLoading ? 'Iniciando...' : 'Iniciar Sesion' }}</span>
       </button>
+    </form>
 
-      <div class="help-text">
-        ¿Problemas para acceder? <br>
+    <div class="help-section">
+      <div class="divider">
+        <span class="divider-line"></span>
+        <span class="divider-text">Ayuda</span>
+        <span class="divider-line"></span>
+      </div>
+      <div class="help-content">
+        <mat-icon class="help-icon">support_agent</mat-icon>
         <span>Contacta al administrador del sistema</span>
       </div>
-    </form>
+    </div>
   </div>
+
+  <p class="footer-text">Prospectos &copy; 2026</p>
 </div>
