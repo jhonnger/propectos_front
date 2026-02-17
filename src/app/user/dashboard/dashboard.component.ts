@@ -10,6 +10,8 @@ import { UpdateProspectDialogComponent } from './common/update-prospect-dialog.c
 import {MatPaginator, MatPaginatorModule, PageEvent} from '@angular/material/paginator';
 import { ProspectoService } from './service/prospecto.service';
 import {NavbarComponent} from '../../shared/navbar/navbar.component';
+import {MatIconModule} from '@angular/material/icon';
+import {MatTooltipModule} from '@angular/material/tooltip';
 
 @Component({
   selector: 'app-dashboard',
@@ -22,7 +24,9 @@ import {NavbarComponent} from '../../shared/navbar/navbar.component';
     MatInputModule,
     FormsModule,
     MatPaginatorModule,
-    NavbarComponent
+    NavbarComponent,
+    MatIconModule,
+    MatTooltipModule
   ],
   templateUrl: './dashboard.component.html',
   styleUrl: './dashboard.component.css'
