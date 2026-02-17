@@ -114,6 +114,12 @@ export class AssignProspectsComponent implements OnInit {
     return this.users.filter(user => user.estado);
   }
 
+  getSelectedUserName(userId: number | null): string {
+    if (!userId) return '';
+    const user = this.users.find(u => u.id === userId);
+    return user ? user.nombreCompleto : '';
+  }
+
   getStatusClass(status: string): string {
     const statusClasses: { [key: string]: string } = {
       'pending': 'status-pending',

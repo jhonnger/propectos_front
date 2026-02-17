@@ -161,6 +161,9 @@
                     [(ngModel)]="load.selectedUserId"
                     [disabled]="load.isLoading"
                     placeholder="Seleccionar teleoperador">
+                    <mat-select-trigger>
+                      {{ getSelectedUserName(load.selectedUserId) }}
+                    </mat-select-trigger>
                     <mat-option *ngFor="let user of getActiveUsers()" [value]="user.id">
                       <div class="user-option">
                         <mat-icon>person</mat-icon>
@@ -293,6 +296,9 @@
                     [(ngModel)]="load.selectedUserId"
                     [disabled]="load.isLoading"
                     placeholder="Seleccionar teleoperador">
+                    <mat-select-trigger>
+                      {{ getSelectedUserName(load.selectedUserId) }}
+                    </mat-select-trigger>
                     <mat-option *ngFor="let user of getActiveUsers()" [value]="user.id">
                       <div class="user-option">
                         <mat-icon>person</mat-icon>
