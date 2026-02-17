@@ -38,7 +38,7 @@ export class AssignProspectsComponent implements OnInit {
   excelLoads: any[] = [];
   isLoadingData = false;
   users: UsuarioDTO[] = [];
-  displayedColumns: string[] = ['name', 'date', 'prospectsCount', 'available', 'status', 'assignedTo', 'quantity', 'actions'];
+  displayedColumns: string[] = ['name', 'prospectsCount', 'available', 'status', 'assignedTo', 'quantity', 'actions'];
   isSaving = false;
 
   constructor(private snackBar: MatSnackBar, private adminService: AdminService) {}
@@ -240,6 +240,15 @@ export class AssignProspectsComponent implements OnInit {
 
   getPartialCount(): number {
     return this.excelLoads.filter(load => load.status === 'partial').length;
+  }
+
+  getProgressPercent(load: any): number {
+    if (!load.prospectsCount || load.prospectsCount === 0) return 0;
+    return Math.round((load.prospectosAsignados / load.prospectsCount) * 100);
+  }
+
+  getInitials(name: string): string {
+    return name.split(' ').map(n => n.charAt(0)).join('').substring(0, 2).toUpperCase();
   }
 
   refreshData() {
