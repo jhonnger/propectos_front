@@ -10,17 +10,19 @@ import { environment } from '../../../environments/environment';
   export class AuthService {
     private tokenKey = 'authToken';
     private roleKey = 'userRole';
+    private nameKey = 'userName';
     private isAuthenticatedSubject = new BehaviorSubject<boolean>(this.hasToken());
 
     constructor(private http: HttpClient) {}
 
     login(username: string, password: string): Observable<string | null> {
-      return this.http.post<{ token: string; rol: string }>(`${environment.apiUrl}/api/auth/login`, { username, password })
+      return this.http.post<{ token: string; rol: string; nombre: string }>(`${environment.apiUrl}/api/auth/login`, { username, password })
         .pipe(
           map((response) => {
             if (response) {
               this.saveToken(response.token);
               localStorage.setItem(this.roleKey, response.rol);
+              localStorage.setItem(this.nameKey, response.nombre);
               this.isAuthenticatedSubject.next(true);
               return response.rol;
             }
@@ -37,6 +39,7 @@ import { environment } from '../../../environments/environment';
     logout(): void {
       this.clearToken();
       localStorage.removeItem(this.roleKey);
+      localStorage.removeItem(this.nameKey);
       this.isAuthenticatedSubject.next(false);
     }
 
@@ -44,7 +47,7 @@ import { environment } from '../../../environments/environment';
       return this.isAuthenticatedSubject.asObservable();
     }
     getUsername(): string | null {
-      return 'Juan';
+      return localStorage.getItem(this.nameKey);
     }
 
     getRole(): string | null {

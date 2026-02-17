@@ -1,24 +1,36 @@
 <header class="navbar">
   <div class="navbar-container">
-    <!-- Logo o título -->
-    <div class="navbar-logo">
-      <h2>Sistema de Prospectos</h2>
+    <div class="navbar-left">
+      <div class="navbar-logo">
+        <div class="logo-icon-wrapper">
+          <mat-icon class="logo-icon">assignment</mat-icon>
+        </div>
+        <span class="logo-text">Prospectos</span>
+      </div>
     </div>
 
-    <!-- Nombre del usuario y menú desplegable -->
-    <div class="navbar-user">
-      <span class="username">Hola, {{ username }}</span>
-      <button mat-icon-button [matMenuTriggerFor]="menu">
-        <mat-icon>account_circle</mat-icon>
-      </button>
-      <mat-menu #menu="matMenu" class="custom-menu">
-        <button mat-menu-item>
-          <mat-icon>person</mat-icon>
-          <span>Perfil</span>
-        </button>
-        <button mat-menu-item (click)="logout()">
-          <mat-icon>logout</mat-icon>
-          <span>Cerrar Sesión</span>
+    <div class="navbar-right">
+      <div class="user-info" [matMenuTriggerFor]="menu">
+        <div class="user-avatar">{{ getInitials() }}</div>
+        <div class="user-details">
+          <span class="user-name">{{ username }}</span>
+          <span class="user-role">{{ getRoleLabel() }}</span>
+        </div>
+        <mat-icon class="dropdown-icon">expand_more</mat-icon>
+      </div>
+
+      <mat-menu #menu="matMenu" class="navbar-menu">
+        <div class="menu-header">
+          <div class="menu-avatar">{{ getInitials() }}</div>
+          <div class="menu-user-info">
+            <span class="menu-user-name">{{ username }}</span>
+            <span class="menu-user-role">{{ getRoleLabel() }}</span>
+          </div>
+        </div>
+        <mat-divider></mat-divider>
+        <button mat-menu-item class="menu-item" (click)="logout()">
+          <mat-icon class="menu-item-icon logout-icon">logout</mat-icon>
+          <span>Cerrar Sesion</span>
         </button>
       </mat-menu>
     </div>
