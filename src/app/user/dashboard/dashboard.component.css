@@ -102,32 +102,174 @@
   height: 22px;
 }
 
-.calls-today-bg {
+.sin-gestionar-bg {
+  background-color: rgba(245, 158, 11, 0.1);
+}
+.sin-gestionar-bg mat-icon {
+  color: #f59e0b;
+}
+
+.en-gestion-bg {
   background-color: rgba(37, 99, 235, 0.1);
 }
-.calls-today-bg mat-icon {
+.en-gestion-bg mat-icon {
   color: #2563eb;
 }
 
-.calls-month-bg {
+.agendados-bg {
   background-color: rgba(124, 58, 237, 0.1);
 }
-.calls-month-bg mat-icon {
+.agendados-bg mat-icon {
   color: #7c3aed;
 }
 
-.answered-bg {
+.finalizados-bg {
   background-color: rgba(16, 185, 129, 0.1);
 }
-.answered-bg mat-icon {
+.finalizados-bg mat-icon {
   color: #10b981;
 }
 
-.rejected-bg {
-  background-color: rgba(239, 68, 68, 0.1);
+/* Filter Section */
+.filter-section {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 20px;
 }
-.rejected-bg mat-icon {
-  color: #ef4444;
+
+.filter-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 7px 16px;
+  border-radius: 20px;
+  border: 1px solid #e2e8f0;
+  background: #ffffff;
+  color: #64748b;
+  font-size: 0.8rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.filter-chip mat-icon {
+  font-size: 16px;
+  width: 16px;
+  height: 16px;
+}
+
+.filter-chip:hover {
+  border-color: #667eea;
+  color: #667eea;
+  background: rgba(102, 126, 234, 0.04);
+}
+
+.filter-active {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+  color: #ffffff !important;
+  border-color: transparent !important;
+}
+
+/* Estado Badges */
+.estado-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.estado-badge-icon {
+  font-size: 14px !important;
+  width: 14px !important;
+  height: 14px !important;
+}
+
+.estado-sin-gestionar {
+  background-color: rgba(245, 158, 11, 0.1);
+  color: #d97706;
+}
+
+.estado-no-contesto {
+  background-color: rgba(239, 68, 68, 0.1);
+  color: #dc2626;
+}
+
+.estado-agendado {
+  background-color: rgba(124, 58, 237, 0.1);
+  color: #7c3aed;
+}
+
+.estado-prospecto {
+  background-color: rgba(37, 99, 235, 0.1);
+  color: #2563eb;
+}
+
+.estado-observado {
+  background-color: rgba(100, 116, 139, 0.1);
+  color: #475569;
+}
+
+.estado-concreto {
+  background-color: rgba(16, 185, 129, 0.1);
+  color: #059669;
+}
+
+.estado-no-llamar {
+  background-color: rgba(239, 68, 68, 0.08);
+  color: #b91c1c;
+}
+
+.fecha-agenda {
+  font-size: 0.7rem;
+  color: #7c3aed;
+  margin-top: 3px;
+  font-weight: 500;
+}
+
+/* Contactos Cell */
+.contactos-cell {
+  display: flex;
+  flex-direction: column;
+}
+
+.contactos-count {
+  font-weight: 700;
+  color: #0f172a;
+  font-size: 0.9rem;
+}
+
+.contactos-label {
+  font-size: 0.7rem;
+  color: #94a3b8;
+}
+
+/* Action Button Disabled */
+.action-btn-disabled {
+  background: #e2e8f0 !important;
+  color: #94a3b8 !important;
+  cursor: default;
+  box-shadow: none !important;
+}
+
+.action-btn-disabled:hover {
+  transform: none !important;
+  box-shadow: none !important;
+}
+
+/* Mobile Action Button */
+.mobile-action-btn {
+  width: 100%;
+  justify-content: center;
+  margin-top: 4px;
+}
+
+.mobile-estado {
+  flex-shrink: 0;
 }
 
 .metric-content {
@@ -601,6 +743,16 @@
 
   .metric-value {
     font-size: 1.25rem;
+  }
+
+  .filter-section {
+    gap: 6px;
+    margin-bottom: 16px;
+  }
+
+  .filter-chip {
+    padding: 6px 12px;
+    font-size: 0.75rem;
   }
 
   .section-header {

@@ -9,8 +9,8 @@
           <mat-icon>dashboard</mat-icon>
         </div>
         <div>
-          <h1 class="page-title">Dashboard</h1>
-          <p class="page-subtitle">Gestiona tus prospectos y registra contactos</p>
+          <h1 class="page-title">Mis Prospectos</h1>
+          <p class="page-subtitle">Gestiona tus prospectos asignados</p>
         </div>
       </div>
     </div>
@@ -19,57 +19,82 @@
   <!-- Metrics Cards -->
   <div class="metrics-section">
     <div class="metric-card">
-      <div class="metric-icon-bg calls-today-bg">
+      <div class="metric-icon-bg sin-gestionar-bg">
+        <mat-icon>hourglass_empty</mat-icon>
+      </div>
+      <div class="metric-content">
+        <span class="metric-value">{{ stats.sinGestionar }}</span>
+        <span class="metric-label">Sin Gestionar</span>
+      </div>
+    </div>
+
+    <div class="metric-card">
+      <div class="metric-icon-bg en-gestion-bg">
         <mat-icon>phone_in_talk</mat-icon>
       </div>
       <div class="metric-content">
-        <span class="metric-value">{{ callsToday }}</span>
-        <span class="metric-label">Llamadas Hoy</span>
+        <span class="metric-value">{{ stats.enGestion }}</span>
+        <span class="metric-label">En Gestion</span>
       </div>
     </div>
 
     <div class="metric-card">
-      <div class="metric-icon-bg calls-month-bg">
-        <mat-icon>date_range</mat-icon>
+      <div class="metric-icon-bg agendados-bg">
+        <mat-icon>event</mat-icon>
       </div>
       <div class="metric-content">
-        <span class="metric-value">{{ callsThisMonth }}</span>
-        <span class="metric-label">Total Mes</span>
+        <span class="metric-value">{{ stats.agendados }}</span>
+        <span class="metric-label">Agendados</span>
       </div>
     </div>
 
     <div class="metric-card">
-      <div class="metric-icon-bg answered-bg">
+      <div class="metric-icon-bg finalizados-bg">
         <mat-icon>check_circle</mat-icon>
       </div>
       <div class="metric-content">
-        <span class="metric-value">{{ answeredCalls }}</span>
-        <span class="metric-label">Contestadas</span>
-      </div>
-    </div>
-
-    <div class="metric-card">
-      <div class="metric-icon-bg rejected-bg">
-        <mat-icon>cancel</mat-icon>
-      </div>
-      <div class="metric-content">
-        <span class="metric-value">{{ rejectedCalls }}</span>
-        <span class="metric-label">Rechazadas</span>
+        <span class="metric-value">{{ stats.finalizados }}</span>
+        <span class="metric-label">Finalizados</span>
       </div>
     </div>
   </div>
 
-  <!-- Prospects Table Section -->
+  <!-- Filter Chips -->
+  <div class="filter-section">
+    <button class="filter-chip" [class.filter-active]="isFilterActive(null, null)" (click)="setFiltro(null, null)">
+      Todos
+    </button>
+    <button class="filter-chip" [class.filter-active]="isFilterActive('SIN_GESTIONAR', null)" (click)="setFiltro('SIN_GESTIONAR', null)">
+      <mat-icon>hourglass_empty</mat-icon> Sin gestionar
+    </button>
+    <button class="filter-chip" [class.filter-active]="isFilterActive(null, 'NO_CONTESTO')" (click)="setFiltro(null, 'NO_CONTESTO')">
+      <mat-icon>phone_missed</mat-icon> No contesto
+    </button>
+    <button class="filter-chip" [class.filter-active]="isFilterActive(null, 'AGENDADO')" (click)="setFiltro(null, 'AGENDADO')">
+      <mat-icon>event</mat-icon> Agendados
+    </button>
+    <button class="filter-chip" [class.filter-active]="isFilterActive(null, 'PROSPECTO')" (click)="setFiltro(null, 'PROSPECTO')">
+      <mat-icon>star</mat-icon> Prospectos
+    </button>
+    <button class="filter-chip" [class.filter-active]="isFilterActive(null, 'OBSERVADO')" (click)="setFiltro(null, 'OBSERVADO')">
+      <mat-icon>visibility</mat-icon> Observados
+    </button>
+    <button class="filter-chip" [class.filter-active]="isFilterActive('FINALIZADO', null)" (click)="setFiltro('FINALIZADO', null)">
+      <mat-icon>done_all</mat-icon> Finalizados
+    </button>
+  </div>
+
+  <!-- Table Section -->
   <div class="table-section">
     <div class="section-header">
       <div class="section-title-group">
         <mat-icon class="section-icon">people</mat-icon>
         <div>
-          <h2 class="section-title">Prospectos Pendientes</h2>
-          <p class="section-subtitle">Lista de prospectos asignados para contactar</p>
+          <h2 class="section-title">Prospectos Asignados</h2>
+          <p class="section-subtitle">{{ totalResultados }} prospectos en total</p>
         </div>
       </div>
-      <button mat-stroked-button class="refresh-btn" (click)="buscar()">
+      <button mat-stroked-button class="refresh-btn" (click)="buscar(); loadStats()">
         <mat-icon>refresh</mat-icon>
         Actualizar
       </button>
@@ -90,14 +115,6 @@
                 <span class="name-secondary">{{ prospect.documentoIdentidad }}</span>
               </div>
             </div>
-          </td>
-        </ng-container>
-
-        <!-- DNI Column -->
-        <ng-container matColumnDef="documentoIdentidad">
-          <th mat-header-cell *matHeaderCellDef>DNI</th>
-          <td mat-cell *matCellDef="let prospect">
-            <span class="dni-badge">{{ prospect.documentoIdentidad }}</span>
           </td>
         </ng-container>
 
@@ -123,6 +140,33 @@
           </td>
         </ng-container>
 
+        <!-- Estado Column -->
+        <ng-container matColumnDef="estado">
+          <th mat-header-cell *matHeaderCellDef>Estado</th>
+          <td mat-cell *matCellDef="let prospect">
+            <span class="estado-badge" [class]="getEstadoResultadoClass(prospect.estadoResultado)">
+              <mat-icon class="estado-badge-icon">{{ getEstadoResultadoIcon(prospect.estadoResultado) }}</mat-icon>
+              {{ getEstadoResultadoText(prospect.estadoResultado) }}
+            </span>
+            <div class="fecha-agenda" *ngIf="prospect.estadoResultado === 'AGENDADO' && prospect.fechaAgenda">
+              {{ prospect.fechaAgenda | date: 'dd/MM HH:mm' }}
+            </div>
+          </td>
+        </ng-container>
+
+        <!-- Contactos Column -->
+        <ng-container matColumnDef="contactos">
+          <th mat-header-cell *matHeaderCellDef>Gestiones</th>
+          <td mat-cell *matCellDef="let prospect">
+            <div class="contactos-cell">
+              <span class="contactos-count">{{ prospect.totalContactos }}</span>
+              <span class="contactos-label" *ngIf="prospect.ultimoContacto">
+                {{ prospect.ultimoContacto | date: 'dd/MM HH:mm' }}
+              </span>
+            </div>
+          </td>
+        </ng-container>
+
         <!-- Actions Column -->
         <ng-container matColumnDef="actions">
           <th mat-header-cell *matHeaderCellDef>Acciones</th>
@@ -130,10 +174,12 @@
             <button
               mat-flat-button
               class="action-btn"
+              [class.action-btn-disabled]="isFinalizado(prospect)"
               (click)="openDialog(prospect)"
-              matTooltip="Registrar contacto">
-              <mat-icon>edit_note</mat-icon>
-              Registrar
+              [disabled]="isFinalizado(prospect)"
+              matTooltip="{{ isFinalizado(prospect) ? 'Prospecto finalizado' : 'Registrar contacto' }}">
+              <mat-icon>{{ isFinalizado(prospect) ? 'lock' : 'edit_note' }}</mat-icon>
+              {{ isFinalizado(prospect) ? 'Cerrado' : 'Gestionar' }}
             </button>
           </td>
         </ng-container>
@@ -155,19 +201,16 @@
       <div class="prospect-card" *ngFor="let prospect of prospects">
         <div class="card-header">
           <div class="card-header-left">
-            <div class="prospect-avatar mobile-avatar">{{ (prospect.nombre?.charAt(0) || '') + (prospect.apellido?.charAt(0) || '') }}</div>
+            <div class="prospect-avatar mobile-avatar">{{ (prospect.nombre.charAt(0) || '') + (prospect.apellido.charAt(0) || '') }}</div>
             <div class="prospect-info">
               <h3 class="prospect-name-mobile">{{ prospect.nombre }} {{ prospect.apellido }}</h3>
               <span class="prospect-dni">DNI: {{ prospect.documentoIdentidad }}</span>
             </div>
           </div>
-          <button
-            mat-icon-button
-            class="action-btn-mobile"
-            (click)="openDialog(prospect)"
-            matTooltip="Registrar contacto">
-            <mat-icon>edit_note</mat-icon>
-          </button>
+          <span class="estado-badge mobile-estado" [class]="getEstadoResultadoClass(prospect.estadoResultado)">
+            <mat-icon class="estado-badge-icon">{{ getEstadoResultadoIcon(prospect.estadoResultado) }}</mat-icon>
+            {{ getEstadoResultadoText(prospect.estadoResultado) }}
+          </span>
         </div>
 
         <div class="card-content">
@@ -186,6 +229,24 @@
             </div>
             <span class="campaign-badge-mobile">{{ prospect.campania }}</span>
           </div>
+
+          <div class="info-row">
+            <div class="info-label-group">
+              <mat-icon class="info-row-icon">history</mat-icon>
+              <span class="info-label">Gestiones</span>
+            </div>
+            <span>{{ prospect.totalContactos }}</span>
+          </div>
+
+          <button
+            mat-flat-button
+            class="action-btn mobile-action-btn"
+            [class.action-btn-disabled]="isFinalizado(prospect)"
+            (click)="openDialog(prospect)"
+            [disabled]="isFinalizado(prospect)">
+            <mat-icon>{{ isFinalizado(prospect) ? 'lock' : 'edit_note' }}</mat-icon>
+            {{ isFinalizado(prospect) ? 'Cerrado' : 'Gestionar' }}
+          </button>
         </div>
       </div>
 
@@ -198,7 +259,7 @@
     </div>
 
     <!-- Pagination -->
-    <div class="pagination-container" *ngIf="prospects.length > 0">
+    <div class="pagination-container" *ngIf="totalResultados > 0">
       <mat-paginator
         [length]="totalResultados"
         [pageSize]="tamanioPagina"

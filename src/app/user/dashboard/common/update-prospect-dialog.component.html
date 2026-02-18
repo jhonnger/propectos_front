@@ -7,7 +7,7 @@
       </div>
       <div>
         <h2 class="dialog-title">Registrar Contacto</h2>
-        <p class="dialog-subtitle">Actualiza el estado del prospecto</p>
+        <p class="dialog-subtitle">Selecciona el resultado de la gestion</p>
       </div>
     </div>
     <button mat-icon-button class="close-btn" (click)="onCancel()">
@@ -25,80 +25,62 @@
         <span>{{ data.phone }}</span>
       </div>
     </div>
+    <span class="current-estado" *ngIf="data.estadoActual">
+      Estado actual: {{ data.estadoActual }}
+    </span>
   </div>
 
-  <!-- Form Content -->
+  <!-- Estado Selector -->
   <div class="dialog-body">
-    <form [formGroup]="contactForm" (ngSubmit)="onConfirm()" class="dialog-form">
-
-      <!-- Call Result Section -->
-      <div class="form-section">
-        <div class="form-section-label">
-          <mat-icon>call</mat-icon>
-          <span>Resultado de la llamada</span>
-        </div>
-        <mat-form-field appearance="outline" class="full-width">
-          <mat-label>Contesto la llamada?</mat-label>
-          <mat-select formControlName="contestoLlamada">
-            <mat-option [value]="true">
-              <div class="option-content">
-                <mat-icon class="option-icon success-icon">check_circle</mat-icon>
-                Si, contesto
-              </div>
-            </mat-option>
-            <mat-option [value]="false">
-              <div class="option-content">
-                <mat-icon class="option-icon error-icon">cancel</mat-icon>
-                No contesto
-              </div>
-            </mat-option>
-          </mat-select>
-          <mat-error *ngIf="contactForm.get('contestoLlamada')?.hasError('required')">
-            Este campo es obligatorio
-          </mat-error>
-        </mat-form-field>
+    <div class="form-section">
+      <div class="form-section-label">
+        <mat-icon>flag</mat-icon>
+        <span>Resultado de la gestion</span>
       </div>
-
-      <!-- Interest Level Section -->
-      <div class="form-section" *ngIf="mostrarInteresado">
-        <div class="form-section-label">
-          <mat-icon>star</mat-icon>
-          <span>Nivel de interes</span>
-        </div>
-        <mat-form-field appearance="outline" class="full-width">
-          <mat-label>Esta interesado?</mat-label>
-          <mat-select formControlName="interesado">
-            <mat-option [value]="true">
-              <div class="option-content">
-                <mat-icon class="option-icon success-icon">thumb_up</mat-icon>
-                Si, interesado
-              </div>
-            </mat-option>
-            <mat-option [value]="false">
-              <div class="option-content">
-                <mat-icon class="option-icon error-icon">thumb_down</mat-icon>
-                No interesado
-              </div>
-            </mat-option>
-          </mat-select>
-          <mat-error *ngIf="contactForm.get('interesado')?.hasError('required')">
-            Este campo es obligatorio
-          </mat-error>
-        </mat-form-field>
+      <div class="estado-grid">
+        <button
+          *ngFor="let option of estadoOptions"
+          class="estado-option"
+          [class.estado-selected]="estadoSeleccionado === option.value"
+          [ngClass]="estadoSeleccionado === option.value ? option.colorClass + '-active' : ''"
+          (click)="selectEstado(option.value)">
+          <mat-icon class="estado-option-icon" [ngClass]="option.colorClass">{{ option.icon }}</mat-icon>
+          <span class="estado-option-label">{{ option.label }}</span>
+          <span class="estado-option-desc">{{ option.description }}</span>
+          <div class="terminal-badge" *ngIf="isTerminal(option.value)">Final</div>
+        </button>
       </div>
+    </div>
 
-      <!-- Comment Section -->
-      <div class="form-section">
-        <div class="form-section-label">
-          <mat-icon>comment</mat-icon>
-          <span>Comentario</span>
-        </div>
-        <mat-form-field appearance="outline" class="full-width">
-          <mat-label>Escribe un comentario...</mat-label>
-          <textarea matInput formControlName="comentario" rows="3"></textarea>
-        </mat-form-field>
+    <!-- Agenda Section (conditional) -->
+    <div class="form-section agenda-section" *ngIf="estadoSeleccionado === 'AGENDADO'">
+      <div class="form-section-label">
+        <mat-icon>schedule</mat-icon>
+        <span>Fecha y hora de la agenda</span>
       </div>
-    </form>
+      <div class="agenda-inputs">
+        <div class="agenda-field">
+          <label class="input-label">Fecha</label>
+          <input type="date" class="native-input" [(ngModel)]="fechaAgenda">
+        </div>
+        <div class="agenda-field">
+          <label class="input-label">Hora</label>
+          <input type="time" class="native-input" [(ngModel)]="horaAgenda">
+        </div>
+      </div>
+    </div>
+
+    <!-- Comment Section -->
+    <div class="form-section">
+      <div class="form-section-label">
+        <mat-icon>comment</mat-icon>
+        <span>Comentario (opcional)</span>
+      </div>
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Escribe un comentario...</mat-label>
+        <textarea matInput [(ngModel)]="comentario" rows="3"></textarea>
+      </mat-form-field>
+    </div>
   </div>
 
   <!-- Actions -->
@@ -106,7 +88,7 @@
     <button mat-stroked-button class="cancel-btn" (click)="onCancel()">
       Cancelar
     </button>
-    <button mat-flat-button class="save-btn" (click)="onConfirm()" [disabled]="!contactForm.valid">
+    <button mat-flat-button class="save-btn" (click)="onConfirm()" [disabled]="!isFormValid">
       <mat-icon>save</mat-icon>
       <span>Registrar Contacto</span>
     </button>

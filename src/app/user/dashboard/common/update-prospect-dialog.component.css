@@ -90,6 +90,7 @@
   display: flex;
   flex-direction: column;
   gap: 0.25rem;
+  flex: 1;
 }
 
 .prospect-name {
@@ -113,17 +114,23 @@
   color: #667eea;
 }
 
-/* Form */
-.dialog-body {
-  padding: 0;
+.current-estado {
+  font-size: 0.7rem;
+  color: #94a3b8;
+  background: #f1f5f9;
+  padding: 3px 8px;
+  border-radius: 6px;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
-.dialog-form {
+/* Form */
+.dialog-body {
   padding: 0.25rem 1.5rem 0 1.5rem;
 }
 
 .form-section {
-  margin-bottom: 0.25rem;
+  margin-bottom: 1rem;
 }
 
 .form-section-label {
@@ -133,7 +140,7 @@
   font-size: 0.8125rem;
   font-weight: 600;
   color: #475569;
-  margin-bottom: 0.5rem;
+  margin-bottom: 0.625rem;
 }
 
 .form-section-label mat-icon {
@@ -159,25 +166,149 @@
   border-radius: 0 10px 10px 0;
 }
 
-/* Select Options */
-.option-content {
+/* Estado Grid */
+.estado-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+
+.estado-option {
   display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 0.5rem;
+  gap: 4px;
+  padding: 12px 8px;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 10px;
+  background: #ffffff;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  position: relative;
+  text-align: center;
 }
 
-.option-icon {
-  font-size: 1.125rem;
-  width: 1.125rem;
-  height: 1.125rem;
+.estado-option:hover {
+  border-color: #cbd5e1;
+  background: #f8fafc;
 }
 
-.success-icon {
-  color: #16a34a;
+.estado-selected {
+  border-width: 2px;
+  background: #fafafe;
 }
 
-.error-icon {
+.estado-option-icon {
+  font-size: 1.5rem;
+  width: 1.5rem;
+  height: 1.5rem;
+}
+
+.estado-option-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #334155;
+}
+
+.estado-option-desc {
+  font-size: 0.625rem;
+  color: #94a3b8;
+  line-height: 1.2;
+}
+
+/* Terminal Badge */
+.terminal-badge {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  font-size: 0.5625rem;
+  font-weight: 700;
+  padding: 1px 5px;
+  border-radius: 4px;
+  background: rgba(239, 68, 68, 0.1);
   color: #dc2626;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+/* Option Color Classes */
+.opt-no-contesto { color: #dc2626; }
+.opt-agendado { color: #7c3aed; }
+.opt-prospecto { color: #2563eb; }
+.opt-observado { color: #475569; }
+.opt-concreto { color: #059669; }
+.opt-no-llamar { color: #b91c1c; }
+
+/* Active state colors */
+.opt-no-contesto-active {
+  border-color: #dc2626 !important;
+  background: rgba(239, 68, 68, 0.05) !important;
+}
+.opt-agendado-active {
+  border-color: #7c3aed !important;
+  background: rgba(124, 58, 237, 0.05) !important;
+}
+.opt-prospecto-active {
+  border-color: #2563eb !important;
+  background: rgba(37, 99, 235, 0.05) !important;
+}
+.opt-observado-active {
+  border-color: #475569 !important;
+  background: rgba(100, 116, 139, 0.05) !important;
+}
+.opt-concreto-active {
+  border-color: #059669 !important;
+  background: rgba(16, 185, 129, 0.05) !important;
+}
+.opt-no-llamar-active {
+  border-color: #b91c1c !important;
+  background: rgba(239, 68, 68, 0.04) !important;
+}
+
+/* Agenda Section */
+.agenda-section {
+  animation: slideDown 0.2s ease-out;
+}
+
+@keyframes slideDown {
+  from { opacity: 0; transform: translateY(-8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.agenda-inputs {
+  display: flex;
+  gap: 12px;
+}
+
+.agenda-field {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.input-label {
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: #64748b;
+}
+
+.native-input {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 10px;
+  font-size: 0.875rem;
+  color: #0f172a;
+  background: #ffffff;
+  transition: border-color 0.2s ease;
+  box-sizing: border-box;
+}
+
+.native-input:focus {
+  outline: none;
+  border-color: #667eea;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
 }
 
 /* Actions */
@@ -248,10 +379,25 @@
 
   .prospect-info-card {
     margin: 1rem 1.25rem;
+    flex-wrap: wrap;
   }
 
-  .dialog-form {
+  .current-estado {
+    width: 100%;
+    text-align: center;
+    margin-top: 4px;
+  }
+
+  .dialog-body {
     padding: 0.25rem 1.25rem 0 1.25rem;
+  }
+
+  .estado-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .agenda-inputs {
+    flex-direction: column;
   }
 
   .dialog-actions {
