@@ -10,7 +10,7 @@
         </div>
         <div>
           <h1 class="page-title">Dashboard</h1>
-          <p class="page-subtitle">Gestiona tus prospectos y revisa metricas clave</p>
+          <p class="page-subtitle">Gestiona tus prospectos y registra contactos</p>
         </div>
       </div>
     </div>
@@ -60,11 +60,14 @@
   </div>
 
   <!-- Prospects Table Section -->
-  <div class="prospects-section">
+  <div class="table-section">
     <div class="section-header">
       <div class="section-title-group">
         <mat-icon class="section-icon">people</mat-icon>
-        <h2 class="section-title">Prospectos Pendientes</h2>
+        <div>
+          <h2 class="section-title">Prospectos Pendientes</h2>
+          <p class="section-subtitle">Lista de prospectos asignados para contactar</p>
+        </div>
       </div>
       <button mat-stroked-button class="refresh-btn" (click)="buscar()">
         <mat-icon>refresh</mat-icon>
@@ -84,7 +87,7 @@
               <div class="prospect-avatar">{{ (prospect.nombre?.charAt(0) || '') + (prospect.apellido?.charAt(0) || '') }}</div>
               <div class="prospect-name-info">
                 <span class="name-primary">{{ prospect.nombre }} {{ prospect.apellido }}</span>
-                <span class="name-dni">{{ prospect.documentoIdentidad }}</span>
+                <span class="name-secondary">{{ prospect.documentoIdentidad }}</span>
               </div>
             </div>
           </td>
@@ -94,7 +97,7 @@
         <ng-container matColumnDef="documentoIdentidad">
           <th mat-header-cell *matHeaderCellDef>DNI</th>
           <td mat-cell *matCellDef="let prospect">
-            <span class="dni-text">{{ prospect.documentoIdentidad }}</span>
+            <span class="dni-badge">{{ prospect.documentoIdentidad }}</span>
           </td>
         </ng-container>
 
@@ -126,12 +129,11 @@
           <td mat-cell *matCellDef="let prospect">
             <button
               mat-flat-button
-              color="primary"
               class="action-btn"
               (click)="openDialog(prospect)"
               matTooltip="Registrar contacto">
-              <mat-icon>edit</mat-icon>
-              Actualizar
+              <mat-icon>edit_note</mat-icon>
+              Registrar
             </button>
           </td>
         </ng-container>
@@ -153,7 +155,7 @@
       <div class="prospect-card" *ngFor="let prospect of prospects">
         <div class="card-header">
           <div class="card-header-left">
-            <div class="prospect-avatar">{{ (prospect.nombre?.charAt(0) || '') + (prospect.apellido?.charAt(0) || '') }}</div>
+            <div class="prospect-avatar mobile-avatar">{{ (prospect.nombre?.charAt(0) || '') + (prospect.apellido?.charAt(0) || '') }}</div>
             <div class="prospect-info">
               <h3 class="prospect-name-mobile">{{ prospect.nombre }} {{ prospect.apellido }}</h3>
               <span class="prospect-dni">DNI: {{ prospect.documentoIdentidad }}</span>
@@ -161,10 +163,10 @@
           </div>
           <button
             mat-icon-button
-            color="primary"
             class="action-btn-mobile"
-            (click)="openDialog(prospect)">
-            <mat-icon>edit</mat-icon>
+            (click)="openDialog(prospect)"
+            matTooltip="Registrar contacto">
+            <mat-icon>edit_note</mat-icon>
           </button>
         </div>
 
