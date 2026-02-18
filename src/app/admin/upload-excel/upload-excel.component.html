@@ -1,105 +1,123 @@
 <div class="upload-container">
+  <!-- Header Section -->
   <div class="upload-header">
-    <div class="header-icon-wrapper">
-      <mat-icon class="upload-header-icon">cloud_upload</mat-icon>
+    <div class="header-content">
+      <div class="header-left">
+        <div class="header-icon-wrapper">
+          <mat-icon>cloud_upload</mat-icon>
+        </div>
+        <div>
+          <h1 class="page-title">Cargar Archivo Excel</h1>
+          <p class="page-subtitle">Importa prospectos al sistema desde un archivo Excel</p>
+        </div>
+      </div>
     </div>
-    <h1>Cargar Archivo Excel</h1>
-    <p>Selecciona un archivo Excel para cargar los prospectos al sistema</p>
   </div>
 
-  <div class="upload-card">
-    <!-- Zona de drag and drop -->
-    <div
-      class="drop-zone"
-      [class.drag-over]="isDragOver"
-      [class.has-file]="selectedFile"
-      (dragover)="onDragOver($event)"
-      (dragleave)="onDragLeave($event)"
-      (drop)="onDrop($event)"
-      (click)="triggerFileInput()">
+  <!-- Upload Section -->
+  <div class="upload-section">
+    <div class="upload-card">
+      <!-- Drop Zone -->
+      <div
+        class="drop-zone"
+        [class.drag-over]="isDragOver"
+        [class.has-file]="selectedFile"
+        (dragover)="onDragOver($event)"
+        (dragleave)="onDragLeave($event)"
+        (drop)="onDrop($event)"
+        (click)="triggerFileInput()">
 
-      <div class="drop-zone-content" *ngIf="!selectedFile">
-        <div class="drop-icon-wrapper">
-          <mat-icon class="drop-icon">file_upload</mat-icon>
+        <div class="drop-zone-content" *ngIf="!selectedFile">
+          <div class="drop-icon-wrapper">
+            <mat-icon class="drop-icon">file_upload</mat-icon>
+          </div>
+          <div class="drop-text">
+            <h3>Arrastra tu archivo aqui</h3>
+            <p>o <span class="link-text">haz clic para seleccionar</span></p>
+          </div>
+          <div class="file-types">
+            <span class="file-type-badge">
+              <mat-icon>table_chart</mat-icon>
+              XLSX
+            </span>
+            <span class="file-type-badge">
+              <mat-icon>table_chart</mat-icon>
+              XLS
+            </span>
+          </div>
         </div>
-        <div class="drop-text">
-          <h3>Arrastra tu archivo aqui</h3>
-          <p>o <span class="link-text">haz clic para seleccionar</span></p>
-        </div>
-        <div class="file-types">
-          <span class="file-type-badge">
-            <mat-icon>table_chart</mat-icon>
-            XLSX
-          </span>
-          <span class="file-type-badge">
-            <mat-icon>table_chart</mat-icon>
-            XLS
-          </span>
+
+        <!-- Selected File -->
+        <div class="selected-file-content" *ngIf="selectedFile">
+          <div class="file-icon-wrapper">
+            <mat-icon>description</mat-icon>
+          </div>
+          <div class="file-details">
+            <span class="file-name">{{ selectedFile.name }}</span>
+            <span class="file-size">{{ formatFileSize(selectedFile.size) }}</span>
+          </div>
+          <button
+            mat-icon-button
+            (click)="removeFile(); $event.stopPropagation()"
+            class="remove-btn"
+            [disabled]="isUploading"
+            matTooltip="Quitar archivo">
+            <mat-icon>close</mat-icon>
+          </button>
         </div>
       </div>
 
-      <!-- Archivo seleccionado (dentro del dropzone) -->
-      <div class="selected-file-content" *ngIf="selectedFile">
-        <div class="file-icon-wrapper">
-          <mat-icon>description</mat-icon>
-        </div>
-        <div class="file-details">
-          <span class="file-name">{{ selectedFile.name }}</span>
-          <span class="file-size">{{ formatFileSize(selectedFile.size) }}</span>
-        </div>
+      <!-- Hidden File Input -->
+      <input
+        id="fileInput"
+        type="file"
+        (change)="onFileSelected($event)"
+        accept=".xlsx,.xls"
+        hidden>
+
+      <!-- Upload Button -->
+      <div class="action-buttons">
         <button
-          mat-icon-button
-          (click)="removeFile(); $event.stopPropagation()"
-          class="remove-btn"
-          [disabled]="isUploading"
-          matTooltip="Quitar archivo">
-          <mat-icon>close</mat-icon>
+          mat-flat-button
+          class="upload-btn"
+          (click)="uploadFile()"
+          [disabled]="!selectedFile || isUploading">
+          <mat-icon *ngIf="!isUploading">cloud_upload</mat-icon>
+          <mat-spinner *ngIf="isUploading" diameter="20"></mat-spinner>
+          <span *ngIf="!isUploading">Subir Archivo</span>
+          <span *ngIf="isUploading">Subiendo...</span>
         </button>
       </div>
     </div>
 
-    <!-- Input oculto para seleccionar archivo -->
-    <input
-      id="fileInput"
-      type="file"
-      (change)="onFileSelected($event)"
-      accept=".xlsx,.xls"
-      hidden>
-
-    <!-- Botones de accion -->
-    <div class="action-buttons">
-      <button
-        mat-flat-button
-        color="primary"
-        (click)="uploadFile()"
-        [disabled]="!selectedFile || isUploading"
-        class="upload-btn">
-        <mat-icon *ngIf="!isUploading">cloud_upload</mat-icon>
-        <mat-spinner *ngIf="isUploading" diameter="20"></mat-spinner>
-        <span *ngIf="!isUploading">Subir Archivo</span>
-        <span *ngIf="isUploading">Subiendo...</span>
-      </button>
-    </div>
-
-    <!-- Informacion adicional -->
-    <div class="upload-info">
-      <div class="info-item">
-        <div class="info-icon-bg">
-          <mat-icon>info</mat-icon>
-        </div>
-        <span>El archivo debe contener las columnas necesarias para los prospectos</span>
+    <!-- Info Panel -->
+    <div class="info-panel">
+      <div class="info-panel-header">
+        <mat-icon>info_outline</mat-icon>
+        <span>Instrucciones</span>
       </div>
-      <div class="info-item">
-        <div class="info-icon-bg">
-          <mat-icon>storage</mat-icon>
+      <div class="info-list">
+        <div class="info-item">
+          <div class="info-step">1</div>
+          <div class="info-text">
+            <span class="info-title">Prepara tu archivo</span>
+            <span class="info-desc">El archivo debe contener las columnas necesarias para los prospectos</span>
+          </div>
         </div>
-        <span>Tamano maximo: 10MB</span>
-      </div>
-      <div class="info-item">
-        <div class="info-icon-bg">
-          <mat-icon>check_circle</mat-icon>
+        <div class="info-item">
+          <div class="info-step">2</div>
+          <div class="info-text">
+            <span class="info-title">Sube el archivo</span>
+            <span class="info-desc">Arrastra o selecciona un archivo .xlsx o .xls (max. 10MB)</span>
+          </div>
         </div>
-        <span>Formatos aceptados: .xlsx y .xls</span>
+        <div class="info-item">
+          <div class="info-step">3</div>
+          <div class="info-text">
+            <span class="info-title">Asigna los prospectos</span>
+            <span class="info-desc">Ve a "Asignar Prospectos" para distribuirlos entre teleoperadores</span>
+          </div>
+        </div>
       </div>
     </div>
   </div>

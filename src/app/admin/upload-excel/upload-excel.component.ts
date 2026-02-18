@@ -1,16 +1,15 @@
 import { Component } from '@angular/core';
-import {AdminService} from '../services/admin.service';
-import {CommonModule} from '@angular/common';
-import {MatButtonModule} from '@angular/material/button';
-import {MatIconModule} from '@angular/material/icon';
-import {MatCardModule} from '@angular/material/card';
-import {MatProgressSpinnerModule} from '@angular/material/progress-spinner';
-import {MatSnackBar, MatSnackBarModule} from '@angular/material/snack-bar';
-import {MatTooltipModule} from '@angular/material/tooltip';
+import { AdminService } from '../services/admin.service';
+import { CommonModule } from '@angular/common';
+import { MatButtonModule } from '@angular/material/button';
+import { MatIconModule } from '@angular/material/icon';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
+import { MatTooltipModule } from '@angular/material/tooltip';
 
 @Component({
   selector: 'app-upload-excel',
-  imports: [MatButtonModule, CommonModule, MatIconModule, MatCardModule, MatProgressSpinnerModule, MatSnackBarModule, MatTooltipModule],
+  imports: [MatButtonModule, CommonModule, MatIconModule, MatProgressSpinnerModule, MatSnackBarModule, MatTooltipModule],
   templateUrl: './upload-excel.component.html',
   styleUrl: './upload-excel.component.css'
 })
@@ -22,9 +21,6 @@ export class UploadExcelComponent {
 
   constructor(private adminService: AdminService, private snackBar: MatSnackBar) {}
 
-  /**
-   * Manejar la selección de archivo
-   */
   onFileSelected(event: Event): void {
     const input = event.target as HTMLInputElement;
     if (input.files && input.files.length > 0) {
@@ -32,9 +28,6 @@ export class UploadExcelComponent {
     }
   }
 
-  /**
-   * Manejar drag and drop
-   */
   onDragOver(event: DragEvent): void {
     event.preventDefault();
     this.isDragOver = true;
@@ -54,9 +47,6 @@ export class UploadExcelComponent {
     }
   }
 
-  /**
-   * Procesar archivo seleccionado
-   */
   private handleFile(file: File): void {
     if (this.isValidFile(file)) {
       this.selectedFile = file;
@@ -69,9 +59,6 @@ export class UploadExcelComponent {
     }
   }
 
-  /**
-   * Validar tipo de archivo
-   */
   private isValidFile(file: File): boolean {
     const validTypes = [
       'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
@@ -80,17 +67,11 @@ export class UploadExcelComponent {
     return validTypes.includes(file.type) || file.name.endsWith('.xlsx') || file.name.endsWith('.xls');
   }
 
-  /**
-   * Remover archivo seleccionado
-   */
   removeFile(): void {
     this.selectedFile = null;
     this.message = null;
   }
 
-  /**
-   * Formatear tamaño de archivo
-   */
   formatFileSize(bytes: number): string {
     if (bytes === 0) return '0 Bytes';
     const k = 1024;
@@ -99,9 +80,6 @@ export class UploadExcelComponent {
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
   }
 
-  /**
-   * Subir el archivo al backend
-   */
   uploadFile(): void {
     if (this.selectedFile && !this.isUploading) {
       this.isUploading = true;
@@ -135,9 +113,6 @@ export class UploadExcelComponent {
     }
   }
 
-  /**
-   * Trigger file input click
-   */
   triggerFileInput(): void {
     const fileInput = document.getElementById('fileInput') as HTMLInputElement;
     fileInput?.click();
