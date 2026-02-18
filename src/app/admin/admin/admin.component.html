@@ -1,47 +1,56 @@
 <mat-sidenav-container class="sidenav-container">
   <mat-sidenav #sidenav mode="side" [opened]="true" class="sidenav">
+    <!-- Logo -->
     <div class="sidenav-header">
-      <mat-icon class="sidenav-logo">admin_panel_settings</mat-icon>
-      <span class="sidenav-title">Admin Panel</span>
+      <div class="logo-icon-wrapper">
+        <mat-icon>assignment</mat-icon>
+      </div>
+      <span class="sidenav-title">Prospectos</span>
     </div>
 
-    <mat-nav-list class="sidenav-nav">
-      <a mat-list-item routerLink="/admin/upload-excel" routerLinkActive="active-link">
-        <mat-icon matListItemIcon>upload_file</mat-icon>
-        <span matListItemTitle>Cargar Excel</span>
-      </a>
+    <!-- Navigation -->
+    <div class="nav-section">
+      <span class="nav-section-label">Menu</span>
+      <mat-nav-list class="sidenav-nav">
+        <a mat-list-item routerLink="/admin/upload-excel" routerLinkActive="active-link">
+          <mat-icon matListItemIcon>cloud_upload</mat-icon>
+          <span matListItemTitle>Cargar Excel</span>
+        </a>
 
-      <a mat-list-item routerLink="/admin/assign-prospects" routerLinkActive="active-link">
-        <mat-icon matListItemIcon>assignment</mat-icon>
-        <span matListItemTitle>Asignar Prospectos</span>
-      </a>
+        <a mat-list-item routerLink="/admin/assign-prospects" routerLinkActive="active-link">
+          <mat-icon matListItemIcon>assignment_ind</mat-icon>
+          <span matListItemTitle>Asignar Prospectos</span>
+        </a>
 
-      <a mat-list-item routerLink="/admin/reports" routerLinkActive="active-link">
-        <mat-icon matListItemIcon>bar_chart</mat-icon>
-        <span matListItemTitle>Ver Reportes</span>
-      </a>
+        <a mat-list-item routerLink="/admin/manage-users" routerLinkActive="active-link">
+          <mat-icon matListItemIcon>group</mat-icon>
+          <span matListItemTitle>Gestionar Usuarios</span>
+        </a>
+      </mat-nav-list>
+    </div>
 
-      <a mat-list-item routerLink="/admin/manage-users" routerLinkActive="active-link">
-        <mat-icon matListItemIcon>group</mat-icon>
-        <span matListItemTitle>Gestionar Usuarios</span>
-      </a>
-    </mat-nav-list>
-
+    <!-- User & Logout -->
     <div class="sidenav-footer">
-      <a mat-list-item (click)="logout()">
+      <div class="footer-user-info">
+        <div class="footer-avatar">{{ getInitials() }}</div>
+        <div class="footer-user-details">
+          <span class="footer-user-name">{{ username }}</span>
+          <span class="footer-user-role">Administrador</span>
+        </div>
+      </div>
+      <button mat-icon-button class="logout-btn" (click)="logout()" matTooltip="Cerrar sesion">
         <mat-icon>logout</mat-icon>
-        <span>Cerrar Sesion</span>
-      </a>
+      </button>
     </div>
   </mat-sidenav>
 
   <mat-sidenav-content class="sidenav-content">
-    <mat-toolbar class="main-header">
-      <button mat-icon-button (click)="sidenav.toggle()" class="toggle-button">
+    <div class="top-bar">
+      <button mat-icon-button (click)="sidenav.toggle()" class="toggle-btn">
         <mat-icon>menu</mat-icon>
       </button>
-      <span>Panel de Administracion</span>
-    </mat-toolbar>
+      <span class="top-bar-title">Panel de Administracion</span>
+    </div>
 
     <div class="content">
       <router-outlet></router-outlet>
