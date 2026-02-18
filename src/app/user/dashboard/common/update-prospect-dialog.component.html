@@ -1,8 +1,8 @@
 <div class="dialog-wrapper">
   <!-- Header -->
   <div class="dialog-header">
-    <div class="header-left">
-      <div class="header-icon-wrapper">
+    <div class="dialog-header-left">
+      <div class="dialog-icon-wrapper">
         <mat-icon>contact_phone</mat-icon>
       </div>
       <div>
@@ -15,94 +15,100 @@
     </button>
   </div>
 
-  <!-- Prospect Info -->
-  <div class="prospect-info">
+  <!-- Prospect Info Card -->
+  <div class="prospect-info-card">
     <div class="prospect-avatar">{{ getInitials() }}</div>
     <div class="prospect-details">
       <span class="prospect-name">{{ data.name }}</span>
       <div class="prospect-phone">
-        <mat-icon class="phone-icon">phone</mat-icon>
+        <mat-icon>phone</mat-icon>
         <span>{{ data.phone }}</span>
       </div>
     </div>
   </div>
 
-  <!-- Form -->
-  <form [formGroup]="contactForm" (ngSubmit)="onConfirm()" class="dialog-form">
-    <div class="form-section">
-      <label class="form-section-label">
-        <mat-icon class="section-label-icon">call</mat-icon>
-        Resultado de la llamada
-      </label>
-      <mat-form-field appearance="outline" class="full-width">
-        <mat-label>Contesto la llamada?</mat-label>
-        <mat-select formControlName="contestoLlamada">
-          <mat-option [value]="true">
-            <div class="option-content">
-              <mat-icon class="option-icon success-icon">check_circle</mat-icon>
-              Si, contesto
-            </div>
-          </mat-option>
-          <mat-option [value]="false">
-            <div class="option-content">
-              <mat-icon class="option-icon error-icon">cancel</mat-icon>
-              No contesto
-            </div>
-          </mat-option>
-        </mat-select>
-        <mat-error *ngIf="contactForm.get('contestoLlamada')?.hasError('required')">
-          Este campo es obligatorio
-        </mat-error>
-      </mat-form-field>
-    </div>
+  <!-- Form Content -->
+  <div class="dialog-body">
+    <form [formGroup]="contactForm" (ngSubmit)="onConfirm()" class="dialog-form">
 
-    <div class="form-section" *ngIf="mostrarInteresado">
-      <label class="form-section-label">
-        <mat-icon class="section-label-icon">star</mat-icon>
-        Nivel de interes
-      </label>
-      <mat-form-field appearance="outline" class="full-width">
-        <mat-label>Esta interesado?</mat-label>
-        <mat-select formControlName="interesado">
-          <mat-option [value]="true">
-            <div class="option-content">
-              <mat-icon class="option-icon success-icon">thumb_up</mat-icon>
-              Si, interesado
-            </div>
-          </mat-option>
-          <mat-option [value]="false">
-            <div class="option-content">
-              <mat-icon class="option-icon error-icon">thumb_down</mat-icon>
-              No interesado
-            </div>
-          </mat-option>
-        </mat-select>
-        <mat-error *ngIf="contactForm.get('interesado')?.hasError('required')">
-          Este campo es obligatorio
-        </mat-error>
-      </mat-form-field>
-    </div>
+      <!-- Call Result Section -->
+      <div class="form-section">
+        <div class="form-section-label">
+          <mat-icon>call</mat-icon>
+          <span>Resultado de la llamada</span>
+        </div>
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Contesto la llamada?</mat-label>
+          <mat-select formControlName="contestoLlamada">
+            <mat-option [value]="true">
+              <div class="option-content">
+                <mat-icon class="option-icon success-icon">check_circle</mat-icon>
+                Si, contesto
+              </div>
+            </mat-option>
+            <mat-option [value]="false">
+              <div class="option-content">
+                <mat-icon class="option-icon error-icon">cancel</mat-icon>
+                No contesto
+              </div>
+            </mat-option>
+          </mat-select>
+          <mat-error *ngIf="contactForm.get('contestoLlamada')?.hasError('required')">
+            Este campo es obligatorio
+          </mat-error>
+        </mat-form-field>
+      </div>
 
-    <div class="form-section">
-      <label class="form-section-label">
-        <mat-icon class="section-label-icon">comment</mat-icon>
-        Comentario
-      </label>
-      <mat-form-field appearance="outline" class="full-width">
-        <mat-label>Escribe un comentario...</mat-label>
-        <textarea matInput formControlName="comentario" rows="3"></textarea>
-      </mat-form-field>
-    </div>
-  </form>
+      <!-- Interest Level Section -->
+      <div class="form-section" *ngIf="mostrarInteresado">
+        <div class="form-section-label">
+          <mat-icon>star</mat-icon>
+          <span>Nivel de interes</span>
+        </div>
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Esta interesado?</mat-label>
+          <mat-select formControlName="interesado">
+            <mat-option [value]="true">
+              <div class="option-content">
+                <mat-icon class="option-icon success-icon">thumb_up</mat-icon>
+                Si, interesado
+              </div>
+            </mat-option>
+            <mat-option [value]="false">
+              <div class="option-content">
+                <mat-icon class="option-icon error-icon">thumb_down</mat-icon>
+                No interesado
+              </div>
+            </mat-option>
+          </mat-select>
+          <mat-error *ngIf="contactForm.get('interesado')?.hasError('required')">
+            Este campo es obligatorio
+          </mat-error>
+        </mat-form-field>
+      </div>
+
+      <!-- Comment Section -->
+      <div class="form-section">
+        <div class="form-section-label">
+          <mat-icon>comment</mat-icon>
+          <span>Comentario</span>
+        </div>
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Escribe un comentario...</mat-label>
+          <textarea matInput formControlName="comentario" rows="3"></textarea>
+        </mat-form-field>
+      </div>
+    </form>
+  </div>
 
   <!-- Actions -->
   <div class="dialog-actions">
     <button mat-stroked-button class="cancel-btn" (click)="onCancel()">
       Cancelar
     </button>
-    <button mat-flat-button class="confirm-btn" (click)="onConfirm()" [disabled]="!contactForm.valid">
+    <button mat-flat-button class="save-btn" (click)="onConfirm()" [disabled]="!contactForm.valid">
       <mat-icon>save</mat-icon>
-      Registrar Contacto
+      <span>Registrar Contacto</span>
     </button>
   </div>
 </div>
