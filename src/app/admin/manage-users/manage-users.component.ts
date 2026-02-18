@@ -3,8 +3,6 @@ import { CommonModule } from '@angular/common';
 import { MatTableModule } from '@angular/material/table';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
-import { MatCardModule } from '@angular/material/card';
-import { MatChipsModule } from '@angular/material/chips';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatTooltipModule } from '@angular/material/tooltip';
@@ -19,8 +17,6 @@ import { UserDialogComponent, UserDialogData } from './user-dialog/user-dialog.c
     MatTableModule,
     MatButtonModule,
     MatIconModule,
-    MatCardModule,
-    MatChipsModule,
     MatProgressSpinnerModule,
     MatSnackBarModule,
     MatTooltipModule,
@@ -32,7 +28,7 @@ import { UserDialogComponent, UserDialogData } from './user-dialog/user-dialog.c
 export class ManageUsersComponent implements OnInit {
   users: UsuarioDTO[] = [];
   isLoading = false;
-  displayedColumns: string[] = ['nombre', 'apellidos', 'usuario', 'email', 'rol', 'estado', 'acciones'];
+  displayedColumns: string[] = ['nombre', 'email', 'rol', 'estado', 'acciones'];
 
   constructor(
     private adminService: AdminService,
@@ -70,11 +66,18 @@ export class ManageUsersComponent implements OnInit {
     return this.users.filter(u => !u.estado).length;
   }
 
+  getInitials(name: string): string {
+    if (!name) return '?';
+    return name.split(' ').map(n => n.charAt(0)).join('').substring(0, 2).toUpperCase();
+  }
+
   openCreateDialog() {
     const dialogRef = this.dialog.open(UserDialogComponent, {
       width: '650px',
+      maxWidth: '95vw',
       data: { mode: 'create' } as UserDialogData,
       disableClose: true,
+      panelClass: 'custom-dialog-panel',
     });
 
     dialogRef.afterClosed().subscribe(result => {
@@ -97,8 +100,10 @@ export class ManageUsersComponent implements OnInit {
   openEditDialog(user: UsuarioDTO) {
     const dialogRef = this.dialog.open(UserDialogComponent, {
       width: '650px',
+      maxWidth: '95vw',
       data: { mode: 'edit', user } as UserDialogData,
       disableClose: true,
+      panelClass: 'custom-dialog-panel',
     });
 
     dialogRef.afterClosed().subscribe(result => {
