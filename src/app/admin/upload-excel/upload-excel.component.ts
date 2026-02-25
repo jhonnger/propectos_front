@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, ViewChild, ElementRef } from '@angular/core';
 import { AdminService } from '../services/admin.service';
 import { CommonModule } from '@angular/common';
 import { MatButtonModule } from '@angular/material/button';
@@ -14,6 +14,7 @@ import { MatTooltipModule } from '@angular/material/tooltip';
   styleUrl: './upload-excel.component.css'
 })
 export class UploadExcelComponent {
+  @ViewChild('fileInput') fileInputRef!: ElementRef<HTMLInputElement>;
   selectedFile: File | null = null;
   message: string | null = null;
   isUploading: boolean = false;
@@ -26,6 +27,7 @@ export class UploadExcelComponent {
     if (input.files && input.files.length > 0) {
       this.handleFile(input.files[0]);
     }
+    input.value = '';
   }
 
   onDragOver(event: DragEvent): void {
@@ -114,7 +116,6 @@ export class UploadExcelComponent {
   }
 
   triggerFileInput(): void {
-    const fileInput = document.getElementById('fileInput') as HTMLInputElement;
-    fileInput?.click();
+    this.fileInputRef.nativeElement.click();
   }
 }
