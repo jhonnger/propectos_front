@@ -1,0 +1,168 @@
+<div class="dialog-wrapper">
+  <!-- Header -->
+  <div class="dialog-header">
+    <div class="dialog-header-left">
+      <div class="dialog-icon-wrapper">
+        <mat-icon>person_search</mat-icon>
+      </div>
+      <div>
+        <h2 class="dialog-title">Prospectos de {{ data.nombre }}</h2>
+        <p class="dialog-subtitle">{{ totalProspectos }} prospectos asignados</p>
+      </div>
+    </div>
+    <button mat-icon-button class="close-btn" (click)="onClose()">
+      <mat-icon>close</mat-icon>
+    </button>
+  </div>
+
+  <!-- Loading -->
+  <div class="dialog-loading" *ngIf="loading">
+    <mat-spinner diameter="36"></mat-spinner>
+    <span>Cargando prospectos...</span>
+  </div>
+
+  <!-- Content -->
+  <div class="dialog-content" *ngIf="!loading">
+    <!-- Empty state -->
+    <div class="empty-state" *ngIf="prospectos.length === 0">
+      <mat-icon>inbox</mat-icon>
+      <span>Sin prospectos asignados</span>
+    </div>
+
+    <!-- Table -->
+    <div *ngIf="prospectos.length > 0">
+      <div class="table-scroll">
+        <table mat-table [dataSource]="prospectos" multiTemplateDataRows class="prospectos-table">
+          <!-- Nombre -->
+          <ng-container matColumnDef="nombre">
+            <th mat-header-cell *matHeaderCellDef>Prospecto</th>
+            <td mat-cell *matCellDef="let p">
+              <div class="prospect-name-cell">
+                <span class="prospect-fullname">{{ p.nombre }} {{ p.apellido }}</span>
+                <span class="prospect-doc">{{ p.documentoIdentidad }}</span>
+              </div>
+            </td>
+          </ng-container>
+
+          <!-- Celular -->
+          <ng-container matColumnDef="celular">
+            <th mat-header-cell *matHeaderCellDef>Celular</th>
+            <td mat-cell *matCellDef="let p">{{ p.celular }}</td>
+          </ng-container>
+
+          <!-- Campania -->
+          <ng-container matColumnDef="campania">
+            <th mat-header-cell *matHeaderCellDef>Campania</th>
+            <td mat-cell *matCellDef="let p">{{ p.campania || '-' }}</td>
+          </ng-container>
+
+          <!-- Estado -->
+          <ng-container matColumnDef="estado">
+            <th mat-header-cell *matHeaderCellDef>Estado</th>
+            <td mat-cell *matCellDef="let p">
+              <span class="estado-badge" [ngClass]="getEstadoBadgeClass(p.estado)">
+                {{ getEstadoLabel(p.estado) }}
+              </span>
+            </td>
+          </ng-container>
+
+          <!-- Estado Resultado -->
+          <ng-container matColumnDef="estadoResultado">
+            <th mat-header-cell *matHeaderCellDef>Resultado</th>
+            <td mat-cell *matCellDef="let p">
+              <span class="resultado-badge" [ngClass]="getEstadoResultadoClass(p.estadoResultado)" *ngIf="p.estadoResultado">
+                <mat-icon>{{ getEstadoResultadoIcon(p.estadoResultado) }}</mat-icon>
+                {{ getEstadoResultadoLabel(p.estadoResultado) }}
+              </span>
+              <span *ngIf="!p.estadoResultado" class="text-muted">-</span>
+            </td>
+          </ng-container>
+
+          <!-- Contactos -->
+          <ng-container matColumnDef="contactos">
+            <th mat-header-cell *matHeaderCellDef>Contactos</th>
+            <td mat-cell *matCellDef="let p">
+              <span class="contacto-count">{{ p.totalContactos }}</span>
+            </td>
+          </ng-container>
+
+          <!-- Acciones -->
+          <ng-container matColumnDef="acciones">
+            <th mat-header-cell *matHeaderCellDef></th>
+            <td mat-cell *matCellDef="let p">
+              <button mat-icon-button
+                class="historial-btn"
+                [class.historial-btn-active]="isExpanded(p)"
+                matTooltip="Ver historial"
+                (click)="toggleHistorial(p)">
+                <mat-icon>{{ isExpanded(p) ? 'expand_less' : 'history' }}</mat-icon>
+              </button>
+            </td>
+          </ng-container>
+
+          <!-- Expanded row -->
+          <ng-container matColumnDef="expandedDetail">
+            <td mat-cell *matCellDef="let p" [attr.colspan]="displayedColumns.length">
+              <div class="detail-row" *ngIf="isExpanded(p)">
+                <div class="detail-row-title">
+                  <mat-icon>history</mat-icon>
+                  Historial de contactos
+                </div>
+
+                <!-- Historial loading -->
+                <div class="historial-loading" *ngIf="historialLoadingMap.get(p.prospectoId)">
+                  <mat-spinner diameter="24"></mat-spinner>
+                  <span>Cargando historial...</span>
+                </div>
+
+                <!-- Historial empty -->
+                <div class="historial-empty" *ngIf="!historialLoadingMap.get(p.prospectoId) && (!historialMap.get(p.prospectoId) || historialMap.get(p.prospectoId)!.length === 0)">
+                  <mat-icon>inbox</mat-icon>
+                  <span>Sin gestiones registradas</span>
+                </div>
+
+                <!-- Historial timeline -->
+                <div class="historial-list" *ngIf="!historialLoadingMap.get(p.prospectoId) && historialMap.get(p.prospectoId) && historialMap.get(p.prospectoId)!.length > 0">
+                  <div class="historial-item" *ngFor="let c of historialMap.get(p.prospectoId)" [ngClass]="getEstadoResultadoClass(c.estadoResultado)">
+                    <div class="historial-item-header">
+                      <div class="historial-estado-badge-row">
+                        <div class="historial-estado-badge" [ngClass]="getEstadoResultadoClass(c.estadoResultado)">
+                          <mat-icon>{{ getEstadoResultadoIcon(c.estadoResultado) }}</mat-icon>
+                          <span>{{ getEstadoResultadoLabel(c.estadoResultado) }}</span>
+                        </div>
+                        <span class="motivo-tag" *ngIf="c.motivoNoContesto">
+                          {{ getMotivoLabel(c.motivoNoContesto) }}
+                        </span>
+                      </div>
+                      <span class="historial-fecha">{{ c.fechaContacto | date:'dd/MM/yyyy HH:mm' }}</span>
+                    </div>
+                    <p class="historial-comentario" *ngIf="c.comentario">{{ c.comentario }}</p>
+                  </div>
+                </div>
+              </div>
+            </td>
+          </ng-container>
+
+          <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+          <tr mat-row *matRowDef="let row; columns: displayedColumns;"
+            class="prospect-row"
+            [class.expanded-row]="isExpanded(row)">
+          </tr>
+          <tr mat-row *matRowDef="let row; columns: ['expandedDetail']"
+            class="detail-row-container"
+            [class.detail-row-visible]="isExpanded(row)">
+          </tr>
+        </table>
+      </div>
+
+      <mat-paginator
+        [length]="totalProspectos"
+        [pageSize]="tamanioPagina"
+        [pageSizeOptions]="[5, 10, 20]"
+        [pageIndex]="pagina - 1"
+        (page)="onPageChange($event)"
+        showFirstLastButtons>
+      </mat-paginator>
+    </div>
+  </div>
+</div>

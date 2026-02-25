@@ -1,0 +1,388 @@
+/* Dialog Wrapper */
+.dialog-wrapper {
+  padding: 0;
+}
+
+/* Header */
+.dialog-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.25rem 1.5rem;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.dialog-header-left {
+  display: flex;
+  align-items: center;
+  gap: 0.875rem;
+}
+
+.dialog-icon-wrapper {
+  width: 42px;
+  height: 42px;
+  border-radius: 10px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.dialog-icon-wrapper mat-icon {
+  font-size: 1.375rem;
+  width: 1.375rem;
+  height: 1.375rem;
+  color: white;
+}
+
+.dialog-title {
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0;
+}
+
+.dialog-subtitle {
+  font-size: 0.8125rem;
+  color: #94a3b8;
+  margin: 0.125rem 0 0 0;
+}
+
+.close-btn {
+  color: #94a3b8;
+  transition: all 0.2s ease;
+}
+
+.close-btn:hover {
+  color: #475569;
+  background: #f1f5f9;
+}
+
+/* Loading */
+.dialog-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 3rem 1rem;
+  color: #94a3b8;
+  font-size: 0.8125rem;
+}
+
+/* Content */
+.dialog-content {
+  max-height: 70vh;
+  overflow-y: auto;
+}
+
+.table-scroll {
+  overflow-x: auto;
+}
+
+/* Empty State */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 3rem;
+  color: #94a3b8;
+}
+
+.empty-state mat-icon {
+  font-size: 2.5rem;
+  width: 2.5rem;
+  height: 2.5rem;
+  color: #cbd5e1;
+}
+
+/* Table */
+.prospectos-table {
+  width: 100%;
+}
+
+.prospectos-table th {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.025em;
+  white-space: nowrap;
+}
+
+.prospectos-table td {
+  font-size: 0.8125rem;
+  color: #334155;
+  padding: 8px 12px;
+}
+
+/* Prospect name cell */
+.prospect-name-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.prospect-fullname {
+  font-weight: 500;
+  font-size: 0.8125rem;
+  color: #0f172a;
+}
+
+.prospect-doc {
+  font-size: 0.6875rem;
+  color: #94a3b8;
+}
+
+.prospect-row {
+  cursor: default;
+}
+
+.expanded-row {
+  background: #f8fafc;
+}
+
+/* Detail Row */
+.detail-row-container {
+  height: 0;
+  overflow: hidden;
+}
+
+.detail-row-container.detail-row-visible {
+  height: auto;
+}
+
+.detail-row {
+  padding: 0.875rem 1.25rem 1rem 1.25rem;
+  background: #f8fafc;
+  border-bottom: 2px solid #e2e8f0;
+}
+
+.detail-row-title {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: #475569;
+  margin-bottom: 0.625rem;
+}
+
+.detail-row-title mat-icon {
+  font-size: 1rem;
+  width: 1rem;
+  height: 1rem;
+  color: #667eea;
+}
+
+/* Estado Badge */
+.estado-badge {
+  display: inline-block;
+  padding: 0.125rem 0.5rem;
+  border-radius: 6px;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.badge-gray { background: #f1f5f9; color: #64748b; }
+.badge-blue { background: rgba(59,130,246,0.1); color: #2563eb; }
+.badge-green { background: rgba(16,185,129,0.1); color: #059669; }
+
+/* Resultado Badge */
+.resultado-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.125rem 0.5rem;
+  border-radius: 6px;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.resultado-badge mat-icon {
+  font-size: 0.8125rem;
+  width: 0.8125rem;
+  height: 0.8125rem;
+}
+
+.estado-no-contesto { background: rgba(239,68,68,0.1); color: #dc2626; }
+.estado-agendado { background: rgba(124,58,237,0.1); color: #7c3aed; }
+.estado-prospecto { background: rgba(37,99,235,0.1); color: #2563eb; }
+.estado-observado { background: rgba(100,116,139,0.1); color: #475569; }
+.estado-concreto { background: rgba(16,185,129,0.1); color: #059669; }
+.estado-no-llamar { background: rgba(239,68,68,0.08); color: #b91c1c; }
+
+.text-muted {
+  color: #94a3b8;
+}
+
+.contacto-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 24px;
+  height: 24px;
+  padding: 0 6px;
+  border-radius: 12px;
+  background: #f1f5f9;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #475569;
+}
+
+/* Historial Button */
+.historial-btn {
+  color: #94a3b8;
+  transition: all 0.2s ease;
+}
+
+.historial-btn:hover {
+  color: #667eea;
+}
+
+.historial-btn-active {
+  color: #667eea;
+}
+
+/* Historial inside expanded row */
+.historial-loading {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  padding: 0.75rem;
+  color: #94a3b8;
+  font-size: 0.8125rem;
+}
+
+.historial-empty {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem;
+  color: #94a3b8;
+  font-size: 0.8125rem;
+}
+
+.historial-empty mat-icon {
+  font-size: 1.25rem;
+  width: 1.25rem;
+  height: 1.25rem;
+  color: #cbd5e1;
+}
+
+.historial-list {
+  display: flex;
+  flex-direction: column;
+  border-radius: 8px;
+  overflow: hidden;
+  background: white;
+  border: 1px solid #e2e8f0;
+}
+
+.historial-item {
+  padding: 0.625rem 0.875rem;
+  border-left: 3px solid #e2e8f0;
+  transition: background 0.15s ease;
+}
+
+.historial-item:not(:last-child) {
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.historial-item:hover {
+  background: #f8fafc;
+}
+
+/* Historial item estado border colors */
+.historial-item.estado-no-contesto { border-left-color: #dc2626; }
+.historial-item.estado-agendado { border-left-color: #7c3aed; }
+.historial-item.estado-prospecto { border-left-color: #2563eb; }
+.historial-item.estado-observado { border-left-color: #475569; }
+.historial-item.estado-concreto { border-left-color: #059669; }
+.historial-item.estado-no-llamar { border-left-color: #b91c1c; }
+
+.historial-item-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.historial-estado-badge-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.historial-estado-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.25rem 0.625rem;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.historial-estado-badge mat-icon {
+  font-size: 0.875rem;
+  width: 0.875rem;
+  height: 0.875rem;
+}
+
+.motivo-tag {
+  font-size: 0.6875rem;
+  font-weight: 500;
+  color: #64748b;
+  background: #f1f5f9;
+  padding: 2px 8px;
+  border-radius: 4px;
+  white-space: nowrap;
+}
+
+.historial-fecha {
+  font-size: 0.75rem;
+  color: #94a3b8;
+  white-space: nowrap;
+}
+
+.historial-comentario {
+  font-size: 0.8125rem;
+  color: #475569;
+  margin: 0.375rem 0 0 0;
+  line-height: 1.4;
+}
+
+/* Paginator */
+::ng-deep .mat-mdc-paginator {
+  border-top: 1px solid #f1f5f9;
+}
+
+/* Dialog overrides */
+::ng-deep .teleoperador-prospectos-panel .mdc-dialog__surface {
+  border-radius: 16px !important;
+}
+
+::ng-deep .teleoperador-prospectos-panel .mdc-dialog__content {
+  padding: 0 !important;
+  max-height: none !important;
+  overflow: visible !important;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .dialog-header {
+    padding: 1rem;
+  }
+
+  .dialog-title {
+    font-size: 1rem;
+  }
+
+  .prospectos-table td {
+    padding: 6px 8px;
+  }
+}

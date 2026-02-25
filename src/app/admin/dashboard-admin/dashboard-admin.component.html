@@ -1,0 +1,171 @@
+<div class="dashboard-container" *ngIf="!loading">
+  <!-- Header -->
+  <div class="dashboard-header">
+    <div>
+      <h2 class="dashboard-title">Dashboard</h2>
+      <p class="dashboard-subtitle">Resumen general del sistema</p>
+    </div>
+    <button mat-flat-button class="export-btn" (click)="exportarExcel()">
+      <mat-icon>download</mat-icon>
+      Exportar Excel
+    </button>
+  </div>
+
+  <!-- KPI Cards -->
+  <div class="kpi-grid">
+    <div class="kpi-card">
+      <div class="kpi-icon-wrapper kpi-blue">
+        <mat-icon>people</mat-icon>
+      </div>
+      <div class="kpi-info">
+        <span class="kpi-value">{{ dashboard.totalProspectos }}</span>
+        <span class="kpi-label">Total Prospectos</span>
+      </div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-icon-wrapper kpi-purple">
+        <mat-icon>assignment_ind</mat-icon>
+      </div>
+      <div class="kpi-info">
+        <span class="kpi-value">{{ dashboard.totalAsignaciones }}</span>
+        <span class="kpi-label">Asignados</span>
+      </div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-icon-wrapper kpi-green">
+        <mat-icon>trending_up</mat-icon>
+      </div>
+      <div class="kpi-info">
+        <span class="kpi-value">{{ dashboard.porcentajeAsignado }}%</span>
+        <span class="kpi-label">% Asignado</span>
+      </div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-icon-wrapper kpi-orange">
+        <mat-icon>cloud_upload</mat-icon>
+      </div>
+      <div class="kpi-info">
+        <span class="kpi-value">{{ dashboard.totalCargasMasivas }}</span>
+        <span class="kpi-label">Cargas Masivas</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Estado de Gestion + Resultados -->
+  <div class="section-grid">
+    <!-- Estado de Gestion -->
+    <div class="section-card">
+      <h3 class="section-title">
+        <mat-icon>flag</mat-icon>
+        Estado de Gestion
+      </h3>
+      <div class="estado-bars" *ngIf="dashboard.porEstado">
+        <div class="estado-bar-item">
+          <div class="estado-bar-label">
+            <span>Sin Gestionar</span>
+            <span class="estado-bar-count">{{ dashboard.porEstado.sinGestionar }}</span>
+          </div>
+          <div class="bar-track">
+            <div class="bar-fill bar-gray" [style.width.%]="dashboard.totalAsignaciones > 0 ? (dashboard.porEstado.sinGestionar / dashboard.totalAsignaciones * 100) : 0"></div>
+          </div>
+        </div>
+        <div class="estado-bar-item">
+          <div class="estado-bar-label">
+            <span>En Gestion</span>
+            <span class="estado-bar-count">{{ dashboard.porEstado.enGestion }}</span>
+          </div>
+          <div class="bar-track">
+            <div class="bar-fill bar-blue" [style.width.%]="dashboard.totalAsignaciones > 0 ? (dashboard.porEstado.enGestion / dashboard.totalAsignaciones * 100) : 0"></div>
+          </div>
+        </div>
+        <div class="estado-bar-item">
+          <div class="estado-bar-label">
+            <span>Finalizados</span>
+            <span class="estado-bar-count">{{ dashboard.porEstado.finalizados }}</span>
+          </div>
+          <div class="bar-track">
+            <div class="bar-fill bar-green" [style.width.%]="dashboard.totalAsignaciones > 0 ? (dashboard.porEstado.finalizados / dashboard.totalAsignaciones * 100) : 0"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Resultados -->
+    <div class="section-card">
+      <h3 class="section-title">
+        <mat-icon>analytics</mat-icon>
+        Resultados
+      </h3>
+      <div class="resultado-grid" *ngIf="dashboard.porResultado">
+        <div class="resultado-chip" *ngFor="let key of getResultadoKeys()" [ngClass]="getResultadoClass(key)">
+          <mat-icon>{{ getResultadoIcon(key) }}</mat-icon>
+          <span class="resultado-count">{{ dashboard.porResultado[key] }}</span>
+          <span class="resultado-label">{{ getResultadoLabel(key) }}</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Rendimiento por Teleoperador -->
+  <div class="section-card full-width">
+    <h3 class="section-title">
+      <mat-icon>groups</mat-icon>
+      Rendimiento por Teleoperador
+    </h3>
+    <table mat-table [dataSource]="teleoperadores" class="teleop-table" *ngIf="teleoperadores.length > 0">
+      <ng-container matColumnDef="nombre">
+        <th mat-header-cell *matHeaderCellDef>Teleoperador</th>
+        <td mat-cell *matCellDef="let t">{{ t.nombre }}</td>
+      </ng-container>
+      <ng-container matColumnDef="totalAsignados">
+        <th mat-header-cell *matHeaderCellDef>Total</th>
+        <td mat-cell *matCellDef="let t"><strong>{{ t.totalAsignados }}</strong></td>
+      </ng-container>
+      <ng-container matColumnDef="sinGestionar">
+        <th mat-header-cell *matHeaderCellDef>Sin Gestionar</th>
+        <td mat-cell *matCellDef="let t">
+          <span class="badge badge-gray">{{ t.sinGestionar }}</span>
+        </td>
+      </ng-container>
+      <ng-container matColumnDef="enGestion">
+        <th mat-header-cell *matHeaderCellDef>En Gestion</th>
+        <td mat-cell *matCellDef="let t">
+          <span class="badge badge-blue">{{ t.enGestion }}</span>
+        </td>
+      </ng-container>
+      <ng-container matColumnDef="finalizados">
+        <th mat-header-cell *matHeaderCellDef>Finalizados</th>
+        <td mat-cell *matCellDef="let t">
+          <span class="badge badge-green">{{ t.finalizados }}</span>
+        </td>
+      </ng-container>
+      <ng-container matColumnDef="concretos">
+        <th mat-header-cell *matHeaderCellDef>Concretos</th>
+        <td mat-cell *matCellDef="let t">
+          <span class="badge badge-emerald">{{ t.concretos }}</span>
+        </td>
+      </ng-container>
+      <ng-container matColumnDef="acciones">
+        <th mat-header-cell *matHeaderCellDef></th>
+        <td mat-cell *matCellDef="let t">
+          <button mat-icon-button class="ver-prospectos-btn" matTooltip="Ver prospectos" (click)="verProspectos(t)">
+            <mat-icon>visibility</mat-icon>
+          </button>
+        </td>
+      </ng-container>
+
+      <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+      <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+    </table>
+    <div class="empty-state" *ngIf="teleoperadores.length === 0">
+      <mat-icon>person_off</mat-icon>
+      <span>No hay teleoperadores registrados</span>
+    </div>
+  </div>
+</div>
+
+<!-- Loading -->
+<div class="loading-container" *ngIf="loading">
+  <mat-spinner diameter="40"></mat-spinner>
+  <span>Cargando dashboard...</span>
+</div>

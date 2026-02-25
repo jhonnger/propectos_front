@@ -86,6 +86,36 @@ export interface UpdateUsuarioRequest {
   estado: boolean;
 }
 
+export interface MiProspectoAdmin {
+  prospectoId: number;
+  nombre: string;
+  apellido: string;
+  celular: string;
+  documentoIdentidad: string;
+  campania: string;
+  estado: string;
+  estadoResultado: string;
+  fechaAgenda: string | null;
+  ultimoContacto: string | null;
+  totalContactos: number;
+}
+
+export interface ProspectosPorUsuarioResponse {
+  resultados: MiProspectoAdmin[];
+  pagina: number;
+  tamanioPagina: number;
+  total: number;
+  totalPaginas: number;
+}
+
+export interface ContactoHistorialAdmin {
+  id: number;
+  fechaContacto: string;
+  estadoResultado: string;
+  comentario: string;
+  motivoNoContesto?: string;
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -270,6 +300,65 @@ export class AdminService {
       `${this.usuarioUrl}/${id}/eliminar`,
       { headers }
     );
+  }
+
+  // === Reportes ===
+
+  getDashboardAdmin(): Observable<any> {
+    return this.http.get(`${environment.apiUrl}/api/reportes/dashboard-admin`, {
+      headers: new HttpHeaders({ Authorization: `Bearer ${this.getToken()}` })
+    });
+  }
+
+  exportarProspectos(campania?: string, estado?: string, estadoResultado?: string): Observable<Blob> {
+    let params = new HttpParams();
+    if (campania) params = params.set('campania', campania);
+    if (estado) params = params.set('estado', estado);
+    if (estadoResultado) params = params.set('estadoResultado', estadoResultado);
+
+    return this.http.get(`${environment.apiUrl}/api/reportes/exportar-prospectos`, {
+      headers: new HttpHeaders({ Authorization: `Bearer ${this.getToken()}` }),
+      params,
+      responseType: 'blob'
+    });
+  }
+
+  getProspectosPorUsuario(userId: number, pagina: number = 1, tamanioPagina: number = 10): Observable<ProspectosPorUsuarioResponse> {
+    const headers = new HttpHeaders({
+      'Authorization': `Bearer ${this.getToken()}`,
+    });
+
+    const params = new HttpParams()
+      .set('pagina', pagina.toString())
+      .set('tamanioPagina', tamanioPagina.toString());
+
+    return this.http.get<ProspectosPorUsuarioResponse>(
+      `${this.assignmentUrl}/prospectos-por-usuario/${userId}`,
+      { headers, params }
+    );
+  }
+
+  getHistorialContactos(prospectoId: number): Observable<ContactoHistorialAdmin[]> {
+    const headers = new HttpHeaders({
+      'Authorization': `Bearer ${this.getToken()}`,
+    });
+
+    return this.http.get<ContactoHistorialAdmin[]>(
+      `${environment.apiUrl}/api/contactos/historial/${prospectoId}`,
+      { headers }
+    );
+  }
+
+  reasignarProspecto(prospectoId: number, nuevoUsuarioId: number): Observable<any> {
+    const headers = new HttpHeaders({
+      'Content-Type': 'application/x-www-form-urlencoded',
+      Authorization: `Bearer ${this.getToken()}`
+    });
+    const params = new HttpParams()
+      .set('prospectoId', prospectoId.toString())
+      .set('nuevoUsuarioId', nuevoUsuarioId.toString());
+
+    return this.http.post(`${this.assignmentUrl}/reasignar`, params.toString(), { headers });
   }
 
   private getToken(): string | null {

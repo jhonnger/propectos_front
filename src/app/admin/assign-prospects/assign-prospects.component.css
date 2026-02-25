@@ -631,8 +631,9 @@
 /* Spinner */
 mat-spinner { display: inline-block; }
 
-/* Mobile View */
-.mobile-only { display: none; }
+/* Desktop/Mobile visibility */
+.desktop-only { display: block !important; }
+.mobile-only { display: none !important; }
 
 .mobile-card {
   background: white;
@@ -788,8 +789,8 @@ mat-spinner { display: inline-block; }
     gap: 0.75rem;
   }
 
-  .desktop-only { display: none; }
-  .mobile-only { display: block; }
+  .desktop-only { display: none !important; }
+  .mobile-only { display: block !important; }
 
   .mobile-cards-container { padding: 1rem; }
 }

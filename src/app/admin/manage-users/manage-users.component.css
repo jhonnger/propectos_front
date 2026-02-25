@@ -406,9 +406,13 @@
   background-color: rgba(239, 68, 68, 0.08) !important;
 }
 
-/* Mobile */
+/* Desktop/Mobile visibility */
+.desktop-only {
+  display: block !important;
+}
+
 .mobile-only {
-  display: none;
+  display: none !important;
 }
 
 .mobile-cards-container {
@@ -563,11 +567,11 @@
   }
 
   .desktop-only {
-    display: none;
+    display: none !important;
   }
 
   .mobile-only {
-    display: block;
+    display: block !important;
   }
 
   .section-header {

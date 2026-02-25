@@ -144,6 +144,32 @@ export class DashboardComponent implements OnInit {
     return prospect.estado === 'FINALIZADO';
   }
 
+  isAgendaHoy(prospect: MiProspecto): boolean {
+    if (!prospect.fechaAgenda) return false;
+    const hoy = new Date().toISOString().split('T')[0];
+    return prospect.fechaAgenda.startsWith(hoy);
+  }
+
+  exportarExcel(): void {
+    this.prospectoService.exportarMisProspectos(
+      this.filtroActivo || undefined,
+      this.filtroEstadoResultado || undefined
+    ).subscribe({
+      next: (blob) => {
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'mis_prospectos.xlsx';
+        a.click();
+        window.URL.revokeObjectURL(url);
+        this.snackBar.open('Reporte descargado', 'Cerrar', { duration: 3000 });
+      },
+      error: () => {
+        this.snackBar.open('Error al exportar', 'Cerrar', { duration: 3000 });
+      }
+    });
+  }
+
   openDialog(prospect: MiProspecto): void {
     const dialogRef = this.dialog.open(UpdateProspectDialogComponent, {
       width: '500px',

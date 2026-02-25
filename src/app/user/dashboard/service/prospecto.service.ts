@@ -8,6 +8,7 @@ export interface ContactoRegistro {
   comentario: string;
   estadoResultado: string;
   fechaAgenda?: string;
+  motivoNoContesto?: string;
 }
 
 export interface MiProspecto {
@@ -30,6 +31,14 @@ export interface MisProspectosResponse {
   tamanioPagina: number;
   total: number;
   totalPaginas: number;
+}
+
+export interface ContactoHistorial {
+  id: number;
+  fechaContacto: string;
+  estadoResultado: string;
+  comentario: string;
+  motivoNoContesto?: string;
 }
 
 export interface MisEstadisticas {
@@ -92,6 +101,25 @@ export class ProspectoService {
 
   registrarContacto(contactoData: ContactoRegistro): Observable<any> {
     return this.http.post(this.contactoBaseUrl, contactoData, { headers: this.getAuthHeaders() });
+  }
+
+  getHistorial(prospectoId: number): Observable<ContactoHistorial[]> {
+    return this.http.get<ContactoHistorial[]>(
+      `${this.contactoBaseUrl}/historial/${prospectoId}`,
+      { headers: this.getAuthHeaders() }
+    );
+  }
+
+  exportarMisProspectos(estado?: string, estadoResultado?: string): Observable<Blob> {
+    let params = new HttpParams();
+    if (estado) params = params.set('estado', estado);
+    if (estadoResultado) params = params.set('estadoResultado', estadoResultado);
+
+    return this.http.get(`${environment.apiUrl}/api/reportes/exportar-mis-prospectos`, {
+      headers: new HttpHeaders({ Authorization: `Bearer ${this.getToken()}` }),
+      params,
+      responseType: 'blob'
+    });
   }
 
   getProspects(busqueda: any): Observable<any> {

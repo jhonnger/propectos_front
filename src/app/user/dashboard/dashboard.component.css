@@ -229,6 +229,62 @@
   color: #7c3aed;
   margin-top: 3px;
   font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 3px;
+}
+
+.fecha-agenda.agenda-hoy {
+  color: #dc2626;
+  font-weight: 700;
+  background: rgba(239, 68, 68, 0.08);
+  padding: 2px 6px;
+  border-radius: 4px;
+  animation: pulseAgenda 2s infinite;
+}
+
+@keyframes pulseAgenda {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+
+.agenda-hoy-icon {
+  font-size: 0.75rem !important;
+  width: 0.75rem !important;
+  height: 0.75rem !important;
+  color: #dc2626;
+}
+
+.agenda-hoy-label {
+  font-size: 0.5625rem;
+  font-weight: 800;
+  background: #dc2626;
+  color: white;
+  padding: 0 4px;
+  border-radius: 3px;
+  letter-spacing: 0.5px;
+}
+
+/* Section Actions */
+.section-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.export-btn {
+  border-radius: 8px;
+  font-size: 0.8125rem;
+  color: #667eea;
+  border-color: #667eea;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.export-btn mat-icon {
+  font-size: 1rem;
+  width: 1rem;
+  height: 1rem;
 }
 
 /* Contactos Cell */
@@ -564,11 +620,11 @@
 
 /* Responsive Visibility */
 .desktop-only {
-  display: block;
+  display: block !important;
 }
 
 .mobile-only {
-  display: none;
+  display: none !important;
 }
 
 /* Mobile Cards */
@@ -711,11 +767,11 @@
   }
 
   .desktop-only {
-    display: none;
+    display: none !important;
   }
 
   .mobile-only {
-    display: block;
+    display: block !important;
   }
 
   .header-left {

@@ -94,10 +94,16 @@
           <p class="section-subtitle">{{ totalResultados }} prospectos en total</p>
         </div>
       </div>
-      <button mat-stroked-button class="refresh-btn" (click)="buscar(); loadStats()">
-        <mat-icon>refresh</mat-icon>
-        Actualizar
-      </button>
+      <div class="section-actions">
+        <button mat-stroked-button class="export-btn" (click)="exportarExcel()">
+          <mat-icon>download</mat-icon>
+          Exportar
+        </button>
+        <button mat-stroked-button class="refresh-btn" (click)="buscar(); loadStats()">
+          <mat-icon>refresh</mat-icon>
+          Actualizar
+        </button>
+      </div>
     </div>
 
     <!-- Desktop Table View -->
@@ -148,8 +154,11 @@
               <mat-icon class="estado-badge-icon">{{ getEstadoResultadoIcon(prospect.estadoResultado) }}</mat-icon>
               {{ getEstadoResultadoText(prospect.estadoResultado) }}
             </span>
-            <div class="fecha-agenda" *ngIf="prospect.estadoResultado === 'AGENDADO' && prospect.fechaAgenda">
+            <div class="fecha-agenda" *ngIf="prospect.estadoResultado === 'AGENDADO' && prospect.fechaAgenda"
+                 [class.agenda-hoy]="isAgendaHoy(prospect)">
+              <mat-icon *ngIf="isAgendaHoy(prospect)" class="agenda-hoy-icon">notifications_active</mat-icon>
               {{ prospect.fechaAgenda | date: 'dd/MM HH:mm' }}
+              <span *ngIf="isAgendaHoy(prospect)" class="agenda-hoy-label">HOY</span>
             </div>
           </td>
         </ng-container>

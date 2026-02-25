@@ -6,8 +6,8 @@
         <mat-icon>contact_phone</mat-icon>
       </div>
       <div>
-        <h2 class="dialog-title">Registrar Contacto</h2>
-        <p class="dialog-subtitle">Selecciona el resultado de la gestion</p>
+        <h2 class="dialog-title">Gestion de Contacto</h2>
+        <p class="dialog-subtitle">Registra o consulta gestiones del prospecto</p>
       </div>
     </div>
     <button mat-icon-button class="close-btn" (click)="onCancel()">
@@ -30,67 +30,144 @@
     </span>
   </div>
 
-  <!-- Estado Selector -->
-  <div class="dialog-body">
-    <div class="form-section">
-      <div class="form-section-label">
-        <mat-icon>flag</mat-icon>
-        <span>Resultado de la gestion</span>
+  <!-- Tabs -->
+  <mat-tab-group class="dialog-tabs" animationDuration="200ms">
+    <!-- Tab 1: Registrar -->
+    <mat-tab>
+      <ng-template mat-tab-label>
+        <mat-icon class="tab-icon">edit_note</mat-icon>
+        Registrar
+      </ng-template>
+
+      <div class="dialog-body">
+        <!-- Paso 1: Contesto / No Contesto -->
+        <div class="form-section">
+          <div class="form-section-label">
+            <mat-icon>flag</mat-icon>
+            <span>Resultado de la llamada</span>
+          </div>
+          <div class="paso-buttons">
+            <button class="paso-button paso-contesto"
+              [class.paso-selected]="pasoSeleccionado === 'CONTESTO'"
+              (click)="selectPaso('CONTESTO')">
+              <mat-icon>phone_in_talk</mat-icon>
+              <span>Contesto</span>
+            </button>
+            <button class="paso-button paso-no-contesto"
+              [class.paso-selected]="pasoSeleccionado === 'NO_CONTESTO'"
+              (click)="selectPaso('NO_CONTESTO')">
+              <mat-icon>phone_missed</mat-icon>
+              <span>No Contesto</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Paso 2: Sub-opciones -->
+        <div class="form-section" *ngIf="pasoSeleccionado">
+          <div class="form-section-label">
+            <mat-icon>tune</mat-icon>
+            <span>{{ pasoSeleccionado === 'CONTESTO' ? 'Detalle del contacto' : 'Motivo de no contacto' }}</span>
+            <button class="paso-back-btn" (click)="selectPaso(pasoSeleccionado)">
+              <mat-icon>refresh</mat-icon>
+            </button>
+          </div>
+          <div class="estado-grid">
+            <button
+              *ngFor="let option of currentOptions"
+              class="estado-option"
+              [class.estado-selected]="subOpcionSeleccionada === option.value"
+              [ngClass]="subOpcionSeleccionada === option.value ? option.colorClass + '-active' : ''"
+              (click)="selectSubOpcion(option.value)">
+              <mat-icon class="estado-option-icon" [ngClass]="option.colorClass">{{ option.icon }}</mat-icon>
+              <span class="estado-option-label">{{ option.label }}</span>
+              <div class="terminal-badge" *ngIf="isTerminal(option.value)">Final</div>
+            </button>
+          </div>
+        </div>
+
+        <!-- Agenda Section -->
+        <div class="form-section agenda-section" *ngIf="subOpcionSeleccionada">
+          <div class="form-section-label">
+            <mat-icon>schedule</mat-icon>
+            <span>{{ isScheduleRequired ? 'Fecha y hora de la agenda' : 'Programar seguimiento (opcional)' }}</span>
+          </div>
+          <div class="agenda-inputs">
+            <div class="agenda-field">
+              <label class="input-label">Fecha</label>
+              <input type="date" class="native-input" [(ngModel)]="fechaAgenda">
+            </div>
+            <div class="agenda-field">
+              <label class="input-label">Hora</label>
+              <input type="time" class="native-input" [(ngModel)]="horaAgenda">
+            </div>
+          </div>
+        </div>
+
+        <!-- Comment Section -->
+        <div class="form-section" *ngIf="subOpcionSeleccionada">
+          <div class="form-section-label">
+            <mat-icon>comment</mat-icon>
+            <span>Comentario (opcional)</span>
+          </div>
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Escribe un comentario...</mat-label>
+            <textarea matInput [(ngModel)]="comentario" rows="3"></textarea>
+          </mat-form-field>
+        </div>
       </div>
-      <div class="estado-grid">
-        <button
-          *ngFor="let option of estadoOptions"
-          class="estado-option"
-          [class.estado-selected]="estadoSeleccionado === option.value"
-          [ngClass]="estadoSeleccionado === option.value ? option.colorClass + '-active' : ''"
-          (click)="selectEstado(option.value)">
-          <mat-icon class="estado-option-icon" [ngClass]="option.colorClass">{{ option.icon }}</mat-icon>
-          <span class="estado-option-label">{{ option.label }}</span>
-          <span class="estado-option-desc">{{ option.description }}</span>
-          <div class="terminal-badge" *ngIf="isTerminal(option.value)">Final</div>
+
+      <!-- Actions -->
+      <div class="dialog-actions">
+        <button mat-stroked-button class="cancel-btn" (click)="onCancel()">
+          Cancelar
+        </button>
+        <button mat-flat-button class="save-btn" (click)="onConfirm()" [disabled]="!isFormValid">
+          <mat-icon>save</mat-icon>
+          <span>Registrar Contacto</span>
         </button>
       </div>
-    </div>
+    </mat-tab>
 
-    <!-- Agenda Section (conditional) -->
-    <div class="form-section agenda-section" *ngIf="estadoSeleccionado === 'AGENDADO'">
-      <div class="form-section-label">
-        <mat-icon>schedule</mat-icon>
-        <span>Fecha y hora de la agenda</span>
-      </div>
-      <div class="agenda-inputs">
-        <div class="agenda-field">
-          <label class="input-label">Fecha</label>
-          <input type="date" class="native-input" [(ngModel)]="fechaAgenda">
+    <!-- Tab 2: Historial -->
+    <mat-tab>
+      <ng-template mat-tab-label>
+        <mat-icon class="tab-icon">history</mat-icon>
+        Historial ({{ historial.length }})
+      </ng-template>
+
+      <div class="historial-container">
+        <!-- Loading -->
+        <div class="historial-loading" *ngIf="cargandoHistorial">
+          <mat-spinner diameter="32"></mat-spinner>
+          <span>Cargando historial...</span>
         </div>
-        <div class="agenda-field">
-          <label class="input-label">Hora</label>
-          <input type="time" class="native-input" [(ngModel)]="horaAgenda">
+
+        <!-- Empty -->
+        <div class="historial-empty" *ngIf="!cargandoHistorial && historial.length === 0">
+          <mat-icon>inbox</mat-icon>
+          <span>Sin gestiones previas</span>
+          <p>Este prospecto aun no tiene contactos registrados.</p>
+        </div>
+
+        <!-- Timeline -->
+        <div class="historial-list" *ngIf="!cargandoHistorial && historial.length > 0">
+          <div class="historial-item" *ngFor="let contacto of historial" [ngClass]="getEstadoColorClass(contacto.estadoResultado)">
+            <div class="historial-item-header">
+              <div class="historial-estado-badge-row">
+                <div class="historial-estado-badge" [ngClass]="getEstadoColorClass(contacto.estadoResultado)">
+                  <mat-icon>{{ getEstadoIcon(contacto.estadoResultado) }}</mat-icon>
+                  <span>{{ getEstadoLabel(contacto.estadoResultado) }}</span>
+                </div>
+                <span class="motivo-tag" *ngIf="contacto.motivoNoContesto">
+                  {{ getMotivoLabel(contacto.motivoNoContesto) }}
+                </span>
+              </div>
+              <span class="historial-fecha">{{ contacto.fechaContacto | date:'dd/MM/yyyy HH:mm' }}</span>
+            </div>
+            <p class="historial-comentario" *ngIf="contacto.comentario">{{ contacto.comentario }}</p>
+          </div>
         </div>
       </div>
-    </div>
-
-    <!-- Comment Section -->
-    <div class="form-section">
-      <div class="form-section-label">
-        <mat-icon>comment</mat-icon>
-        <span>Comentario (opcional)</span>
-      </div>
-      <mat-form-field appearance="outline" class="full-width">
-        <mat-label>Escribe un comentario...</mat-label>
-        <textarea matInput [(ngModel)]="comentario" rows="3"></textarea>
-      </mat-form-field>
-    </div>
-  </div>
-
-  <!-- Actions -->
-  <div class="dialog-actions">
-    <button mat-stroked-button class="cancel-btn" (click)="onCancel()">
-      Cancelar
-    </button>
-    <button mat-flat-button class="save-btn" (click)="onConfirm()" [disabled]="!isFormValid">
-      <mat-icon>save</mat-icon>
-      <span>Registrar Contacto</span>
-    </button>
-  </div>
+    </mat-tab>
+  </mat-tab-group>
 </div>
