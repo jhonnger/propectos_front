@@ -322,50 +322,97 @@ mat-spinner {
   color: #0f172a;
 }
 
-.info-list {
-  padding: 16px 20px;
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
+/* Columns Table */
+.columns-table-wrapper {
+  padding: 12px 16px;
 }
 
-.info-item {
-  display: flex;
-  align-items: flex-start;
-  gap: 12px;
+.columns-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.78rem;
 }
 
-.info-step {
-  width: 28px;
-  height: 28px;
-  border-radius: 50%;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #ffffff;
-  font-size: 0.75rem;
-  font-weight: 700;
-  flex-shrink: 0;
+.columns-table thead th {
+  text-align: left;
+  font-weight: 600;
+  color: #64748b;
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 6px 8px;
+  border-bottom: 2px solid #f1f5f9;
 }
 
-.info-text {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  padding-top: 2px;
+.columns-table tbody tr {
+  border-bottom: 1px solid #f1f5f9;
 }
 
-.info-title {
-  font-size: 0.85rem;
+.columns-table tbody tr:last-child {
+  border-bottom: none;
+}
+
+.columns-table td {
+  padding: 8px 8px;
+  vertical-align: middle;
+}
+
+.col-number {
+  color: #94a3b8;
+  font-weight: 600;
+  width: 24px;
+  text-align: center;
+}
+
+.col-name {
   font-weight: 600;
   color: #0f172a;
 }
 
-.info-desc {
-  font-size: 0.78rem;
+.col-format {
+  color: #64748b;
+  font-size: 0.75rem;
+}
+
+.badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+}
+
+.badge-required {
+  background: #fef2f2;
+  color: #dc2626;
+  border: 1px solid #fecaca;
+}
+
+.badge-optional {
+  background: #f0fdf4;
+  color: #16a34a;
+  border: 1px solid #bbf7d0;
+}
+
+.columns-table-note {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 16px;
+  border-top: 1px solid #f1f5f9;
+  font-size: 0.72rem;
   color: #94a3b8;
   line-height: 1.4;
+}
+
+.columns-table-note mat-icon {
+  font-size: 14px;
+  width: 14px;
+  height: 14px;
+  color: #94a3b8;
+  flex-shrink: 0;
 }
 
 /* Responsive */
@@ -411,8 +458,12 @@ mat-spinner {
     width: 100%;
   }
 
-  .info-list {
-    padding: 14px 16px;
+  .columns-table-wrapper {
+    padding: 10px 12px;
+  }
+
+  .columns-table-note {
+    padding: 8px 12px;
   }
 }
 

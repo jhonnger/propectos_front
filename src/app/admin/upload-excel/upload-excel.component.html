@@ -93,31 +93,56 @@
     <!-- Info Panel -->
     <div class="info-panel">
       <div class="info-panel-header">
-        <mat-icon>info_outline</mat-icon>
-        <span>Instrucciones</span>
+        <mat-icon>table_chart</mat-icon>
+        <span>Formato del Excel</span>
       </div>
-      <div class="info-list">
-        <div class="info-item">
-          <div class="info-step">1</div>
-          <div class="info-text">
-            <span class="info-title">Prepara tu archivo</span>
-            <span class="info-desc">El archivo debe contener las columnas necesarias para los prospectos</span>
-          </div>
-        </div>
-        <div class="info-item">
-          <div class="info-step">2</div>
-          <div class="info-text">
-            <span class="info-title">Sube el archivo</span>
-            <span class="info-desc">Arrastra o selecciona un archivo .xlsx o .xls (max. 10MB)</span>
-          </div>
-        </div>
-        <div class="info-item">
-          <div class="info-step">3</div>
-          <div class="info-text">
-            <span class="info-title">Asigna los prospectos</span>
-            <span class="info-desc">Ve a "Asignar Prospectos" para distribuirlos entre teleoperadores</span>
-          </div>
-        </div>
+      <div class="columns-table-wrapper">
+        <table class="columns-table">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Columna</th>
+              <th>Requerido</th>
+              <th>Formato</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="col-number">1</td>
+              <td class="col-name">Nombre</td>
+              <td><span class="badge badge-required">Obligatorio</span></td>
+              <td class="col-format">No vacio</td>
+            </tr>
+            <tr>
+              <td class="col-number">2</td>
+              <td class="col-name">Apellido</td>
+              <td><span class="badge badge-optional">Opcional</span></td>
+              <td class="col-format">—</td>
+            </tr>
+            <tr>
+              <td class="col-number">3</td>
+              <td class="col-name">Campania</td>
+              <td><span class="badge badge-optional">Opcional</span></td>
+              <td class="col-format">Se crea si no existe</td>
+            </tr>
+            <tr>
+              <td class="col-number">4</td>
+              <td class="col-name">Doc. Identidad</td>
+              <td><span class="badge badge-optional">Opcional</span></td>
+              <td class="col-format">8 digitos</td>
+            </tr>
+            <tr>
+              <td class="col-number">5</td>
+              <td class="col-name">Celular</td>
+              <td><span class="badge badge-required">Obligatorio</span></td>
+              <td class="col-format">9 digitos exactos</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="columns-table-note">
+        <mat-icon>info_outline</mat-icon>
+        <span>La primera fila se toma como encabezado y se omite al importar.</span>
       </div>
     </div>
   </div>
