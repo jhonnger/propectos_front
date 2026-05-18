@@ -55,7 +55,6 @@ import { environment } from '../../../environments/environment';
     }
 
     private saveToken(token: string): void {
-        console.log(token)
       localStorage.setItem(this.tokenKey, token);
     }
 
