@@ -915,6 +915,27 @@
   height: 0.875rem !important;
 }
 
+/* Hint de seguimiento para Interesado */
+.agenda-hint {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  font-size: 0.75rem;
+  color: #6366f1;
+  background: rgba(99,102,241,.06);
+  border: 1px solid rgba(99,102,241,.2);
+  border-radius: 6px;
+  padding: 0.375rem 0.625rem;
+  margin: 0 0 0.75rem;
+}
+
+.agenda-hint mat-icon {
+  font-size: 0.875rem !important;
+  width: 0.875rem !important;
+  height: 0.875rem !important;
+  flex-shrink: 0;
+}
+
 /* Error de envío */
 .error-banner {
   display: flex;

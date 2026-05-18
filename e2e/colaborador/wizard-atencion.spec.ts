@@ -435,6 +435,94 @@ test.describe('Wizard de atención — Slice 1.3 (RF-04/13/14/15)', () => {
     await expect(errPasada).toContainText('futuras');
   });
 
+  // ── Caso 10: Interesado → campo fecha pre-llenado con fecha futura no-domingo → Registrar habilitado ──
+
+  test('Interesado: campo fecha aparece pre-llenado con fecha futura no-domingo; botón Registrar habilitado; POST manda fechaAgenda', async ({ page }) => {
+    const capturedBodies: unknown[] = [];
+    page.on('request', (req) => {
+      const url = req.url();
+      if (
+        req.method() === 'POST' &&
+        url.endsWith('/api/contactos') &&
+        !url.includes('/apertura') &&
+        !url.includes('/verificacion')
+      ) {
+        try { capturedBodies.push(JSON.parse(req.postData() ?? '{}')); } catch { /* */ }
+      }
+    });
+
+    await setupWizardMocks(page, { resultado: 'APTO' }, { estado: 'EN_SEGUIMIENTO' });
+    await abrirWizard(page);
+
+    // Paso 0: SBS APTO
+    await page.locator('[data-testid="btn-sbs-apto"]').click();
+    await expect(page.locator('[data-testid="sbs-apto-badge"]')).toBeVisible({ timeout: 5000 });
+
+    // Paso 1: Contestó
+    await page.locator('[data-testid="btn-contesto"]').click();
+
+    // Paso 2: Titular
+    await page.locator('[data-testid="btn-quien-titular"]').click();
+
+    // Paso 3: Interesado
+    await page.locator('[data-testid="titular-op-INTERESADO"]').click();
+
+    // El bloque de agenda debe aparecer
+    const agendaSection = page.locator('[data-testid="agenda-section"]');
+    await expect(agendaSection).toBeVisible({ timeout: 3000 });
+
+    // El hint de seguimiento sugerido debe estar visible
+    const hint = page.locator('[data-testid="interesado-agenda-hint"]');
+    await expect(hint).toBeVisible({ timeout: 3000 });
+    await expect(hint).toContainText('Seguimiento sugerido');
+
+    // El campo fecha debe estar pre-llenado con una fecha válida YYYY-MM-DD
+    const inputFecha = page.locator('[data-testid="input-fecha-agenda"]');
+    const inputHora = page.locator('[data-testid="input-hora-agenda"]');
+    await expect(inputFecha).toBeVisible();
+    await expect(inputHora).toBeVisible();
+
+    const fechaValue = await inputFecha.inputValue();
+    const horaValue = await inputHora.inputValue();
+
+    // Debe ser una fecha en formato YYYY-MM-DD
+    expect(fechaValue).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+    // Hora pre-llenada a 09:00
+    expect(horaValue).toBe('09:00');
+
+    // La fecha debe ser futura (posterior a hoy)
+    const hoy = new Date();
+    const [yyyy, mm, dd] = fechaValue.split('-').map(Number);
+    const fechaSugerida = new Date(yyyy, mm - 1, dd);
+    expect(fechaSugerida > hoy || fechaSugerida.toDateString() === hoy.toDateString()).toBeTruthy();
+
+    // La fecha no debe ser domingo
+    expect(fechaSugerida.getDay()).not.toBe(0);
+
+    // El botón Registrar debe estar habilitado (prefill satisface la validación)
+    const btnConfirmar = page.locator('[data-testid="btn-confirmar"]');
+    await expect(btnConfirmar).toBeEnabled({ timeout: 3000 });
+
+    await page.screenshot({
+      path: 'test-results/screenshots/wizard-interesado-prefill.png',
+      fullPage: true,
+    });
+
+    // Confirmar → POST
+    await btnConfirmar.click();
+
+    // Modal cierra
+    await expect(page.locator('[data-testid="sbs-section"]')).not.toBeVisible({ timeout: 6000 });
+
+    // Verificar que el body del POST incluye resultado INTERESADO y fechaAgenda
+    expect(capturedBodies.length).toBeGreaterThan(0);
+    const body = capturedBodies[0] as Record<string, unknown>;
+    expect(body['resultado']).toBe('INTERESADO');
+    expect(body['quienContesto']).toBe('TITULAR');
+    expect(typeof body['fechaAgenda']).toBe('string');
+    expect(body['fechaAgenda']).toMatch(/^\d{4}-\d{2}-\d{2}T09:00$/);
+  });
+
   // ── Caso 9: Cerrar modal sin registrar llama a cerrar-apertura ──────────────
 
   test('cerrar modal sin registrar llama a /api/contactos/apertura/{id}/cerrar', async ({ page }) => {

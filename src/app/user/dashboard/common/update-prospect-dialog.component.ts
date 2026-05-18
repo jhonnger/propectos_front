@@ -119,7 +119,7 @@ export class UpdateProspectDialogComponent implements OnInit, OnDestroy {
 
   // ── Paso 3 - Titular: qué resultado ──────────────────────────────────────
   readonly titularOpciones: RamaContestoTitularOpcion[] = [
-    { label: 'Interesado',         resultado: 'INTERESADO',       icon: 'star',          needsAgenda: false, isTerminal: false },
+    { label: 'Interesado',         resultado: 'INTERESADO',       icon: 'star',          needsAgenda: true,  isTerminal: false },
     { label: 'Agendar cita',       resultado: 'AGENDADO',         icon: 'event',         needsAgenda: true,  isTerminal: false },
     { label: 'Llamar después',     resultado: 'VOLVER_LLAMAR',    icon: 'schedule',      needsAgenda: true,  isTerminal: false },
     { label: 'Derivar (ACEPTÓ)',   resultado: 'DERIVADO',         icon: 'forward',       needsAgenda: false, isTerminal: true  },
@@ -140,8 +140,15 @@ export class UpdateProspectDialogComponent implements OnInit, OnDestroy {
   /** true después de confirmar → no llamar cerrarApertura */
   registroConfirmado = false;
 
-  /** Mínimo para el date input de agenda (hoy en formato YYYY-MM-DD) */
-  readonly today = new Date().toISOString().split('T')[0];
+  /** Mínimo para el date input de agenda: HOY en hora LOCAL (no UTC).
+   *  toISOString() es UTC y de noche en Perú (UTC-5) devolvía mañana,
+   *  bloqueando la selección del día actual. Se construye local. */
+  readonly today = (() => {
+    const d = new Date();
+    const mm = (d.getMonth() + 1).toString().padStart(2, '0');
+    const dd = d.getDate().toString().padStart(2, '0');
+    return `${d.getFullYear()}-${mm}-${dd}`;
+  })();
 
   constructor(
     public dialogRef: MatDialogRef<UpdateProspectDialogComponent, WizardDialogResult | null>,
@@ -300,6 +307,20 @@ export class UpdateProspectDialogComponent implements OnInit, OnDestroy {
     if (!opcion.needsAgenda) {
       this.fechaAgenda = '';
       this.horaAgenda = '';
+    } else if (opcion.resultado === 'INTERESADO' && !this.fechaAgenda) {
+      // Prefill con el próximo día laborable (no-domingo) a partir de mañana.
+      // Se construye en hora LOCAL para evitar el desfase de zona de toISOString().
+      const fecha = new Date();
+      fecha.setDate(fecha.getDate() + 1); // mañana
+      // Si mañana es domingo (getDay()===0), avanzar al lunes
+      if (fecha.getDay() === 0) {
+        fecha.setDate(fecha.getDate() + 1);
+      }
+      const yyyy = fecha.getFullYear().toString();
+      const mm = (fecha.getMonth() + 1).toString().padStart(2, '0');
+      const dd = fecha.getDate().toString().padStart(2, '0');
+      this.fechaAgenda = `${yyyy}-${mm}-${dd}`;
+      this.horaAgenda = '09:00';
     }
     this.errorEnvio = null;
   }

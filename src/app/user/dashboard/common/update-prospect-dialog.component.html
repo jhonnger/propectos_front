@@ -399,8 +399,14 @@
               }
             </div>
 
-            <!-- Fecha agenda (obligatoria si AGENDADO / VOLVER_LLAMAR) -->
+            <!-- Fecha agenda (obligatoria si INTERESADO / AGENDADO / VOLVER_LLAMAR) -->
             @if (titularOpcionSeleccionada?.needsAgenda) {
+              @if (titularOpcionSeleccionada?.resultado === 'INTERESADO') {
+                <p class="agenda-hint" data-testid="interesado-agenda-hint">
+                  <mat-icon aria-hidden="true">info</mat-icon>
+                  Seguimiento sugerido (editable) — para no perder al interesado.
+                </p>
+              }
               <div class="agenda-row fade-in" data-testid="agenda-section">
                 <div class="form-field-group">
                   <label class="field-label" for="ag-fecha">
