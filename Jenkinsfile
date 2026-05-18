@@ -34,7 +34,7 @@ pipeline {
         IMAGE_NAME   = 'prospectos-frontend-app'
         NAMESPACE    = 'frontend-ns'
         // URL pública del backend (Ingress). Se hornea en la imagen al construir.
-        API_URL      = 'https://api.prospectos.pdmmonitor.com'
+        API_URL      = 'https://prospectos-api.pdmmonitor.com'
     }
     stages {
         stage('Clone Repository') {
