@@ -12,8 +12,8 @@
       <mat-form-field appearance="outline" class="input-field">
         <mat-label>Usuario</mat-label>
         <mat-icon matPrefix class="field-icon">person</mat-icon>
-        <input matInput type="text" formControlName="email" autocomplete="username" />
-        <mat-error *ngIf="loginForm.get('email')?.hasError('required')">
+        <input matInput type="text" formControlName="username" autocomplete="username" />
+        <mat-error *ngIf="loginForm.get('username')?.hasError('required')">
           El usuario es obligatorio
         </mat-error>
       </mat-form-field>

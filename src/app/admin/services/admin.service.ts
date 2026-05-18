@@ -86,6 +86,40 @@ export interface UpdateUsuarioRequest {
   estado: boolean;
 }
 
+// ── RF-19: Nuevas interfaces tipadas para importación y asignación multi ──
+
+export interface DetalleRechazo {
+  fila: number;
+  motivo: string;
+}
+
+export interface ImportacionResult {
+  success: boolean;
+  mensaje: string;
+  cargaMasivaId: number;
+  importados: number;
+  rechazados: number;
+  detalleRechazos: DetalleRechazo[];
+}
+
+export interface AsignacionMultiItem {
+  usuarioId: number;
+  usuarioNombre: string;
+  asignados: number;
+}
+
+export interface AsignacionMultiResponse {
+  success: boolean;
+  mensaje: string;
+  cargaMasivaId: number;
+  cargaMasivaNombre: string;
+  disponiblesAntes: number;
+  totalAsignados: number;
+  saldoSinAsignar: number;
+  detalle: AsignacionMultiItem[];
+  fechaAsignacion: string;
+}
+
 export interface MiProspectoAdmin {
   prospectoId: number;
   nombre: string;
@@ -116,6 +150,122 @@ export interface ContactoHistorialAdmin {
   motivoNoContesto?: string;
 }
 
+// ── Slice 1.5: Dashboard del dueño MVP (RF-18) ───────────────────────────────
+
+export interface MetricasPeriodo {
+  ventasCerradas: number;
+  derivados: number;
+  atenciones: number;
+  contactabilidadReal?: number;
+  colaboradoresActivos?: number;
+  colaboradoresTotal?: number;
+  citasHoy?: number;
+  tasaConversion?: number;
+  avanceBasesPct?: number;
+  disponiblesSinAsignar?: number;
+  [key: string]: unknown;
+}
+
+export interface RankingColaborador {
+  usuarioId: number;
+  nombre: string;
+  ventasCerradas: number;
+  derivados: number;
+  atenciones: number;
+  contactabilidad: number;
+  ultimaActividad: string | null;
+}
+
+export interface Embudo {
+  asignados: number;
+  gestionados: number;
+  contactadosTitular: number;
+  interesados: number;
+  derivados: number;
+  ventas: number;
+}
+
+export interface BaseResumen {
+  id: number;
+  nombre: string;
+  cantidad: number;
+  asignados: number;
+  sinAsignar: number;
+  avancePct: number;
+}
+
+export interface DashboardResumen {
+  dia: MetricasPeriodo;
+  mes: MetricasPeriodo;
+  ranking: RankingColaborador[];
+  embudo: Embudo;
+  porCerrar: number;
+  bases: BaseResumen[];
+}
+
+export interface DrillDownColaboradorItem {
+  asignacionId: number;
+  prospectoId: number;
+  nombreProspecto: string;
+  celular: string;
+  documentoIdentidad: string;
+  campania: string;
+  estado: string;
+  estadoResultado: string | null;
+  fechaAgenda: string | null;
+  fechaAsignacion: string | null;
+  fechaCierre: string | null;
+  totalContactos: number;
+}
+
+export interface DrillDownColaborador {
+  colaborador: { id: number; nombre: string };
+  resultados: DrillDownColaboradorItem[];
+  pagina: number;
+  tamanioPagina: number;
+  total: number;
+  totalPaginas: number;
+}
+
+// ── Slice 1.4: Derivación + cierre por el dueño ─────────────────────────────
+
+export interface PorCerrarItem {
+  asignacionId: number;
+  prospectoId: number;
+  nombre: string;
+  apellido: string;
+  celular: string;
+  celularMasked: boolean;
+  documentoIdentidad: string;
+  campania: string;
+  derivadoPorId: number;
+  derivadoPorNombre: string;
+  fechaDerivacion: string;
+  nroPrestamosConcretados: number;
+}
+
+export interface PorCerrarResponse {
+  resultados: PorCerrarItem[];
+  pagina: number;
+  tamanioPagina: number;
+  total: number;
+  totalPaginas: number;
+}
+
+export interface CierreVentaResponse {
+  ok: boolean;
+  estado: string;
+  prospectoId: number;
+  derivadoPorId: number;
+  fechaElegibilidad: string;
+  nroPrestamosConcretados: number;
+}
+
+export interface NoCerroResponse {
+  ok: boolean;
+  estado: string;
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -129,7 +279,7 @@ export class AdminService {
 
   constructor(private http: HttpClient) {}
 
-  uploadExcel(fileBase64: string, fileName: string): Observable<any> {
+  uploadExcel(fileBase64: string, fileName: string): Observable<ImportacionResult> {
     const headers = new HttpHeaders({
       'Content-Type': 'application/json',
       'Authorization': `Bearer ${this.getToken()}`,
@@ -140,7 +290,25 @@ export class AdminService {
       filename: fileName,
     };
 
-    return this.http.post(`${this.baseUrl}/importar`, payload, { headers });
+    return this.http.post<ImportacionResult>(`${this.baseUrl}/importar`, payload, { headers });
+  }
+
+  asignarMulti(
+    cargaMasivaId: number,
+    asignaciones: { usuarioId: number; cantidad: number }[],
+  ): Observable<AsignacionMultiResponse> {
+    const headers = new HttpHeaders({
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${this.getToken()}`,
+    });
+
+    const body = { cargaMasivaId, asignaciones };
+
+    return this.http.post<AsignacionMultiResponse>(
+      `${this.assignmentUrl}/asignar-multi`,
+      body,
+      { headers },
+    );
   }
 
   assignMassiveLoadToUser(cargaMasivaId: number, usuarioId: number, cantidad?: number): Observable<AssignmentResponse> {
@@ -291,12 +459,12 @@ export class AdminService {
     );
   }
 
-  eliminarUser(id: number): Observable<any> {
+  eliminarUser(id: number): Observable<{ ok: boolean }> {
     const headers = new HttpHeaders({
       'Authorization': `Bearer ${this.getToken()}`,
     });
 
-    return this.http.delete<any>(
+    return this.http.delete<{ ok: boolean }>(
       `${this.usuarioUrl}/${id}/eliminar`,
       { headers }
     );
@@ -304,10 +472,28 @@ export class AdminService {
 
   // === Reportes ===
 
-  getDashboardAdmin(): Observable<any> {
-    return this.http.get(`${environment.apiUrl}/api/reportes/dashboard-admin`, {
+  getDashboardAdmin(): Observable<DashboardResumen> {
+    return this.http.get<DashboardResumen>(`${environment.apiUrl}/api/reportes/dashboard`, {
       headers: new HttpHeaders({ Authorization: `Bearer ${this.getToken()}` })
     });
+  }
+
+  getColaboradorDrilldown(
+    usuarioId: number,
+    pagina: number = 1,
+    tamanioPagina: number = 10,
+  ): Observable<DrillDownColaborador> {
+    const params = new HttpParams()
+      .set('pagina', pagina.toString())
+      .set('tamanioPagina', tamanioPagina.toString());
+
+    return this.http.get<DrillDownColaborador>(
+      `${environment.apiUrl}/api/reportes/colaborador/${usuarioId}`,
+      {
+        headers: new HttpHeaders({ Authorization: `Bearer ${this.getToken()}` }),
+        params,
+      },
+    );
   }
 
   exportarProspectos(campania?: string, estado?: string, estadoResultado?: string): Observable<Blob> {
@@ -349,7 +535,7 @@ export class AdminService {
     );
   }
 
-  reasignarProspecto(prospectoId: number, nuevoUsuarioId: number): Observable<any> {
+  reasignarProspecto(prospectoId: number, nuevoUsuarioId: number): Observable<{ ok: boolean }> {
     const headers = new HttpHeaders({
       'Content-Type': 'application/x-www-form-urlencoded',
       Authorization: `Bearer ${this.getToken()}`
@@ -358,7 +544,63 @@ export class AdminService {
       .set('prospectoId', prospectoId.toString())
       .set('nuevoUsuarioId', nuevoUsuarioId.toString());
 
-    return this.http.post(`${this.assignmentUrl}/reasignar`, params.toString(), { headers });
+    return this.http.post<{ ok: boolean }>(`${this.assignmentUrl}/reasignar`, params.toString(), { headers });
+  }
+
+  // ── Slice 1.4: Derivación + cierre por el dueño ────────────────────────────
+
+  getPorCerrar(pagina: number, tamanioPagina: number): Observable<PorCerrarResponse> {
+    const headers = new HttpHeaders({
+      Authorization: `Bearer ${this.getToken()}`,
+    });
+    const params = new HttpParams()
+      .set('pagina', pagina.toString())
+      .set('tamanioPagina', tamanioPagina.toString());
+
+    return this.http.get<PorCerrarResponse>(
+      `${environment.apiUrl}/api/cierre/por-cerrar`,
+      { headers, params },
+    );
+  }
+
+  registrarVenta(
+    asignacionId: number,
+    fechaElegibilidad: string,
+    comentario?: string,
+  ): Observable<CierreVentaResponse> {
+    const headers = new HttpHeaders({
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${this.getToken()}`,
+    });
+    const body: { fechaElegibilidad: string; comentario?: string } = { fechaElegibilidad };
+    if (comentario) body['comentario'] = comentario;
+
+    return this.http.post<CierreVentaResponse>(
+      `${environment.apiUrl}/api/cierre/${asignacionId}/venta`,
+      body,
+      { headers },
+    );
+  }
+
+  noCerro(
+    asignacionId: number,
+    accion: 'REINTENTAR' | 'DESCARTAR',
+    fecha?: string,
+    comentario?: string,
+  ): Observable<NoCerroResponse> {
+    const headers = new HttpHeaders({
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${this.getToken()}`,
+    });
+    const body: { accion: string; fecha?: string; comentario?: string } = { accion };
+    if (fecha) body['fecha'] = fecha;
+    if (comentario) body['comentario'] = comentario;
+
+    return this.http.post<NoCerroResponse>(
+      `${environment.apiUrl}/api/cierre/${asignacionId}/no-cerro`,
+      body,
+      { headers },
+    );
   }
 
   private getToken(): string | null {

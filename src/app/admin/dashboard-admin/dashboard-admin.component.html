@@ -1,171 +1,298 @@
-<div class="dashboard-container" *ngIf="!loading">
+<!-- Loading -->
+<div class="loading-container" *ngIf="loading" data-testid="dashboard-loading">
+  <mat-spinner diameter="40"></mat-spinner>
+  <span>Cargando dashboard...</span>
+</div>
+
+<!-- Error -->
+<div class="error-banner" *ngIf="!loading && errorMessage" data-testid="dashboard-error" role="alert">
+  <mat-icon>error_outline</mat-icon>
+  <span>{{ errorMessage }}</span>
+  <button mat-button (click)="cargarDashboard()">Reintentar</button>
+</div>
+
+<!-- Dashboard -->
+<div class="dashboard-container" *ngIf="!loading && !errorMessage && dashboard" data-testid="dashboard-content">
+
   <!-- Header -->
   <div class="dashboard-header">
     <div>
-      <h2 class="dashboard-title">Dashboard</h2>
-      <p class="dashboard-subtitle">Resumen general del sistema</p>
+      <h2 class="dashboard-title">Dashboard del negocio</h2>
+      <p class="dashboard-subtitle">Resumen operativo en tiempo real</p>
     </div>
-    <button mat-flat-button class="export-btn" (click)="exportarExcel()">
+    <button mat-flat-button class="export-btn" (click)="exportarExcel()" data-testid="btn-exportar">
       <mat-icon>download</mat-icon>
       Exportar Excel
     </button>
   </div>
 
-  <!-- KPI Cards -->
-  <div class="kpi-grid">
+  <!-- ── Banda HOY ─────────────────────────────────────────────────────────── -->
+  <div class="banda-header" data-testid="banda-hoy">
+    <mat-icon>today</mat-icon>
+    <span>Hoy</span>
+  </div>
+  <div class="kpi-grid" data-testid="kpi-hoy">
     <div class="kpi-card">
-      <div class="kpi-icon-wrapper kpi-blue">
-        <mat-icon>people</mat-icon>
+      <div class="kpi-icon-wrapper kpi-gold">
+        <mat-icon>emoji_events</mat-icon>
       </div>
       <div class="kpi-info">
-        <span class="kpi-value">{{ dashboard.totalProspectos }}</span>
-        <span class="kpi-label">Total Prospectos</span>
+        <span class="kpi-value" data-testid="hoy-ventas">{{ dashboard.dia.ventasCerradas }}</span>
+        <span class="kpi-label">Ventas cerradas</span>
+      </div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-icon-wrapper kpi-blue">
+        <mat-icon>call_made</mat-icon>
+      </div>
+      <div class="kpi-info">
+        <span class="kpi-value" data-testid="hoy-derivados">{{ dashboard.dia.derivados }}</span>
+        <span class="kpi-label">Derivados</span>
       </div>
     </div>
     <div class="kpi-card">
       <div class="kpi-icon-wrapper kpi-purple">
-        <mat-icon>assignment_ind</mat-icon>
+        <mat-icon>headset_mic</mat-icon>
       </div>
       <div class="kpi-info">
-        <span class="kpi-value">{{ dashboard.totalAsignaciones }}</span>
-        <span class="kpi-label">Asignados</span>
+        <span class="kpi-value" data-testid="hoy-atenciones">{{ dashboard.dia.atenciones }}</span>
+        <span class="kpi-label">Atenciones</span>
+      </div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-icon-wrapper kpi-teal">
+        <mat-icon>phone_in_talk</mat-icon>
+      </div>
+      <div class="kpi-info">
+        <span class="kpi-value" data-testid="hoy-contactabilidad">{{ formatPct(dashboard.dia.contactabilidadReal) }}</span>
+        <span class="kpi-label">Contactabilidad real</span>
       </div>
     </div>
     <div class="kpi-card">
       <div class="kpi-icon-wrapper kpi-green">
-        <mat-icon>trending_up</mat-icon>
+        <mat-icon>group</mat-icon>
       </div>
       <div class="kpi-info">
-        <span class="kpi-value">{{ dashboard.porcentajeAsignado }}%</span>
-        <span class="kpi-label">% Asignado</span>
+        <span class="kpi-value" data-testid="hoy-colaboradores">{{ formatColaboradores(dashboard.dia.colaboradoresActivos, dashboard.dia.colaboradoresTotal) }}</span>
+        <span class="kpi-label">Colaboradores activos / total</span>
       </div>
     </div>
     <div class="kpi-card">
       <div class="kpi-icon-wrapper kpi-orange">
-        <mat-icon>cloud_upload</mat-icon>
+        <mat-icon>event_available</mat-icon>
       </div>
       <div class="kpi-info">
-        <span class="kpi-value">{{ dashboard.totalCargasMasivas }}</span>
-        <span class="kpi-label">Cargas Masivas</span>
+        <span class="kpi-value" data-testid="hoy-citas">{{ dashboard.dia.citasHoy ?? '—' }}</span>
+        <span class="kpi-label">Citas hoy</span>
       </div>
     </div>
   </div>
 
-  <!-- Estado de Gestion + Resultados -->
-  <div class="section-grid">
-    <!-- Estado de Gestion -->
-    <div class="section-card">
-      <h3 class="section-title">
-        <mat-icon>flag</mat-icon>
-        Estado de Gestion
-      </h3>
-      <div class="estado-bars" *ngIf="dashboard.porEstado">
-        <div class="estado-bar-item">
-          <div class="estado-bar-label">
-            <span>Sin Gestionar</span>
-            <span class="estado-bar-count">{{ dashboard.porEstado.sinGestionar }}</span>
-          </div>
-          <div class="bar-track">
-            <div class="bar-fill bar-gray" [style.width.%]="dashboard.totalAsignaciones > 0 ? (dashboard.porEstado.sinGestionar / dashboard.totalAsignaciones * 100) : 0"></div>
-          </div>
-        </div>
-        <div class="estado-bar-item">
-          <div class="estado-bar-label">
-            <span>En Gestion</span>
-            <span class="estado-bar-count">{{ dashboard.porEstado.enGestion }}</span>
-          </div>
-          <div class="bar-track">
-            <div class="bar-fill bar-blue" [style.width.%]="dashboard.totalAsignaciones > 0 ? (dashboard.porEstado.enGestion / dashboard.totalAsignaciones * 100) : 0"></div>
-          </div>
-        </div>
-        <div class="estado-bar-item">
-          <div class="estado-bar-label">
-            <span>Finalizados</span>
-            <span class="estado-bar-count">{{ dashboard.porEstado.finalizados }}</span>
-          </div>
-          <div class="bar-track">
-            <div class="bar-fill bar-green" [style.width.%]="dashboard.totalAsignaciones > 0 ? (dashboard.porEstado.finalizados / dashboard.totalAsignaciones * 100) : 0"></div>
-          </div>
-        </div>
+  <!-- ── Banda MES ──────────────────────────────────────────────────────────── -->
+  <div class="banda-header banda-mes" data-testid="banda-mes">
+    <mat-icon>calendar_month</mat-icon>
+    <span>Este mes</span>
+  </div>
+  <div class="kpi-grid kpi-grid-mes" data-testid="kpi-mes">
+    <div class="kpi-card">
+      <div class="kpi-icon-wrapper kpi-gold">
+        <mat-icon>emoji_events</mat-icon>
+      </div>
+      <div class="kpi-info">
+        <span class="kpi-value" data-testid="mes-ventas">{{ dashboard.mes.ventasCerradas }}</span>
+        <span class="kpi-label">Ventas cerradas</span>
       </div>
     </div>
-
-    <!-- Resultados -->
-    <div class="section-card">
-      <h3 class="section-title">
-        <mat-icon>analytics</mat-icon>
-        Resultados
-      </h3>
-      <div class="resultado-grid" *ngIf="dashboard.porResultado">
-        <div class="resultado-chip" *ngFor="let key of getResultadoKeys()" [ngClass]="getResultadoClass(key)">
-          <mat-icon>{{ getResultadoIcon(key) }}</mat-icon>
-          <span class="resultado-count">{{ dashboard.porResultado[key] }}</span>
-          <span class="resultado-label">{{ getResultadoLabel(key) }}</span>
-        </div>
+    <div class="kpi-card">
+      <div class="kpi-icon-wrapper kpi-blue">
+        <mat-icon>call_made</mat-icon>
+      </div>
+      <div class="kpi-info">
+        <span class="kpi-value" data-testid="mes-derivados">{{ dashboard.mes.derivados }}</span>
+        <span class="kpi-label">Derivados</span>
+      </div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-icon-wrapper kpi-teal">
+        <mat-icon>trending_up</mat-icon>
+      </div>
+      <div class="kpi-info">
+        <span class="kpi-value" data-testid="mes-conversion">{{ formatPct(dashboard.mes.tasaConversion) }}</span>
+        <span class="kpi-label">Tasa de conversion</span>
+      </div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-icon-wrapper kpi-green">
+        <mat-icon>data_usage</mat-icon>
+      </div>
+      <div class="kpi-info">
+        <span class="kpi-value" data-testid="mes-avance-bases">{{ formatPct(dashboard.mes.avanceBasesPct) }}</span>
+        <span class="kpi-label">Avance de bases</span>
+      </div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-icon-wrapper kpi-orange">
+        <mat-icon>person_search</mat-icon>
+      </div>
+      <div class="kpi-info">
+        <span class="kpi-value" data-testid="mes-sin-asignar">{{ dashboard.mes.disponiblesSinAsignar ?? '—' }}</span>
+        <span class="kpi-label">Disponibles sin asignar</span>
       </div>
     </div>
   </div>
 
-  <!-- Rendimiento por Teleoperador -->
-  <div class="section-card full-width">
+  <!-- ── Fila: Por cerrar + Embudo ─────────────────────────────────────────── -->
+  <div class="mid-row">
+
+    <!-- Por cerrar -->
+    <div class="section-card por-cerrar-card" data-testid="por-cerrar-card">
+      <h3 class="section-title">
+        <mat-icon>pending_actions</mat-icon>
+        Por cerrar
+      </h3>
+      <div class="por-cerrar-body">
+        <span class="por-cerrar-number" data-testid="por-cerrar-count">{{ dashboard.porCerrar }}</span>
+        <span class="por-cerrar-label">casos pendientes de cierre</span>
+      </div>
+      <button mat-flat-button class="por-cerrar-btn" (click)="irAPorCerrar()" data-testid="btn-ir-por-cerrar">
+        <mat-icon>open_in_new</mat-icon>
+        Ir a Por cerrar
+      </button>
+    </div>
+
+    <!-- Embudo -->
+    <div class="section-card embudo-card" data-testid="embudo-section">
+      <h3 class="section-title">
+        <mat-icon>filter_alt</mat-icon>
+        Embudo de conversion
+      </h3>
+      <div class="embudo-list">
+        <div class="embudo-step" *ngFor="let step of embudoSteps" [attr.data-testid]="'embudo-' + step.key">
+          <div class="embudo-step-info">
+            <span class="embudo-step-label">{{ step.label }}</span>
+            <span class="embudo-step-value">{{ dashboard.embudo[step.key] }}</span>
+          </div>
+          <div class="bar-track">
+            <div class="bar-fill embudo-bar-fill"
+              [style.width.%]="embudoBarWidth(dashboard.embudo[step.key])">
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ── Ranking por colaborador ────────────────────────────────────────────── -->
+  <div class="section-card full-width" data-testid="ranking-section">
     <h3 class="section-title">
-      <mat-icon>groups</mat-icon>
-      Rendimiento por Teleoperador
+      <mat-icon>leaderboard</mat-icon>
+      Ranking por colaborador
     </h3>
-    <table mat-table [dataSource]="teleoperadores" class="teleop-table" *ngIf="teleoperadores.length > 0">
-      <ng-container matColumnDef="nombre">
-        <th mat-header-cell *matHeaderCellDef>Teleoperador</th>
-        <td mat-cell *matCellDef="let t">{{ t.nombre }}</td>
-      </ng-container>
-      <ng-container matColumnDef="totalAsignados">
-        <th mat-header-cell *matHeaderCellDef>Total</th>
-        <td mat-cell *matCellDef="let t"><strong>{{ t.totalAsignados }}</strong></td>
-      </ng-container>
-      <ng-container matColumnDef="sinGestionar">
-        <th mat-header-cell *matHeaderCellDef>Sin Gestionar</th>
-        <td mat-cell *matCellDef="let t">
-          <span class="badge badge-gray">{{ t.sinGestionar }}</span>
-        </td>
-      </ng-container>
-      <ng-container matColumnDef="enGestion">
-        <th mat-header-cell *matHeaderCellDef>En Gestion</th>
-        <td mat-cell *matCellDef="let t">
-          <span class="badge badge-blue">{{ t.enGestion }}</span>
-        </td>
-      </ng-container>
-      <ng-container matColumnDef="finalizados">
-        <th mat-header-cell *matHeaderCellDef>Finalizados</th>
-        <td mat-cell *matCellDef="let t">
-          <span class="badge badge-green">{{ t.finalizados }}</span>
-        </td>
-      </ng-container>
-      <ng-container matColumnDef="concretos">
-        <th mat-header-cell *matHeaderCellDef>Concretos</th>
-        <td mat-cell *matCellDef="let t">
-          <span class="badge badge-emerald">{{ t.concretos }}</span>
-        </td>
-      </ng-container>
-      <ng-container matColumnDef="acciones">
-        <th mat-header-cell *matHeaderCellDef></th>
-        <td mat-cell *matCellDef="let t">
-          <button mat-icon-button class="ver-prospectos-btn" matTooltip="Ver prospectos" (click)="verProspectos(t)">
-            <mat-icon>visibility</mat-icon>
-          </button>
-        </td>
-      </ng-container>
+    <div *ngIf="dashboard.ranking.length > 0">
+      <table mat-table [dataSource]="dashboard.ranking" class="ranking-table"
+        [trackBy]="trackRanking">
 
-      <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-      <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
-    </table>
-    <div class="empty-state" *ngIf="teleoperadores.length === 0">
+        <ng-container matColumnDef="nombre">
+          <th mat-header-cell *matHeaderCellDef>Colaborador</th>
+          <td mat-cell *matCellDef="let r" class="nombre-cell">{{ r.nombre }}</td>
+        </ng-container>
+
+        <ng-container matColumnDef="ventasCerradas">
+          <th mat-header-cell *matHeaderCellDef>Ventas</th>
+          <td mat-cell *matCellDef="let r">
+            <span class="badge badge-gold">{{ r.ventasCerradas }}</span>
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="derivados">
+          <th mat-header-cell *matHeaderCellDef>Derivados</th>
+          <td mat-cell *matCellDef="let r">
+            <span class="badge badge-blue">{{ r.derivados }}</span>
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="atenciones">
+          <th mat-header-cell *matHeaderCellDef>Atenciones</th>
+          <td mat-cell *matCellDef="let r">{{ r.atenciones }}</td>
+        </ng-container>
+
+        <ng-container matColumnDef="contactabilidad">
+          <th mat-header-cell *matHeaderCellDef>Contactabilidad</th>
+          <td mat-cell *matCellDef="let r">{{ formatPct(r.contactabilidad) }}</td>
+        </ng-container>
+
+        <ng-container matColumnDef="ultimaActividad">
+          <th mat-header-cell *matHeaderCellDef>Ultima actividad</th>
+          <td mat-cell *matCellDef="let r">
+            {{ r.ultimaActividad ? (r.ultimaActividad | date:'dd/MM/yy HH:mm') : '—' }}
+          </td>
+        </ng-container>
+
+        <tr mat-header-row *matHeaderRowDef="rankingColumns"></tr>
+        <tr mat-row *matRowDef="let row; columns: rankingColumns;"
+          class="ranking-row clickable-row"
+          matTooltip="Ver prospectos del colaborador"
+          (click)="verDrillDown(row)"
+          data-testid="ranking-row">
+        </tr>
+      </table>
+    </div>
+    <div class="empty-state" *ngIf="dashboard.ranking.length === 0">
       <mat-icon>person_off</mat-icon>
-      <span>No hay teleoperadores registrados</span>
+      <span>Sin datos de ranking disponibles</span>
     </div>
   </div>
-</div>
 
-<!-- Loading -->
-<div class="loading-container" *ngIf="loading">
-  <mat-spinner diameter="40"></mat-spinner>
-  <span>Cargando dashboard...</span>
+  <!-- ── Estado de bases ────────────────────────────────────────────────────── -->
+  <div class="section-card full-width" *ngIf="dashboard.bases.length > 0" data-testid="bases-section">
+    <h3 class="section-title">
+      <mat-icon>storage</mat-icon>
+      Estado de bases
+    </h3>
+    <table mat-table [dataSource]="dashboard.bases" class="bases-table" [trackBy]="trackBase">
+
+      <ng-container matColumnDef="nombre">
+        <th mat-header-cell *matHeaderCellDef>Archivo</th>
+        <td mat-cell *matCellDef="let b" class="nombre-cell">{{ b.nombre }}</td>
+      </ng-container>
+
+      <ng-container matColumnDef="cantidad">
+        <th mat-header-cell *matHeaderCellDef>Total</th>
+        <td mat-cell *matCellDef="let b"><strong>{{ b.cantidad }}</strong></td>
+      </ng-container>
+
+      <ng-container matColumnDef="asignados">
+        <th mat-header-cell *matHeaderCellDef>Asignados</th>
+        <td mat-cell *matCellDef="let b">
+          <span class="badge badge-blue">{{ b.asignados }}</span>
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="sinAsignar">
+        <th mat-header-cell *matHeaderCellDef>Sin asignar</th>
+        <td mat-cell *matCellDef="let b">
+          <span class="badge" [class.badge-orange]="b.sinAsignar > 0" [class.badge-gray]="b.sinAsignar === 0">
+            {{ b.sinAsignar }}
+          </span>
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="avancePct">
+        <th mat-header-cell *matHeaderCellDef>Avance</th>
+        <td mat-cell *matCellDef="let b" class="avance-cell">
+          <div class="avance-wrapper">
+            <div class="bar-track avance-track">
+              <div class="bar-fill avance-bar" [style.width.%]="b.avancePct * 100"></div>
+            </div>
+            <span class="avance-pct">{{ formatPct(b.avancePct) }}</span>
+          </div>
+        </td>
+      </ng-container>
+
+      <tr mat-header-row *matHeaderRowDef="basesColumns"></tr>
+      <tr mat-row *matRowDef="let row; columns: basesColumns;" class="bases-row" data-testid="base-row"></tr>
+    </table>
+  </div>
+
 </div>

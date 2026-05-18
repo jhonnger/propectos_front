@@ -25,7 +25,12 @@
         (dragover)="onDragOver($event)"
         (dragleave)="onDragLeave($event)"
         (drop)="onDrop($event)"
-        (click)="triggerFileInput()">
+        (click)="triggerFileInput()"
+        role="button"
+        tabindex="0"
+        aria-label="Zona de carga de archivo Excel. Haz clic o arrastra un archivo"
+        (keydown.enter)="triggerFileInput()"
+        (keydown.space)="triggerFileInput()">
 
         <div class="drop-zone-content" *ngIf="!selectedFile">
           <div class="drop-icon-wrapper">
@@ -44,6 +49,10 @@
               <mat-icon>table_chart</mat-icon>
               XLS
             </span>
+            <span class="file-type-badge file-type-limit">
+              <mat-icon>storage</mat-icon>
+              Max 10 MB
+            </span>
           </div>
         </div>
 
@@ -61,7 +70,8 @@
             (click)="removeFile(); $event.stopPropagation()"
             class="remove-btn"
             [disabled]="isUploading"
-            matTooltip="Quitar archivo">
+            matTooltip="Quitar archivo"
+            aria-label="Quitar archivo seleccionado">
             <mat-icon>close</mat-icon>
           </button>
         </div>
@@ -73,7 +83,8 @@
         type="file"
         (change)="onFileSelected($event)"
         accept=".xlsx,.xls"
-        hidden>
+        hidden
+        aria-hidden="true">
 
       <!-- Upload Button -->
       <div class="action-buttons">
@@ -81,12 +92,100 @@
           mat-flat-button
           class="upload-btn"
           (click)="uploadFile()"
-          [disabled]="!selectedFile || isUploading">
+          [disabled]="!selectedFile || isUploading"
+          aria-label="Subir archivo seleccionado">
           <mat-icon *ngIf="!isUploading">cloud_upload</mat-icon>
           <mat-spinner *ngIf="isUploading" diameter="20"></mat-spinner>
           <span *ngIf="!isUploading">Subir Archivo</span>
           <span *ngIf="isUploading">Subiendo...</span>
         </button>
+      </div>
+
+      <!-- ── Error panel (HTTP 400) ─────────────────────────────── -->
+      <div
+        *ngIf="importError"
+        class="result-panel result-panel--error"
+        role="alert"
+        aria-live="assertive"
+        data-testid="import-error">
+        <div class="result-panel__header">
+          <mat-icon class="result-panel__icon">error_outline</mat-icon>
+          <span class="result-panel__title">Error al importar</span>
+          <button
+            mat-icon-button
+            class="result-panel__close"
+            (click)="dismissResult()"
+            matTooltip="Cerrar"
+            aria-label="Cerrar panel de error">
+            <mat-icon>close</mat-icon>
+          </button>
+        </div>
+        <p class="result-panel__error-msg">{{ importError }}</p>
+      </div>
+
+      <!-- ── Success result panel ───────────────────────────────── -->
+      <div
+        *ngIf="importResult"
+        class="result-panel result-panel--success"
+        role="region"
+        aria-label="Resultado de importacion"
+        data-testid="import-result">
+        <div class="result-panel__header">
+          <mat-icon class="result-panel__icon">check_circle</mat-icon>
+          <span class="result-panel__title">{{ importResult.mensaje }}</span>
+          <button
+            mat-icon-button
+            class="result-panel__close"
+            (click)="dismissResult()"
+            matTooltip="Cerrar"
+            aria-label="Cerrar resultado de importacion">
+            <mat-icon>close</mat-icon>
+          </button>
+        </div>
+
+        <div class="result-stats">
+          <div class="result-stat result-stat--ok" data-testid="stat-importados">
+            <mat-icon>check_circle</mat-icon>
+            <span class="result-stat__value">{{ importResult.importados }}</span>
+            <span class="result-stat__label">Importados</span>
+          </div>
+          <div
+            class="result-stat"
+            [class.result-stat--warn]="importResult.rechazados > 0"
+            [class.result-stat--zero]="importResult.rechazados === 0"
+            data-testid="stat-rechazados">
+            <mat-icon>{{ importResult.rechazados > 0 ? 'warning' : 'check' }}</mat-icon>
+            <span class="result-stat__value">{{ importResult.rechazados }}</span>
+            <span class="result-stat__label">Rechazados</span>
+          </div>
+        </div>
+
+        <!-- Rejection detail table -->
+        <div
+          *ngIf="hasRechazos"
+          class="rechazos-section"
+          aria-label="Detalle de filas rechazadas">
+          <h4 class="rechazos-title">
+            <mat-icon>list_alt</mat-icon>
+            Detalle de rechazos
+          </h4>
+          <table class="rechazos-table" aria-label="Filas rechazadas en la importacion">
+            <thead>
+              <tr>
+                <th scope="col">Fila</th>
+                <th scope="col">Motivo</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr
+                *ngFor="let item of detalleRechazos"
+                data-testid="rechazo-row">
+                <td class="rechazo-fila">{{ item.fila }}</td>
+                <td class="rechazo-motivo">{{ item.motivo }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
 
@@ -97,13 +196,13 @@
         <span>Formato del Excel</span>
       </div>
       <div class="columns-table-wrapper">
-        <table class="columns-table">
+        <table class="columns-table" aria-label="Columnas requeridas en el archivo Excel">
           <thead>
             <tr>
-              <th>#</th>
-              <th>Columna</th>
-              <th>Requerido</th>
-              <th>Formato</th>
+              <th scope="col">#</th>
+              <th scope="col">Columna</th>
+              <th scope="col">Requerido</th>
+              <th scope="col">Formato</th>
             </tr>
           </thead>
           <tbody>
@@ -116,20 +215,20 @@
             <tr>
               <td class="col-number">2</td>
               <td class="col-name">Apellido</td>
-              <td><span class="badge badge-optional">Opcional</span></td>
-              <td class="col-format">—</td>
+              <td><span class="badge badge-required">Obligatorio</span></td>
+              <td class="col-format">No vacio</td>
             </tr>
             <tr>
               <td class="col-number">3</td>
               <td class="col-name">Campania</td>
-              <td><span class="badge badge-optional">Opcional</span></td>
+              <td><span class="badge badge-required">Obligatorio</span></td>
               <td class="col-format">Se crea si no existe</td>
             </tr>
             <tr>
               <td class="col-number">4</td>
               <td class="col-name">Doc. Identidad</td>
-              <td><span class="badge badge-optional">Opcional</span></td>
-              <td class="col-format">8 digitos</td>
+              <td><span class="badge badge-required">Obligatorio</span></td>
+              <td class="col-format">No vacio</td>
             </tr>
             <tr>
               <td class="col-number">5</td>

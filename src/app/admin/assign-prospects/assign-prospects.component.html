@@ -64,7 +64,7 @@
         <mat-icon class="section-icon">table_chart</mat-icon>
         <div>
           <h2 class="section-title">Cargas de Prospectos</h2>
-          <p class="section-subtitle">Selecciona teleoperador y cantidad a asignar</p>
+          <p class="section-subtitle">Reparte a multiples colaboradores en un solo paso</p>
         </div>
       </div>
       <button mat-stroked-button class="refresh-btn" (click)="refreshData()" [disabled]="isSaving">
@@ -151,55 +151,6 @@
           </td>
         </ng-container>
 
-        <!-- Teleoperador Column -->
-        <ng-container matColumnDef="assignedTo">
-          <th mat-header-cell *matHeaderCellDef>Teleoperador</th>
-          <td mat-cell *matCellDef="let load">
-            <ng-container *ngIf="load.prospectosSinAsignar > 0; else fullyAssigned">
-              <mat-form-field appearance="outline" class="assignment-select">
-                <mat-select
-                  [(ngModel)]="load.selectedUserId"
-                  [disabled]="load.isLoading"
-                  placeholder="Seleccionar">
-                  <mat-select-trigger>
-                    {{ getSelectedUserName(load.selectedUserId) }}
-                  </mat-select-trigger>
-                  <mat-option *ngFor="let user of getActiveUsers()" [value]="user.id">
-                    <div class="user-option">
-                      <div class="user-avatar-small">{{ getInitials(user.nombreCompleto) }}</div>
-                      <div class="user-option-info">
-                        <span class="user-option-name">{{ user.nombreCompleto }}</span>
-                        <span class="user-option-role">{{ user.rolNombre }}</span>
-                      </div>
-                    </div>
-                  </mat-option>
-                </mat-select>
-              </mat-form-field>
-            </ng-container>
-            <ng-template #fullyAssigned>
-              <span class="fully-assigned-label">
-                <mat-icon>check_circle</mat-icon>
-                Completado
-              </span>
-            </ng-template>
-          </td>
-        </ng-container>
-
-        <!-- Cantidad Column -->
-        <ng-container matColumnDef="quantity">
-          <th mat-header-cell *matHeaderCellDef>Cantidad</th>
-          <td mat-cell *matCellDef="let load">
-            <mat-form-field appearance="outline" class="quantity-input" *ngIf="load.prospectosSinAsignar > 0">
-              <input matInput
-                type="number"
-                [(ngModel)]="load.cantidad"
-                [max]="load.prospectosSinAsignar"
-                min="1"
-                [placeholder]="'Max ' + load.prospectosSinAsignar">
-            </mat-form-field>
-          </td>
-        </ng-container>
-
         <!-- Acciones Column -->
         <ng-container matColumnDef="actions">
           <th mat-header-cell *matHeaderCellDef>Acciones</th>
@@ -207,13 +158,23 @@
             <div class="actions-container">
               <button
                 mat-flat-button
-                class="assign-btn"
-                *ngIf="load.prospectosSinAsignar > 0"
-                (click)="assignPartial(load)"
-                [disabled]="load.isLoading || !load.selectedUserId"
-                matTooltip="Asignar prospectos al teleoperador seleccionado">
-                <mat-icon>send</mat-icon>
-                Asignar
+                class="assign-btn assign-btn--multi"
+                *ngIf="load.prospectosSinAsignar > 0 && !load.showMultiPanel"
+                (click)="openMultiPanel(load)"
+                [disabled]="load.isLoading"
+                matTooltip="Repartir a varios colaboradores"
+                data-testid="btn-repartir">
+                <mat-icon>group_add</mat-icon>
+                Repartir
+              </button>
+              <button
+                mat-stroked-button
+                class="assign-btn--cancel"
+                *ngIf="load.showMultiPanel"
+                (click)="closeMultiPanel(load)"
+                [disabled]="load.isLoading">
+                <mat-icon>close</mat-icon>
+                Cancelar
               </button>
               <button
                 mat-icon-button
@@ -229,9 +190,162 @@
           </td>
         </ng-container>
 
-        <!-- Expanded Detail Row -->
+        <!-- Expanded Multi-panel + breakdown row -->
         <ng-container matColumnDef="expandedDetail">
           <td mat-cell *matCellDef="let load" [attr.colspan]="displayedColumns.length">
+
+            <!-- ── Multi-assign panel ──────────────────────────────── -->
+            <div class="multi-panel" *ngIf="load.showMultiPanel" data-testid="multi-panel">
+
+              <!-- Saldo indicator -->
+              <div class="multi-saldo-bar">
+                <span class="multi-saldo-label">Saldo disponible:</span>
+                <span
+                  class="multi-saldo-value"
+                  [class.multi-saldo--warn]="getMultiSaldo(load) < 0"
+                  data-testid="saldo-disponible">
+                  {{ getMultiSaldo(load) }}
+                </span>
+                <span class="multi-saldo-total">/ {{ load.prospectosSinAsignar }}</span>
+                <span
+                  *ngIf="getMultiSaldo(load) < 0"
+                  class="multi-saldo-overflow"
+                  role="alert"
+                  data-testid="saldo-overflow-msg">
+                  <mat-icon>warning</mat-icon>
+                  La suma supera los disponibles
+                </span>
+              </div>
+
+              <!-- Row list -->
+              <div class="multi-rows-list">
+                <div
+                  class="multi-row"
+                  *ngFor="let row of load.multiRows; let i = index"
+                  data-testid="multi-row">
+
+                  <span class="multi-row-num">{{ i + 1 }}</span>
+
+                  <mat-form-field appearance="outline" class="multi-select">
+                    <mat-label>Colaborador</mat-label>
+                    <mat-select
+                      [(ngModel)]="row.usuarioId"
+                      [disabled]="load.isLoading"
+                      [attr.data-testid]="'select-usuario-' + i">
+                      <mat-option *ngFor="let user of getActiveUsers()" [value]="user.id">
+                        <div class="user-option">
+                          <div class="user-avatar-small">{{ getInitials(user.nombreCompleto) }}</div>
+                          <div class="user-option-info">
+                            <span class="user-option-name">{{ user.nombreCompleto }}</span>
+                            <span class="user-option-role">{{ user.rolNombre }}</span>
+                          </div>
+                        </div>
+                      </mat-option>
+                    </mat-select>
+                  </mat-form-field>
+
+                  <mat-form-field appearance="outline" class="multi-qty">
+                    <mat-label>Cantidad</mat-label>
+                    <input
+                      matInput
+                      type="number"
+                      [(ngModel)]="row.cantidad"
+                      min="1"
+                      [max]="load.prospectosSinAsignar"
+                      [disabled]="load.isLoading"
+                      [attr.data-testid]="'input-cantidad-' + i">
+                  </mat-form-field>
+
+                  <button
+                    mat-icon-button
+                    class="multi-remove-btn"
+                    (click)="removeMultiRow(load, i)"
+                    [disabled]="load.multiRows.length <= 1 || load.isLoading"
+                    matTooltip="Eliminar fila"
+                    aria-label="Eliminar esta fila de asignacion">
+                    <mat-icon>remove_circle_outline</mat-icon>
+                  </button>
+                </div>
+              </div>
+
+              <!-- Add row + confirm row -->
+              <div class="multi-panel-actions">
+                <button
+                  mat-stroked-button
+                  class="multi-add-btn"
+                  (click)="addMultiRow(load)"
+                  [disabled]="load.isLoading"
+                  data-testid="btn-agregar-fila">
+                  <mat-icon>add</mat-icon>
+                  Agregar colaborador
+                </button>
+
+                <button
+                  mat-flat-button
+                  class="multi-confirm-btn"
+                  (click)="confirmMultiAsign(load)"
+                  [disabled]="!isMultiValid(load) || load.isLoading"
+                  data-testid="btn-confirmar-reparto">
+                  <mat-icon *ngIf="!load.isLoading">send</mat-icon>
+                  <mat-spinner *ngIf="load.isLoading" diameter="18"></mat-spinner>
+                  {{ load.isLoading ? 'Procesando...' : 'Confirmar reparto' }}
+                </button>
+              </div>
+
+              <!-- ── Multi error ── -->
+              <div
+                *ngIf="load.multiError"
+                class="multi-feedback multi-feedback--error"
+                role="alert"
+                data-testid="multi-error">
+                <mat-icon>error_outline</mat-icon>
+                <span>{{ load.multiError }}</span>
+              </div>
+
+              <!-- ── Multi success result ── -->
+              <div
+                *ngIf="load.multiResult"
+                class="multi-feedback multi-feedback--success"
+                role="region"
+                aria-label="Resultado del reparto"
+                data-testid="multi-result">
+                <div class="multi-result-header">
+                  <mat-icon>check_circle</mat-icon>
+                  <span>{{ load.multiResult.mensaje }}</span>
+                  <button
+                    mat-icon-button
+                    class="multi-result-close"
+                    (click)="dismissMultiResult(load)"
+                    aria-label="Cerrar resumen de reparto">
+                    <mat-icon>close</mat-icon>
+                  </button>
+                </div>
+
+                <div class="multi-result-stats">
+                  <div class="multi-stat" data-testid="stat-total-asignados">
+                    <span class="multi-stat__val">{{ load.multiResult.totalAsignados }}</span>
+                    <span class="multi-stat__lbl">Total asignados</span>
+                  </div>
+                  <div class="multi-stat" data-testid="stat-saldo-sin-asignar">
+                    <span class="multi-stat__val">{{ load.multiResult.saldoSinAsignar }}</span>
+                    <span class="multi-stat__lbl">Saldo sin asignar</span>
+                  </div>
+                </div>
+
+                <div class="multi-result-detail">
+                  <div
+                    class="multi-result-row"
+                    *ngFor="let item of getMultiResultDetalle(load)"
+                    data-testid="result-detalle-row">
+                    <div class="breakdown-avatar">{{ getInitials(item.usuarioNombre) }}</div>
+                    <span class="multi-result-name">{{ item.usuarioNombre }}</span>
+                    <span class="multi-result-count">{{ item.asignados }}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- ── Legacy breakdown ────────────────────────────────── -->
             <div class="breakdown-container" *ngIf="load.showBreakdown && load.resumenAsignaciones && load.resumenAsignaciones.length > 0">
               <div class="breakdown-header">
                 <mat-icon>group</mat-icon>
@@ -299,41 +413,7 @@
         </div>
 
         <div class="mobile-card-content">
-          <ng-container *ngIf="load.prospectosSinAsignar > 0">
-            <div class="mobile-form-row">
-              <mat-form-field appearance="outline" class="mobile-select">
-                <mat-label>Teleoperador</mat-label>
-                <mat-select
-                  [(ngModel)]="load.selectedUserId"
-                  [disabled]="load.isLoading"
-                  placeholder="Seleccionar">
-                  <mat-select-trigger>
-                    {{ getSelectedUserName(load.selectedUserId) }}
-                  </mat-select-trigger>
-                  <mat-option *ngFor="let user of getActiveUsers()" [value]="user.id">
-                    <div class="user-option">
-                      <div class="user-avatar-small">{{ getInitials(user.nombreCompleto) }}</div>
-                      <div class="user-option-info">
-                        <span class="user-option-name">{{ user.nombreCompleto }}</span>
-                        <span class="user-option-role">{{ user.rolNombre }}</span>
-                      </div>
-                    </div>
-                  </mat-option>
-                </mat-select>
-              </mat-form-field>
-
-              <mat-form-field appearance="outline" class="mobile-quantity">
-                <mat-label>Cantidad</mat-label>
-                <input matInput
-                  type="number"
-                  [(ngModel)]="load.cantidad"
-                  [max]="load.prospectosSinAsignar"
-                  min="1"
-                  [placeholder]="'Max ' + load.prospectosSinAsignar">
-              </mat-form-field>
-            </div>
-          </ng-container>
-
+          <!-- Fully assigned -->
           <ng-container *ngIf="load.prospectosSinAsignar <= 0">
             <div class="fully-assigned-section">
               <span class="fully-assigned-label">
@@ -343,29 +423,101 @@
             </div>
           </ng-container>
 
-          <div class="mobile-actions">
-            <button
-              mat-flat-button
-              class="assign-btn mobile-assign-btn"
-              *ngIf="load.prospectosSinAsignar > 0"
-              (click)="assignPartial(load)"
-              [disabled]="load.isLoading || !load.selectedUserId">
-              <mat-icon>send</mat-icon>
-              Asignar
-            </button>
-            <button
-              mat-stroked-button
-              *ngIf="load.resumenAsignaciones && load.resumenAsignaciones.length > 0"
-              (click)="toggleBreakdown(load)"
-              class="mobile-details-btn">
-              <mat-icon>{{ load.showBreakdown ? 'expand_less' : 'expand_more' }}</mat-icon>
-              Desglose
-            </button>
-            <div *ngIf="load.isLoading" class="mobile-loading">
-              <mat-spinner diameter="24"></mat-spinner>
-              <span>Procesando...</span>
+          <!-- Multi-assign panel (mobile) -->
+          <ng-container *ngIf="load.prospectosSinAsignar > 0">
+            <div *ngIf="!load.showMultiPanel" class="mobile-actions">
+              <button
+                mat-flat-button
+                class="assign-btn mobile-assign-btn"
+                (click)="openMultiPanel(load)"
+                [disabled]="load.isLoading">
+                <mat-icon>group_add</mat-icon>
+                Repartir
+              </button>
+              <button
+                mat-stroked-button
+                *ngIf="load.resumenAsignaciones && load.resumenAsignaciones.length > 0"
+                (click)="toggleBreakdown(load)"
+                class="mobile-details-btn">
+                <mat-icon>{{ load.showBreakdown ? 'expand_less' : 'expand_more' }}</mat-icon>
+                Desglose
+              </button>
             </div>
-          </div>
+
+            <!-- Mobile multi panel -->
+            <div *ngIf="load.showMultiPanel" class="mobile-multi-panel">
+              <div class="multi-saldo-bar">
+                <span class="multi-saldo-label">Saldo:</span>
+                <span
+                  class="multi-saldo-value"
+                  [class.multi-saldo--warn]="getMultiSaldo(load) < 0">
+                  {{ getMultiSaldo(load) }}
+                </span>
+                <span class="multi-saldo-total">/ {{ load.prospectosSinAsignar }}</span>
+              </div>
+
+              <div *ngFor="let row of load.multiRows; let i = index" class="multi-row-mobile">
+                <mat-form-field appearance="outline" class="mobile-select">
+                  <mat-label>Colaborador</mat-label>
+                  <mat-select [(ngModel)]="row.usuarioId" [disabled]="load.isLoading">
+                    <mat-option *ngFor="let user of getActiveUsers()" [value]="user.id">
+                      {{ user.nombreCompleto }}
+                    </mat-option>
+                  </mat-select>
+                </mat-form-field>
+
+                <mat-form-field appearance="outline" class="mobile-quantity">
+                  <mat-label>Cantidad</mat-label>
+                  <input
+                    matInput
+                    type="number"
+                    [(ngModel)]="row.cantidad"
+                    min="1"
+                    [disabled]="load.isLoading">
+                </mat-form-field>
+              </div>
+
+              <div class="multi-panel-actions" style="flex-direction: column; gap: 8px;">
+                <button mat-stroked-button (click)="addMultiRow(load)" [disabled]="load.isLoading">
+                  <mat-icon>add</mat-icon> Agregar colaborador
+                </button>
+                <button
+                  mat-flat-button
+                  class="multi-confirm-btn"
+                  (click)="confirmMultiAsign(load)"
+                  [disabled]="!isMultiValid(load) || load.isLoading">
+                  <mat-icon *ngIf="!load.isLoading">send</mat-icon>
+                  <mat-spinner *ngIf="load.isLoading" diameter="18"></mat-spinner>
+                  {{ load.isLoading ? 'Procesando...' : 'Confirmar reparto' }}
+                </button>
+                <button mat-stroked-button (click)="closeMultiPanel(load)">
+                  Cancelar
+                </button>
+              </div>
+
+              <div *ngIf="load.multiError" class="multi-feedback multi-feedback--error" role="alert">
+                <mat-icon>error_outline</mat-icon>
+                <span>{{ load.multiError }}</span>
+              </div>
+
+              <div *ngIf="load.multiResult" class="multi-feedback multi-feedback--success">
+                <div class="multi-result-header">
+                  <mat-icon>check_circle</mat-icon>
+                  <span>{{ load.multiResult.mensaje }}</span>
+                </div>
+                <div class="multi-result-stats">
+                  <div class="multi-stat">
+                    <span class="multi-stat__val">{{ load.multiResult.totalAsignados }}</span>
+                    <span class="multi-stat__lbl">Asignados</span>
+                  </div>
+                  <div class="multi-stat">
+                    <span class="multi-stat__val">{{ load.multiResult.saldoSinAsignar }}</span>
+                    <span class="multi-stat__lbl">Saldo</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </ng-container>
 
           <!-- Mobile Breakdown -->
           <div class="breakdown-container" *ngIf="load.showBreakdown && load.resumenAsignaciones && load.resumenAsignaciones.length > 0">

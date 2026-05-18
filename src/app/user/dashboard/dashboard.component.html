@@ -1,11 +1,12 @@
 <app-navbar></app-navbar>
 
 <div class="dashboard-container">
-  <!-- Header Section -->
+
+  <!-- ── Header ─────────────────────────────────────────────────────────── -->
   <div class="dashboard-header">
     <div class="header-content">
       <div class="header-left">
-        <div class="header-icon-wrapper">
+        <div class="header-icon-wrapper" aria-hidden="true">
           <mat-icon>dashboard</mat-icon>
         </div>
         <div>
@@ -16,10 +17,11 @@
     </div>
   </div>
 
-  <!-- Metrics Cards -->
-  <div class="metrics-section">
+  <!-- ── Métricas ───────────────────────────────────────────────────────── -->
+  <div class="metrics-section" role="region" aria-label="Resumen de estadísticas">
+
     <div class="metric-card">
-      <div class="metric-icon-bg sin-gestionar-bg">
+      <div class="metric-icon-bg sin-gestionar-bg" aria-hidden="true">
         <mat-icon>hourglass_empty</mat-icon>
       </div>
       <div class="metric-content">
@@ -29,254 +31,451 @@
     </div>
 
     <div class="metric-card">
-      <div class="metric-icon-bg en-gestion-bg">
+      <div class="metric-icon-bg en-gestion-bg" aria-hidden="true">
         <mat-icon>phone_in_talk</mat-icon>
       </div>
       <div class="metric-content">
         <span class="metric-value">{{ stats.enGestion }}</span>
-        <span class="metric-label">En Gestion</span>
+        <span class="metric-label">En Gestión</span>
       </div>
     </div>
 
     <div class="metric-card">
-      <div class="metric-icon-bg agendados-bg">
-        <mat-icon>event</mat-icon>
+      <div class="metric-icon-bg en-seguimiento-bg" aria-hidden="true">
+        <mat-icon>track_changes</mat-icon>
       </div>
       <div class="metric-content">
-        <span class="metric-value">{{ stats.agendados }}</span>
-        <span class="metric-label">Agendados</span>
+        <span class="metric-value">{{ stats.enSeguimiento }}</span>
+        <span class="metric-label">En Seguimiento</span>
       </div>
     </div>
 
     <div class="metric-card">
-      <div class="metric-icon-bg finalizados-bg">
+      <div class="metric-icon-bg derivados-bg" aria-hidden="true">
+        <mat-icon>forward</mat-icon>
+      </div>
+      <div class="metric-content">
+        <span class="metric-value">{{ stats.derivados }}</span>
+        <span class="metric-label">Derivados</span>
+      </div>
+    </div>
+
+    <div class="metric-card">
+      <div class="metric-icon-bg ganados-bg" aria-hidden="true">
         <mat-icon>check_circle</mat-icon>
       </div>
       <div class="metric-content">
-        <span class="metric-value">{{ stats.finalizados }}</span>
-        <span class="metric-label">Finalizados</span>
+        <span class="metric-value">{{ stats.ganados }}</span>
+        <span class="metric-label">Ganados</span>
       </div>
     </div>
+
+    <div class="metric-card">
+      <div class="metric-icon-bg descartados-bg" aria-hidden="true">
+        <mat-icon>cancel</mat-icon>
+      </div>
+      <div class="metric-content">
+        <span class="metric-value">{{ stats.descartados }}</span>
+        <span class="metric-label">Descartados</span>
+      </div>
+    </div>
+
   </div>
 
-  <!-- Filter Chips -->
-  <div class="filter-section">
-    <button class="filter-chip" [class.filter-active]="isFilterActive(null, null)" (click)="setFiltro(null, null)">
-      Todos
-    </button>
-    <button class="filter-chip" [class.filter-active]="isFilterActive('SIN_GESTIONAR', null)" (click)="setFiltro('SIN_GESTIONAR', null)">
-      <mat-icon>hourglass_empty</mat-icon> Sin gestionar
-    </button>
-    <button class="filter-chip" [class.filter-active]="isFilterActive(null, 'NO_CONTESTO')" (click)="setFiltro(null, 'NO_CONTESTO')">
-      <mat-icon>phone_missed</mat-icon> No contesto
-    </button>
-    <button class="filter-chip" [class.filter-active]="isFilterActive(null, 'AGENDADO')" (click)="setFiltro(null, 'AGENDADO')">
-      <mat-icon>event</mat-icon> Agendados
-    </button>
-    <button class="filter-chip" [class.filter-active]="isFilterActive(null, 'PROSPECTO')" (click)="setFiltro(null, 'PROSPECTO')">
-      <mat-icon>star</mat-icon> Prospectos
-    </button>
-    <button class="filter-chip" [class.filter-active]="isFilterActive(null, 'OBSERVADO')" (click)="setFiltro(null, 'OBSERVADO')">
-      <mat-icon>visibility</mat-icon> Observados
-    </button>
-    <button class="filter-chip" [class.filter-active]="isFilterActive('FINALIZADO', null)" (click)="setFiltro('FINALIZADO', null)">
-      <mat-icon>done_all</mat-icon> Finalizados
-    </button>
-  </div>
+  <!-- ── Pestañas principales ───────────────────────────────────────────── -->
+  <mat-tab-group
+    class="main-tabs"
+    animationDuration="150ms"
+    (selectedIndexChange)="$event === 1 && onActividadTabActivated()">
 
-  <!-- Table Section -->
-  <div class="table-section">
-    <div class="section-header">
-      <div class="section-title-group">
-        <mat-icon class="section-icon">people</mat-icon>
-        <div>
-          <h2 class="section-title">Prospectos Asignados</h2>
-          <p class="section-subtitle">{{ totalResultados }} prospectos en total</p>
-        </div>
-      </div>
-      <div class="section-actions">
-        <button mat-stroked-button class="export-btn" (click)="exportarExcel()">
-          <mat-icon>download</mat-icon>
-          Exportar
-        </button>
-        <button mat-stroked-button class="refresh-btn" (click)="buscar(); loadStats()">
-          <mat-icon>refresh</mat-icon>
-          Actualizar
-        </button>
-      </div>
-    </div>
+    <!-- ── Pestaña 1: Cola ───────────────────────────────────────────────── -->
+    <mat-tab label="Mi Cola">
 
-    <!-- Desktop Table View -->
-    <div class="table-container desktop-only">
-      <table mat-table [dataSource]="dataSource" class="prospects-table">
-
-        <!-- Nombre Column -->
-        <ng-container matColumnDef="nombre">
-          <th mat-header-cell *matHeaderCellDef>Nombre Completo</th>
-          <td mat-cell *matCellDef="let prospect">
-            <div class="prospect-name-cell">
-              <div class="prospect-avatar">{{ (prospect.nombre?.charAt(0) || '') + (prospect.apellido?.charAt(0) || '') }}</div>
-              <div class="prospect-name-info">
-                <span class="name-primary">{{ prospect.nombre }} {{ prospect.apellido }}</span>
-                <span class="name-secondary">{{ prospect.documentoIdentidad }}</span>
-              </div>
-            </div>
-          </td>
-        </ng-container>
-
-        <!-- Campana Column -->
-        <ng-container matColumnDef="campania">
-          <th mat-header-cell *matHeaderCellDef>Campana</th>
-          <td mat-cell *matCellDef="let prospect">
-            <span class="campaign-badge">
-              <span class="campaign-dot"></span>
-              {{ prospect.campania }}
-            </span>
-          </td>
-        </ng-container>
-
-        <!-- Celular Column -->
-        <ng-container matColumnDef="celular">
-          <th mat-header-cell *matHeaderCellDef>Telefono</th>
-          <td mat-cell *matCellDef="let prospect">
-            <a href="tel:{{ prospect.celular }}" class="phone-link">
-              <mat-icon class="phone-icon">phone</mat-icon>
-              {{ prospect.celular }}
-            </a>
-          </td>
-        </ng-container>
-
-        <!-- Estado Column -->
-        <ng-container matColumnDef="estado">
-          <th mat-header-cell *matHeaderCellDef>Estado</th>
-          <td mat-cell *matCellDef="let prospect">
-            <span class="estado-badge" [class]="getEstadoResultadoClass(prospect.estadoResultado)">
-              <mat-icon class="estado-badge-icon">{{ getEstadoResultadoIcon(prospect.estadoResultado) }}</mat-icon>
-              {{ getEstadoResultadoText(prospect.estadoResultado) }}
-            </span>
-            <div class="fecha-agenda" *ngIf="prospect.estadoResultado === 'AGENDADO' && prospect.fechaAgenda"
-                 [class.agenda-hoy]="isAgendaHoy(prospect)">
-              <mat-icon *ngIf="isAgendaHoy(prospect)" class="agenda-hoy-icon">notifications_active</mat-icon>
-              {{ prospect.fechaAgenda | date: 'dd/MM HH:mm' }}
-              <span *ngIf="isAgendaHoy(prospect)" class="agenda-hoy-label">HOY</span>
-            </div>
-          </td>
-        </ng-container>
-
-        <!-- Contactos Column -->
-        <ng-container matColumnDef="contactos">
-          <th mat-header-cell *matHeaderCellDef>Gestiones</th>
-          <td mat-cell *matCellDef="let prospect">
-            <div class="contactos-cell">
-              <span class="contactos-count">{{ prospect.totalContactos }}</span>
-              <span class="contactos-label" *ngIf="prospect.ultimoContacto">
-                {{ prospect.ultimoContacto | date: 'dd/MM HH:mm' }}
-              </span>
-            </div>
-          </td>
-        </ng-container>
-
-        <!-- Actions Column -->
-        <ng-container matColumnDef="actions">
-          <th mat-header-cell *matHeaderCellDef>Acciones</th>
-          <td mat-cell *matCellDef="let prospect">
-            <button
-              mat-flat-button
-              class="action-btn"
-              [class.action-btn-disabled]="isFinalizado(prospect)"
-              (click)="openDialog(prospect)"
-              [disabled]="isFinalizado(prospect)"
-              matTooltip="{{ isFinalizado(prospect) ? 'Prospecto finalizado' : 'Registrar contacto' }}">
-              <mat-icon>{{ isFinalizado(prospect) ? 'lock' : 'edit_note' }}</mat-icon>
-              {{ isFinalizado(prospect) ? 'Cerrado' : 'Gestionar' }}
-            </button>
-          </td>
-        </ng-container>
-
-        <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-        <tr mat-row *matRowDef="let row; columns: displayedColumns;" class="table-row"></tr>
-      </table>
-
-      <!-- Empty State Desktop -->
-      <div class="empty-state" *ngIf="prospects.length === 0">
-        <mat-icon class="empty-icon">inbox</mat-icon>
-        <h3>No hay prospectos disponibles</h3>
-        <p>Los prospectos apareceran aqui cuando sean asignados</p>
-      </div>
-    </div>
-
-    <!-- Mobile Cards View -->
-    <div class="mobile-cards-container mobile-only">
-      <div class="prospect-card" *ngFor="let prospect of prospects">
-        <div class="card-header">
-          <div class="card-header-left">
-            <div class="prospect-avatar mobile-avatar">{{ (prospect.nombre.charAt(0) || '') + (prospect.apellido.charAt(0) || '') }}</div>
-            <div class="prospect-info">
-              <h3 class="prospect-name-mobile">{{ prospect.nombre }} {{ prospect.apellido }}</h3>
-              <span class="prospect-dni">DNI: {{ prospect.documentoIdentidad }}</span>
-            </div>
-          </div>
-          <span class="estado-badge mobile-estado" [class]="getEstadoResultadoClass(prospect.estadoResultado)">
-            <mat-icon class="estado-badge-icon">{{ getEstadoResultadoIcon(prospect.estadoResultado) }}</mat-icon>
-            {{ getEstadoResultadoText(prospect.estadoResultado) }}
-          </span>
-        </div>
-
-        <div class="card-content">
-          <div class="info-row">
-            <div class="info-label-group">
-              <mat-icon class="info-row-icon">phone</mat-icon>
-              <span class="info-label">Telefono</span>
-            </div>
-            <a href="tel:{{ prospect.celular }}" class="phone-link-mobile">{{ prospect.celular }}</a>
-          </div>
-
-          <div class="info-row">
-            <div class="info-label-group">
-              <mat-icon class="info-row-icon">campaign</mat-icon>
-              <span class="info-label">Campana</span>
-            </div>
-            <span class="campaign-badge-mobile">{{ prospect.campania }}</span>
-          </div>
-
-          <div class="info-row">
-            <div class="info-label-group">
-              <mat-icon class="info-row-icon">history</mat-icon>
-              <span class="info-label">Gestiones</span>
-            </div>
-            <span>{{ prospect.totalContactos }}</span>
-          </div>
-
+      <!-- Filtros -->
+      <div class="filter-section" role="group" aria-label="Filtros de cola">
+        @for (chip of filtros; track chip.valor) {
           <button
-            mat-flat-button
-            class="action-btn mobile-action-btn"
-            [class.action-btn-disabled]="isFinalizado(prospect)"
-            (click)="openDialog(prospect)"
-            [disabled]="isFinalizado(prospect)">
-            <mat-icon>{{ isFinalizado(prospect) ? 'lock' : 'edit_note' }}</mat-icon>
-            {{ isFinalizado(prospect) ? 'Cerrado' : 'Gestionar' }}
+            class="filter-chip"
+            [class.filter-active]="filtroActivo === chip.valor"
+            [attr.aria-pressed]="filtroActivo === chip.valor"
+            (click)="onFiltroChange(chip.valor)"
+            [attr.data-filtro]="chip.valor">
+            {{ chip.etiqueta }}
+          </button>
+        }
+      </div>
+
+      <!-- Búsqueda + acciones -->
+      <div class="toolbar">
+        <mat-form-field appearance="outline" class="search-field">
+          <mat-label>Buscar por nombre, teléfono o DNI</mat-label>
+          <mat-icon matPrefix>search</mat-icon>
+          <input
+            matInput
+            type="text"
+            [ngModel]="busquedaTexto"
+            (ngModelChange)="onBusquedaChange($event)"
+            placeholder="Ej. Juan Pérez, 987654321"
+            aria-label="Buscar prospectos" />
+          @if (busquedaTexto) {
+            <button matSuffix mat-icon-button aria-label="Limpiar búsqueda"
+              (click)="onBusquedaChange('')">
+              <mat-icon>close</mat-icon>
+            </button>
+          }
+        </mat-form-field>
+
+        <div class="toolbar-actions">
+          <button mat-stroked-button class="export-btn" (click)="exportarExcel()"
+            aria-label="Exportar a Excel">
+            <mat-icon>download</mat-icon>
+            Exportar
+          </button>
+          <button mat-stroked-button class="refresh-btn"
+            (click)="cargarProspectos(); loadStats()"
+            aria-label="Actualizar lista">
+            <mat-icon>refresh</mat-icon>
+            Actualizar
           </button>
         </div>
       </div>
 
-      <!-- Empty State Mobile -->
-      <div class="empty-state" *ngIf="prospects.length === 0">
-        <mat-icon class="empty-icon">inbox</mat-icon>
-        <h3>No hay prospectos disponibles</h3>
-        <p>Los prospectos apareceran aqui cuando sean asignados</p>
-      </div>
-    </div>
+      <!-- Error -->
+      @if (errorMessage) {
+        <div class="error-banner" role="alert" data-testid="error-banner">
+          <mat-icon>error_outline</mat-icon>
+          <span>{{ errorMessage }}</span>
+        </div>
+      }
 
-    <!-- Pagination -->
-    <div class="pagination-container" *ngIf="totalResultados > 0">
-      <mat-paginator
-        [length]="totalResultados"
-        [pageSize]="tamanioPagina"
-        [pageSizeOptions]="[5, 10, 20, 50]"
-        (page)="onPageEvent($event)"
-        showFirstLastButtons
-        class="custom-paginator">
-      </mat-paginator>
-    </div>
-  </div>
-</div>
+      <!-- Spinner de carga -->
+      @if (cargandoProspectos) {
+        <div class="loading-wrapper" role="status" aria-label="Cargando prospectos">
+          <mat-spinner diameter="40"></mat-spinner>
+          <span class="loading-text">Cargando prospectos…</span>
+        </div>
+      }
+
+      <!-- Tabla + paginación -->
+      @if (!cargandoProspectos) {
+        <div class="table-section">
+          <div class="section-header">
+            <div class="section-title-group">
+              <mat-icon class="section-icon" aria-hidden="true">people</mat-icon>
+              <div>
+                <h2 class="section-title">Prospectos Asignados</h2>
+                <p class="section-subtitle">{{ totalResultados }} prospectos en total</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Tabla desktop -->
+          <div class="table-container desktop-only">
+            <table mat-table [dataSource]="dataSource" class="prospects-table"
+              aria-label="Lista de prospectos asignados">
+
+              <!-- Nombre -->
+              <ng-container matColumnDef="nombre">
+                <th mat-header-cell *matHeaderCellDef>Nombre</th>
+                <td mat-cell *matCellDef="let p">
+                  <div class="prospect-name-cell">
+                    <div class="prospect-avatar" aria-hidden="true">
+                      {{ (p.nombre?.charAt(0) || '') + (p.apellido?.charAt(0) || '') }}
+                    </div>
+                    <div class="prospect-name-info">
+                      <span class="name-primary">{{ p.nombre }} {{ p.apellido }}</span>
+                      <span class="name-secondary">{{ p.documentoIdentidad }}</span>
+                      @if (esClienteRecurrente(p)) {
+                        <span class="badge-recurrente" title="Cliente con préstamos previos">
+                          <mat-icon class="badge-icon">workspace_premium</mat-icon>
+                          Cliente recurrente
+                        </span>
+                      }
+                    </div>
+                  </div>
+                </td>
+              </ng-container>
+
+              <!-- Campaña -->
+              <ng-container matColumnDef="campania">
+                <th mat-header-cell *matHeaderCellDef>Campaña</th>
+                <td mat-cell *matCellDef="let p">
+                  <span class="campaign-badge">
+                    <span class="campaign-dot" aria-hidden="true"></span>
+                    {{ p.campania }}
+                  </span>
+                </td>
+              </ng-container>
+
+              <!-- Estado -->
+              <ng-container matColumnDef="estado">
+                <th mat-header-cell *matHeaderCellDef>Estado</th>
+                <td mat-cell *matCellDef="let p">
+                  <span class="estado-chip" [ngClass]="getEstadoClass(p.estado)">
+                    {{ getEstadoLabel(p.estado) }}
+                  </span>
+                </td>
+              </ng-container>
+
+              <!-- Estado resultado -->
+              <ng-container matColumnDef="estadoResultado">
+                <th mat-header-cell *matHeaderCellDef>Resultado</th>
+                <td mat-cell *matCellDef="let p">
+                  <span class="estado-badge" [ngClass]="getEstadoResultadoClass(p.estadoResultado)">
+                    <mat-icon class="estado-badge-icon" aria-hidden="true">
+                      {{ getEstadoResultadoIcon(p.estadoResultado) }}
+                    </mat-icon>
+                    {{ getEstadoResultadoLabel(p.estadoResultado) }}
+                  </span>
+                </td>
+              </ng-container>
+
+              <!-- Fecha agenda -->
+              <ng-container matColumnDef="fechaAgenda">
+                <th mat-header-cell *matHeaderCellDef>Agenda</th>
+                <td mat-cell *matCellDef="let p">
+                  @if (p.fechaAgenda) {
+                    <span class="fecha-agenda-cell">
+                      <mat-icon class="fecha-icon" aria-hidden="true">event</mat-icon>
+                      {{ p.fechaAgenda | date: 'dd/MM HH:mm' }}
+                    </span>
+                  } @else {
+                    <span class="text-muted">—</span>
+                  }
+                </td>
+              </ng-container>
+
+              <!-- Intentos fallidos -->
+              <ng-container matColumnDef="intentos">
+                <th mat-header-cell *matHeaderCellDef>Intentos</th>
+                <td mat-cell *matCellDef="let p">
+                  <span class="intentos-cell" [class.intentos-alto]="p.intentosFallidos >= 3">
+                    {{ p.intentosFallidos }}
+                  </span>
+                </td>
+              </ng-container>
+
+              <!-- Gestiones -->
+              <ng-container matColumnDef="contactos">
+                <th mat-header-cell *matHeaderCellDef>Gestiones</th>
+                <td mat-cell *matCellDef="let p">
+                  <div class="contactos-cell">
+                    <span class="contactos-count">{{ p.totalContactos }}</span>
+                    @if (p.ultimoContacto) {
+                      <span class="contactos-label">
+                        {{ p.ultimoContacto | date: 'dd/MM HH:mm' }}
+                      </span>
+                    }
+                  </div>
+                </td>
+              </ng-container>
+
+              <!-- Acciones -->
+              <ng-container matColumnDef="actions">
+                <th mat-header-cell *matHeaderCellDef>Acciones</th>
+                <td mat-cell *matCellDef="let p">
+                  <button
+                    mat-flat-button
+                    class="action-btn"
+                    (click)="openDialog(p)"
+                    [disabled]="esSoloLectura()"
+                    [matTooltip]="esSoloLectura() ? 'Vista de solo lectura' : 'Registrar gestión'"
+                    aria-label="Gestionar prospecto">
+                    <mat-icon>edit_note</mat-icon>
+                    Gestionar
+                  </button>
+                </td>
+              </ng-container>
+
+              <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+              <tr mat-row
+                *matRowDef="let row; columns: displayedColumns;"
+                class="table-row"
+                [ngClass]="getRowClass(row)">
+              </tr>
+            </table>
+
+            @if (prospects.length === 0) {
+              <div class="empty-state" role="status">
+                <mat-icon class="empty-icon" aria-hidden="true">inbox</mat-icon>
+                <h3>No hay prospectos disponibles</h3>
+                <p>Los prospectos aparecerán aquí cuando sean asignados o coincidan con el filtro activo.</p>
+              </div>
+            }
+          </div>
+
+          <!-- Tarjetas móvil -->
+          <div class="mobile-cards-container mobile-only" role="list">
+            @for (p of prospects; track p.asignacionId) {
+              <div class="prospect-card" [ngClass]="getRowClass(p)" role="listitem">
+                <div class="card-header">
+                  <div class="card-header-left">
+                    <div class="prospect-avatar mobile-avatar" aria-hidden="true">
+                      {{ (p.nombre.charAt(0) || '') + (p.apellido.charAt(0) || '') }}
+                    </div>
+                    <div class="prospect-info">
+                      <h3 class="prospect-name-mobile">{{ p.nombre }} {{ p.apellido }}</h3>
+                      <span class="prospect-dni">{{ p.documentoIdentidad }}</span>
+                      @if (esClienteRecurrente(p)) {
+                        <span class="badge-recurrente-mobile">
+                          <mat-icon class="badge-icon">workspace_premium</mat-icon>
+                          Cliente recurrente
+                        </span>
+                      }
+                    </div>
+                  </div>
+                  <span class="estado-badge" [ngClass]="getEstadoResultadoClass(p.estadoResultado)">
+                    <mat-icon class="estado-badge-icon" aria-hidden="true">
+                      {{ getEstadoResultadoIcon(p.estadoResultado) }}
+                    </mat-icon>
+                    {{ getEstadoResultadoLabel(p.estadoResultado) }}
+                  </span>
+                </div>
+
+                <div class="card-content">
+                  <div class="info-row">
+                    <div class="info-label-group">
+                      <mat-icon class="info-row-icon" aria-hidden="true">phone</mat-icon>
+                      <span class="info-label">Teléfono</span>
+                    </div>
+                    <span class="phone-masked">{{ p.celular }}</span>
+                  </div>
+                  <div class="info-row">
+                    <div class="info-label-group">
+                      <mat-icon class="info-row-icon" aria-hidden="true">campaign</mat-icon>
+                      <span class="info-label">Campaña</span>
+                    </div>
+                    <span class="campaign-badge-mobile">{{ p.campania }}</span>
+                  </div>
+                  <div class="info-row">
+                    <div class="info-label-group">
+                      <mat-icon class="info-row-icon" aria-hidden="true">history</mat-icon>
+                      <span class="info-label">Gestiones</span>
+                    </div>
+                    <span>{{ p.totalContactos }}</span>
+                  </div>
+
+                  <button
+                    mat-flat-button
+                    class="action-btn mobile-action-btn"
+                    (click)="openDialog(p)"
+                    [disabled]="esSoloLectura()">
+                    <mat-icon>edit_note</mat-icon>
+                    Gestionar
+                  </button>
+                </div>
+              </div>
+            }
+
+            @if (prospects.length === 0) {
+              <div class="empty-state" role="status">
+                <mat-icon class="empty-icon" aria-hidden="true">inbox</mat-icon>
+                <h3>No hay prospectos disponibles</h3>
+                <p>Los prospectos aparecerán aquí cuando sean asignados.</p>
+              </div>
+            }
+          </div>
+
+          <!-- Paginación -->
+          @if (totalResultados > 0) {
+            <div class="pagination-container">
+              <mat-paginator
+                [length]="totalResultados"
+                [pageSize]="tamanioPagina"
+                [pageSizeOptions]="[5, 10, 20, 50]"
+                [pageIndex]="paginaActual - 1"
+                (page)="onPageEvent($event)"
+                showFirstLastButtons
+                class="custom-paginator"
+                aria-label="Paginación de prospectos">
+              </mat-paginator>
+            </div>
+          }
+
+        </div><!-- /table-section -->
+      }
+    </mat-tab>
+
+    <!-- ── Pestaña 2: Mi actividad de hoy ────────────────────────────────── -->
+    <mat-tab label="Mi actividad de hoy">
+
+      @if (cargandoActividad) {
+        <div class="loading-wrapper" role="status" aria-label="Cargando actividad">
+          <mat-spinner diameter="40"></mat-spinner>
+          <span class="loading-text">Cargando actividad…</span>
+        </div>
+      }
+
+      @if (!cargandoActividad && actividad) {
+        <div class="actividad-section" data-testid="actividad-panel">
+
+          <!-- Resumen numérico -->
+          <div class="actividad-header">
+            <div class="actividad-total-card">
+              <span class="actividad-total-num">{{ actividad.totalGestiones }}</span>
+              <span class="actividad-total-label">Gestiones hoy</span>
+            </div>
+
+            <div class="actividad-resumen">
+              @for (entry of getResumenEntries(actividad.resumenPorResultado); track entry.key) {
+                <div class="resumen-chip">
+                  <mat-icon class="resumen-icon" aria-hidden="true">
+                    {{ getEstadoResultadoIcon(entry.key) }}
+                  </mat-icon>
+                  <span class="resumen-label">{{ getEstadoResultadoLabel(entry.key) }}</span>
+                  <span class="resumen-count">{{ entry.value }}</span>
+                </div>
+              }
+            </div>
+          </div>
+
+          <!-- Lista de gestiones -->
+          <div class="gestiones-lista" role="list" aria-label="Gestiones del día">
+            @for (g of actividad.gestiones; track g.contactoId) {
+              <div class="gestion-item" role="listitem" [attr.data-testid]="'gestion-' + g.contactoId">
+                <div class="gestion-header">
+                  <div class="gestion-nombre">
+                    <mat-icon class="gestion-icon" aria-hidden="true">person</mat-icon>
+                    <strong>{{ g.nombreProspecto }}</strong>
+                    <span class="gestion-celular">{{ g.celular }}</span>
+                  </div>
+                  <span class="estado-badge" [ngClass]="getEstadoResultadoClass(g.estadoResultado)">
+                    <mat-icon class="estado-badge-icon" aria-hidden="true">
+                      {{ getEstadoResultadoIcon(g.estadoResultado) }}
+                    </mat-icon>
+                    {{ getEstadoResultadoLabel(g.estadoResultado) }}
+                  </span>
+                </div>
+                @if (g.comentario) {
+                  <p class="gestion-comentario">{{ g.comentario }}</p>
+                }
+                <span class="gestion-fecha">
+                  <mat-icon class="gestion-fecha-icon" aria-hidden="true">schedule</mat-icon>
+                  {{ g.fechaContacto | date: 'dd/MM/yyyy HH:mm' }}
+                </span>
+              </div>
+            }
+
+            @if (actividad.gestiones.length === 0) {
+              <div class="empty-state" role="status">
+                <mat-icon class="empty-icon" aria-hidden="true">event_busy</mat-icon>
+                <h3>Sin gestiones hoy</h3>
+                <p>Cuando registres contactos aparecerán aquí.</p>
+              </div>
+            }
+          </div>
+
+        </div>
+      }
+
+      @if (!cargandoActividad && !actividad) {
+        <div class="actividad-placeholder">
+          <mat-icon>today</mat-icon>
+          <p>Selecciona esta pestaña para ver tu actividad del día.</p>
+        </div>
+      }
+
+    </mat-tab>
+  </mat-tab-group>
+
+</div><!-- /dashboard-container -->

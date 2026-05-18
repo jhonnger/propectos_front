@@ -1,0 +1,132 @@
+<div class="por-cerrar-container">
+  <!-- Page header -->
+  <div class="page-header">
+    <div class="header-info">
+      <h2 class="page-title">
+        <mat-icon>assignment_turned_in</mat-icon>
+        Por cerrar
+      </h2>
+      <p class="page-subtitle">Casos derivados pendientes de cierre</p>
+    </div>
+    <div class="header-stats">
+      <div class="stat-badge" data-testid="total-casos">
+        <span class="stat-number">{{ total }}</span>
+        <span class="stat-label">casos pendientes</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Loading spinner -->
+  <div *ngIf="loading" class="loading-overlay" role="status" aria-label="Cargando casos">
+    <mat-spinner diameter="48"></mat-spinner>
+    <span>Cargando casos...</span>
+  </div>
+
+  <!-- Error state -->
+  <div *ngIf="!loading && errorCarga" class="error-state" data-testid="error-carga" role="alert">
+    <mat-icon>error_outline</mat-icon>
+    <span>{{ errorCarga }}</span>
+    <button mat-button color="primary" (click)="cargar()">Reintentar</button>
+  </div>
+
+  <!-- Empty state -->
+  <div *ngIf="!loading && !errorCarga && items.length === 0" class="empty-state">
+    <mat-icon>check_circle_outline</mat-icon>
+    <p>No hay casos derivados pendientes de cierre.</p>
+  </div>
+
+  <!-- Table -->
+  <div *ngIf="!loading && !errorCarga && items.length > 0" class="table-wrapper">
+    <table
+      mat-table
+      [dataSource]="items"
+      class="por-cerrar-table"
+      aria-label="Casos por cerrar"
+    >
+      <!-- Prospecto column -->
+      <ng-container matColumnDef="prospecto">
+        <th mat-header-cell *matHeaderCellDef>Prospecto</th>
+        <td mat-cell *matCellDef="let row">
+          <div class="prospecto-cell">
+            <span class="prospecto-nombre" data-testid="prospecto-nombre">
+              {{ row.nombre }} {{ row.apellido }}
+            </span>
+            <span
+              *ngIf="esRecurrente(row)"
+              class="badge-recurrente"
+              data-testid="badge-recurrente"
+              matTooltip="Tiene {{ row.nroPrestamosConcretados }} prestamo(s) concretado(s)"
+            >
+              <mat-icon class="badge-icon">star</mat-icon>
+              Cliente recurrente
+            </span>
+          </div>
+        </td>
+      </ng-container>
+
+      <!-- Campania column -->
+      <ng-container matColumnDef="campania">
+        <th mat-header-cell *matHeaderCellDef>Campana</th>
+        <td mat-cell *matCellDef="let row">
+          <span class="campania-chip" data-testid="campania">{{ row.campania }}</span>
+        </td>
+      </ng-container>
+
+      <!-- Telefono column -->
+      <ng-container matColumnDef="telefono">
+        <th mat-header-cell *matHeaderCellDef>Telefono</th>
+        <td mat-cell *matCellDef="let row">
+          <span class="telefono" data-testid="telefono">{{ row.celular }}</span>
+        </td>
+      </ng-container>
+
+      <!-- Derivado por column -->
+      <ng-container matColumnDef="derivadoPor">
+        <th mat-header-cell *matHeaderCellDef>Derivado por</th>
+        <td mat-cell *matCellDef="let row">
+          <span class="derivado-por" data-testid="derivado-por">{{ row.derivadoPorNombre }}</span>
+        </td>
+      </ng-container>
+
+      <!-- Fecha derivacion column -->
+      <ng-container matColumnDef="fechaDerivacion">
+        <th mat-header-cell *matHeaderCellDef>Fecha derivacion</th>
+        <td mat-cell *matCellDef="let row">
+          <span class="fecha" data-testid="fecha-derivacion">
+            {{ row.fechaDerivacion | date: 'dd/MM/yyyy HH:mm' }}
+          </span>
+        </td>
+      </ng-container>
+
+      <!-- Acciones column -->
+      <ng-container matColumnDef="acciones">
+        <th mat-header-cell *matHeaderCellDef>Acciones</th>
+        <td mat-cell *matCellDef="let row">
+          <button
+            mat-flat-button
+            color="primary"
+            (click)="abrirCierre(row)"
+            aria-label="Cerrar caso"
+            data-testid="btn-cerrar-caso"
+          >
+            <mat-icon>gavel</mat-icon>
+            Cerrar caso
+          </button>
+        </td>
+      </ng-container>
+
+      <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+      <tr mat-row *matRowDef="let row; columns: displayedColumns;" class="data-row"></tr>
+    </table>
+
+    <!-- Paginator -->
+    <mat-paginator
+      [length]="total"
+      [pageSize]="tamanioPagina"
+      [pageSizeOptions]="[5, 10, 25]"
+      [pageIndex]="pagina - 1"
+      (page)="onPageChange($event)"
+      aria-label="Paginar casos por cerrar"
+    ></mat-paginator>
+  </div>
+</div>

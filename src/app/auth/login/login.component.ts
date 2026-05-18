@@ -31,7 +31,7 @@ export class LoginComponent {
 
   constructor(private fb: FormBuilder, private authService: AuthService, private router: Router) {
     this.loginForm = this.fb.group({
-      email: ['', [Validators.required]],
+      username: ['', [Validators.required]],
       password: ['', [Validators.required]]
     });
   }
@@ -40,8 +40,8 @@ export class LoginComponent {
     if (this.loginForm.valid) {
       this.isLoading = true;
       this.errorMessage = null;
-      const { email, password } = this.loginForm.value;
-      this.authService.login(email, password).subscribe({
+      const { username, password } = this.loginForm.value;
+      this.authService.login(username, password).subscribe({
         next: (rol) => {
           this.isLoading = false;
           if (rol) {

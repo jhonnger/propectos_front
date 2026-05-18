@@ -1,23 +1,70 @@
-import { Component, Inject, OnInit } from '@angular/core';
+import {
+  Component,
+  Inject,
+  OnInit,
+  OnDestroy,
+  ChangeDetectionStrategy,
+  ChangeDetectorRef,
+} from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MatDialogRef, MAT_DIALOG_DATA, MatDialogModule } from '@angular/material/dialog';
 import { MatButtonModule } from '@angular/material/button';
 import { MatInputModule } from '@angular/material/input';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
-import { MatTabsModule } from '@angular/material/tabs';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { CommonModule } from '@angular/common';
-import { ProspectoService, ContactoHistorial } from '../service/prospecto.service';
+import {
+  ProspectoService,
+  HistorialContacto,
+  ResultadoAtencion,
+  SubmotivoNoContesto,
+  QuienContesto,
+  VerificacionSbsResponse,
+} from '../service/prospecto.service';
 
-interface SubOpcion {
-  value: string;
+// ── Tipos de datos para el modal ──────────────────────────────────────────────
+
+export interface WizardDialogData {
+  prospectoId: number;
+  nombre: string;
+  apellido: string;
+  celular: string;
+  documentoIdentidad: string;
+  estadoActual: string | null;
+}
+
+/** Resultado que emite el dialog al cerrarse con éxito */
+export interface WizardDialogResult {
+  estadoNuevo: string;
+  proximaLlamada: string | null;
+}
+
+// ── Estado del wizard ─────────────────────────────────────────────────────────
+
+type PasoSbs = 'pendiente' | 'procesando' | 'apto' | 'observado';
+
+type RamaLlamada = 'contesto' | 'no_contesto';
+
+type RamaQuienContesto = 'titular' | 'tercero' | 'equivocado';
+
+interface RamaNoContestoOpcion {
   label: string;
+  resultado: ResultadoAtencion;
+  submotivo?: SubmotivoNoContesto;
   icon: string;
-  colorClass: string;
+}
+
+interface RamaContestoTitularOpcion {
+  label: string;
+  resultado: ResultadoAtencion;
+  icon: string;
+  needsAgenda: boolean;
+  isTerminal: boolean;
 }
 
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     FormsModule,
     MatDialogModule,
@@ -25,177 +72,431 @@ interface SubOpcion {
     MatInputModule,
     MatFormFieldModule,
     MatIconModule,
-    MatTabsModule,
     MatProgressSpinnerModule,
-    CommonModule
+    CommonModule,
   ],
   selector: 'app-update-prospect-dialog',
   styleUrls: ['./update-prospect-dialog.component.css'],
   templateUrl: './update-prospect-dialog.component.html',
 })
-export class UpdateProspectDialogComponent implements OnInit {
-  pasoSeleccionado: 'CONTESTO' | 'NO_CONTESTO' | null = null;
-  subOpcionSeleccionada: string | null = null;
-  comentario = '';
+export class UpdateProspectDialogComponent implements OnInit, OnDestroy {
+
+  // ── Apertura / cronómetro ─────────────────────────────────────────────────
+  aperturaId: number | null = null;
+  t0: number = Date.now();
+  cronometroDisplay = '00:00';
+  private cronTimer: ReturnType<typeof setInterval> | null = null;
+  aperturaPendiente = true; // mientras llama a /apertura
+
+  // ── Historial ─────────────────────────────────────────────────────────────
+  historial: HistorialContacto[] = [];
+  cargandoHistorial = true;
+  historialError = false;
+
+  // ── Paso 0: SBS ───────────────────────────────────────────────────────────
+  pasoSbs: PasoSbs = 'pendiente';
+  sbsFechaReevaluacion = '';
+  sbsComentario = '';
+  sbsProcesando = false;
+  sbsError: string | null = null;
+  sbsObservadoMensaje: string | null = null;
+
+  // ── Paso 1: Contestó / No contestó ───────────────────────────────────────
+  ramaLlamada: RamaLlamada | null = null;
+
+  // ── Paso 2 - Rama NO contestó ─────────────────────────────────────────────
+  readonly ramaNoContestoOpciones: RamaNoContestoOpcion[] = [
+    { label: 'No contesta',       resultado: 'NO_CONTESTO',    submotivo: 'NO_CONTESTA', icon: 'phone_missed' },
+    { label: 'Buzón de voz',      resultado: 'NO_CONTESTO',    submotivo: 'BUZON',       icon: 'voicemail'    },
+    { label: 'Ocupado',           resultado: 'NO_CONTESTO',    submotivo: 'OCUPADO',     icon: 'phone_locked' },
+    { label: 'Apagado',           resultado: 'NO_CONTESTO',    submotivo: 'APAGADO',     icon: 'phone_disabled' },
+    { label: 'Número equivocado', resultado: 'DATOS_INVALIDOS', icon: 'wrong_location'   },
+  ];
+  noContestoOpcionSeleccionada: RamaNoContestoOpcion | null = null;
+
+  // ── Paso 2 - Rama SÍ contestó: Quién ─────────────────────────────────────
+  quienContestoSeleccionado: RamaQuienContesto | null = null;
+
+  // ── Paso 3 - Titular: qué resultado ──────────────────────────────────────
+  readonly titularOpciones: RamaContestoTitularOpcion[] = [
+    { label: 'Interesado',         resultado: 'INTERESADO',       icon: 'star',          needsAgenda: false, isTerminal: false },
+    { label: 'Agendar cita',       resultado: 'AGENDADO',         icon: 'event',         needsAgenda: true,  isTerminal: false },
+    { label: 'Llamar después',     resultado: 'VOLVER_LLAMAR',    icon: 'schedule',      needsAgenda: true,  isTerminal: false },
+    { label: 'Derivar (ACEPTÓ)',   resultado: 'DERIVADO',         icon: 'forward',       needsAgenda: false, isTerminal: true  },
+    { label: 'No volver a llamar', resultado: 'NO_VOLVER_LLAMAR', icon: 'block',         needsAgenda: false, isTerminal: true  },
+  ];
+  titularOpcionSeleccionada: RamaContestoTitularOpcion | null = null;
+
+  // ── Datos comunes ─────────────────────────────────────────────────────────
   fechaAgenda = '';
   horaAgenda = '';
+  comentario = '';
 
-  historial: ContactoHistorial[] = [];
-  cargandoHistorial = true;
+  // ── Estado de envío ───────────────────────────────────────────────────────
+  enviando = false;
+  errorEnvio: string | null = null;
 
-  contestoOptions: SubOpcion[] = [
-    { value: 'AGENDADO', label: 'Agendar reunion', icon: 'event', colorClass: 'opt-agendado' },
-    { value: 'PROSPECTO', label: 'Interesado', icon: 'star', colorClass: 'opt-prospecto' },
-    { value: 'OBSERVADO', label: 'Observado', icon: 'visibility', colorClass: 'opt-observado' },
-    { value: 'CONCRETO_PRESTAMO', label: 'Concreto', icon: 'check_circle', colorClass: 'opt-concreto' },
-    { value: 'NO_VOLVER_LLAMAR', label: 'No llamar', icon: 'block', colorClass: 'opt-no-llamar' }
-  ];
+  // ── Cierre controlado ─────────────────────────────────────────────────────
+  /** true después de confirmar → no llamar cerrarApertura */
+  registroConfirmado = false;
 
-  noContestoOptions: SubOpcion[] = [
-    { value: 'CELULAR_APAGADO', label: 'Celular apagado', icon: 'phone_disabled', colorClass: 'opt-no-contesto' },
-    { value: 'VOLVER_LLAMAR', label: 'Volver a llamar', icon: 'schedule', colorClass: 'opt-agendado' },
-    { value: 'NO_EXISTE', label: 'No existe', icon: 'person_off', colorClass: 'opt-no-llamar' },
-    { value: 'FUERA_SERVICIO', label: 'Fuera de servicio', icon: 'signal_cellular_off', colorClass: 'opt-observado' }
-  ];
-
-  private estadoLabels: Record<string, string> = {
-    'NO_CONTESTO': 'No contesto',
-    'AGENDADO': 'Agendado',
-    'PROSPECTO': 'Interesado',
-    'OBSERVADO': 'Observado',
-    'CONCRETO_PRESTAMO': 'Concreto',
-    'NO_VOLVER_LLAMAR': 'No llamar'
-  };
-
-  private motivoLabels: Record<string, string> = {
-    'CELULAR_APAGADO': 'Celular apagado',
-    'VOLVER_LLAMAR': 'Volver a llamar',
-    'NO_EXISTE': 'No existe',
-    'FUERA_SERVICIO': 'Fuera de servicio'
-  };
-
-  private estadoIcons: Record<string, string> = {
-    'NO_CONTESTO': 'phone_missed',
-    'AGENDADO': 'event',
-    'PROSPECTO': 'star',
-    'OBSERVADO': 'visibility',
-    'CONCRETO_PRESTAMO': 'check_circle',
-    'NO_VOLVER_LLAMAR': 'block'
-  };
+  /** Mínimo para el date input de agenda (hoy en formato YYYY-MM-DD) */
+  readonly today = new Date().toISOString().split('T')[0];
 
   constructor(
-    public dialogRef: MatDialogRef<UpdateProspectDialogComponent>,
-    @Inject(MAT_DIALOG_DATA) public data: any,
-    private prospectoService: ProspectoService
+    public dialogRef: MatDialogRef<UpdateProspectDialogComponent, WizardDialogResult | null>,
+    @Inject(MAT_DIALOG_DATA) public data: WizardDialogData,
+    private prospectoService: ProspectoService,
+    private cdr: ChangeDetectorRef,
   ) {}
 
   ngOnInit(): void {
-    this.prospectoService.getHistorial(this.data.id).subscribe({
+    // 1. Llamar apertura
+    this.prospectoService.abrirModal(this.data.prospectoId).subscribe({
+      next: (resp) => {
+        this.aperturaId = resp.aperturaId;
+        this.t0 = new Date(resp.inicio).getTime();
+        this.aperturaPendiente = false;
+        this.iniciarCronometro();
+        this.cdr.markForCheck();
+      },
+      error: () => {
+        // Si apertura falla, igual permitir operar (best-effort)
+        this.t0 = Date.now();
+        this.aperturaPendiente = false;
+        this.iniciarCronometro();
+        this.cdr.markForCheck();
+      },
+    });
+
+    // 2. Cargar historial
+    this.prospectoService.getHistorialWizard(this.data.prospectoId).subscribe({
       next: (data) => {
         this.historial = data;
         this.cargandoHistorial = false;
+        this.cdr.markForCheck();
       },
       error: () => {
+        this.historialError = true;
         this.cargandoHistorial = false;
-      }
+        this.cdr.markForCheck();
+      },
     });
   }
 
-  getEstadoLabel(estado: string): string {
-    return this.estadoLabels[estado] || estado;
+  ngOnDestroy(): void {
+    this.detenerCronometro();
   }
 
-  getMotivoLabel(motivo: string): string {
-    return this.motivoLabels[motivo] || motivo;
+  // ── Cronómetro ────────────────────────────────────────────────────────────
+
+  private iniciarCronometro(): void {
+    this.cronTimer = setInterval(() => {
+      const secs = Math.floor((Date.now() - this.t0) / 1000);
+      const m = Math.floor(secs / 60).toString().padStart(2, '0');
+      const s = (secs % 60).toString().padStart(2, '0');
+      this.cronometroDisplay = `${m}:${s}`;
+      this.cdr.markForCheck();
+    }, 1000);
   }
 
-  getEstadoIcon(estado: string): string {
-    return this.estadoIcons[estado] || 'help_outline';
+  private detenerCronometro(): void {
+    if (this.cronTimer !== null) {
+      clearInterval(this.cronTimer);
+      this.cronTimer = null;
+    }
   }
 
-  getEstadoColorClass(estado: string): string {
-    const map: Record<string, string> = {
-      'NO_CONTESTO': 'estado-no-contesto',
-      'AGENDADO': 'estado-agendado',
-      'PROSPECTO': 'estado-prospecto',
-      'OBSERVADO': 'estado-observado',
-      'CONCRETO_PRESTAMO': 'estado-concreto',
-      'NO_VOLVER_LLAMAR': 'estado-no-llamar'
+  get duracionSegundos(): number {
+    return Math.floor((Date.now() - this.t0) / 1000);
+  }
+
+  // ── Paso 0: SBS ───────────────────────────────────────────────────────────
+
+  get sbsCompleto(): boolean {
+    return this.pasoSbs === 'apto';
+  }
+
+  registrarSbs(resultado: 'APTO' | 'OBSERVADO'): void {
+    if (this.sbsProcesando) return;
+    this.sbsProcesando = true;
+    this.sbsError = null;
+
+    const payload = {
+      prospectoId: this.data.prospectoId,
+      resultado,
+      ...(resultado === 'OBSERVADO' && this.sbsFechaReevaluacion
+        ? { fechaReevaluacion: this.sbsFechaReevaluacion }
+        : {}),
+      ...(this.sbsComentario.trim()
+        ? { comentario: this.sbsComentario.trim() }
+        : {}),
     };
-    return map[estado] || '';
+
+    this.prospectoService.verificarSbs(payload).subscribe({
+      next: (resp: VerificacionSbsResponse) => {
+        this.sbsProcesando = false;
+        if (resp.continuar) {
+          this.pasoSbs = 'apto';
+        } else {
+          this.pasoSbs = 'observado';
+          const fechaStr = (resp as { continuar: false; fechaReevaluacionSbs: string }).fechaReevaluacionSbs;
+          this.sbsObservadoMensaje =
+            `Prospecto observado. Reprogramado para ${fechaStr ?? 'fecha por defecto'}.`;
+          // Cerrar tras un breve delay para que el usuario lea el mensaje
+          setTimeout(() => {
+            this.registroConfirmado = true; // no llamar cerrarApertura
+            this.dialogRef.close(null);
+          }, 2500);
+        }
+        this.cdr.markForCheck();
+      },
+      error: (err) => {
+        this.sbsProcesando = false;
+        this.sbsError =
+          err?.error?.message ??
+          err?.error?.mensaje ??
+          'Error al verificar SBS. Intenta de nuevo.';
+        this.cdr.markForCheck();
+      },
+    });
   }
 
-  getInitials(): string {
-    if (!this.data.name) return '?';
-    return this.data.name.split(' ').map((n: string) => n.charAt(0)).join('').substring(0, 2).toUpperCase();
-  }
+  // ── Paso 1 ────────────────────────────────────────────────────────────────
 
-  selectPaso(paso: 'CONTESTO' | 'NO_CONTESTO'): void {
-    this.pasoSeleccionado = paso;
-    this.subOpcionSeleccionada = null;
+  seleccionarRama(rama: RamaLlamada): void {
+    this.ramaLlamada = rama;
+    this.quienContestoSeleccionado = null;
+    this.noContestoOpcionSeleccionada = null;
+    this.titularOpcionSeleccionada = null;
     this.fechaAgenda = '';
     this.horaAgenda = '';
+    this.errorEnvio = null;
   }
 
-  selectSubOpcion(value: string): void {
-    this.subOpcionSeleccionada = value;
-    if (value !== 'AGENDADO') {
+  // ── Paso 2 No contestó ───────────────────────────────────────────────────
+
+  seleccionarNoContestoOpcion(opcion: RamaNoContestoOpcion): void {
+    this.noContestoOpcionSeleccionada = opcion;
+    this.errorEnvio = null;
+  }
+
+  // ── Paso 2/3 Sí contestó ─────────────────────────────────────────────────
+
+  seleccionarQuienContesto(quien: RamaQuienContesto): void {
+    this.quienContestoSeleccionado = quien;
+    this.titularOpcionSeleccionada = null;
+    this.fechaAgenda = '';
+    this.horaAgenda = '';
+    this.errorEnvio = null;
+  }
+
+  seleccionarTitularOpcion(opcion: RamaContestoTitularOpcion): void {
+    this.titularOpcionSeleccionada = opcion;
+    if (!opcion.needsAgenda) {
       this.fechaAgenda = '';
       this.horaAgenda = '';
     }
+    this.errorEnvio = null;
   }
 
-  get currentOptions(): SubOpcion[] {
-    if (this.pasoSeleccionado === 'CONTESTO') return this.contestoOptions;
-    if (this.pasoSeleccionado === 'NO_CONTESTO') return this.noContestoOptions;
-    return [];
-  }
+  // ── Validación del formulario ─────────────────────────────────────────────
 
-  get estadoResultadoFinal(): string | null {
-    if (!this.subOpcionSeleccionada) return null;
-    if (this.pasoSeleccionado === 'NO_CONTESTO') return 'NO_CONTESTO';
-    return this.subOpcionSeleccionada;
-  }
+  get puedeConfirmar(): boolean {
+    if (!this.sbsCompleto) return false;
+    if (this.enviando) return false;
 
-  get motivoNoContesto(): string | undefined {
-    if (this.pasoSeleccionado === 'NO_CONTESTO' && this.subOpcionSeleccionada) {
-      return this.subOpcionSeleccionada;
-    }
-    return undefined;
-  }
-
-  get isScheduleRequired(): boolean {
-    return this.subOpcionSeleccionada === 'AGENDADO';
-  }
-
-  isTerminal(value: string): boolean {
-    return value === 'CONCRETO_PRESTAMO' || value === 'NO_VOLVER_LLAMAR';
-  }
-
-  get isFormValid(): boolean {
-    if (!this.pasoSeleccionado || !this.subOpcionSeleccionada) return false;
-    if (this.isScheduleRequired && (!this.fechaAgenda || !this.horaAgenda)) return false;
-    return true;
-  }
-
-  onCancel(): void {
-    this.dialogRef.close();
-  }
-
-  onConfirm(): void {
-    if (!this.isFormValid) return;
-
-    let fechaAgendaISO: string | undefined;
-    if (this.fechaAgenda && this.horaAgenda) {
-      fechaAgendaISO = `${this.fechaAgenda}T${this.horaAgenda}:00`;
+    if (this.ramaLlamada === 'no_contesto') {
+      return this.noContestoOpcionSeleccionada !== null;
     }
 
-    this.dialogRef.close({
-      prospectoId: this.data.id,
-      comentario: this.comentario,
-      estadoResultado: this.estadoResultadoFinal,
-      fechaAgenda: fechaAgendaISO,
-      motivoNoContesto: this.motivoNoContesto
+    if (this.ramaLlamada === 'contesto') {
+      if (this.quienContestoSeleccionado === 'equivocado') return true;
+      if (this.quienContestoSeleccionado === 'tercero') return true; // se registra VOLVER_LLAMAR o DATOS_INVALIDOS
+      if (this.quienContestoSeleccionado === 'titular') {
+        if (!this.titularOpcionSeleccionada) return false;
+        if (this.titularOpcionSeleccionada.needsAgenda) {
+          return !!(this.fechaAgenda && this.horaAgenda && this.fechaAgendaEsFutura());
+        }
+        return true;
+      }
+    }
+
+    return false;
+  }
+
+  fechaAgendaEsFutura(): boolean {
+    if (!this.fechaAgenda || !this.horaAgenda) return false;
+    const fecha = new Date(`${this.fechaAgenda}T${this.horaAgenda}`);
+    return fecha > new Date();
+  }
+
+  get agendaRequerida(): boolean {
+    if (this.ramaLlamada === 'contesto' && this.quienContestoSeleccionado === 'titular') {
+      return this.titularOpcionSeleccionada?.needsAgenda ?? false;
+    }
+    return false;
+  }
+
+  // ── Construir payload ─────────────────────────────────────────────────────
+
+  private buildPayload(): {
+    resultado: ResultadoAtencion;
+    submotivoNoContesto?: SubmotivoNoContesto;
+    quienContesto?: QuienContesto;
+    fechaAgenda?: string;
+  } | null {
+    if (this.ramaLlamada === 'no_contesto' && this.noContestoOpcionSeleccionada) {
+      return {
+        resultado: this.noContestoOpcionSeleccionada.resultado,
+        submotivoNoContesto: this.noContestoOpcionSeleccionada.submotivo,
+        quienContesto: undefined,
+        fechaAgenda: undefined,
+      };
+    }
+
+    if (this.ramaLlamada === 'contesto') {
+      // Número equivocado (quien contestó)
+      if (this.quienContestoSeleccionado === 'equivocado') {
+        return { resultado: 'DATOS_INVALIDOS', quienContesto: 'EQUIVOCADO' };
+      }
+
+      // Tercero
+      if (this.quienContestoSeleccionado === 'tercero') {
+        // Tercero siempre es VOLVER_LLAMAR en este flujo simplificado
+        const fechaISO = this.fechaAgenda && this.horaAgenda
+          ? `${this.fechaAgenda}T${this.horaAgenda}`
+          : undefined;
+        return {
+          resultado: 'VOLVER_LLAMAR',
+          quienContesto: 'TERCERO',
+          fechaAgenda: fechaISO,
+        };
+      }
+
+      // Titular
+      if (this.quienContestoSeleccionado === 'titular' && this.titularOpcionSeleccionada) {
+        const fechaISO = this.titularOpcionSeleccionada.needsAgenda
+          ? `${this.fechaAgenda}T${this.horaAgenda}`
+          : undefined;
+        return {
+          resultado: this.titularOpcionSeleccionada.resultado,
+          quienContesto: 'TITULAR',
+          fechaAgenda: fechaISO,
+        };
+      }
+    }
+
+    return null;
+  }
+
+  // ── Confirmar ─────────────────────────────────────────────────────────────
+
+  onConfirmar(): void {
+    if (!this.puedeConfirmar || !this.aperturaId) return;
+
+    const partes = this.buildPayload();
+    if (!partes) return;
+
+    this.enviando = true;
+    this.errorEnvio = null;
+    this.cdr.markForCheck();
+
+    const payload = {
+      prospectoId: this.data.prospectoId,
+      aperturaId: this.aperturaId,
+      resultado: partes.resultado,
+      submotivoNoContesto: partes.submotivoNoContesto,
+      quienContesto: partes.quienContesto,
+      fechaAgenda: partes.fechaAgenda,
+      comentario: this.comentario.trim() || undefined,
+      duracionGestionSegundos: this.duracionSegundos,
+    };
+
+    this.prospectoService.registrarAtencion(payload).subscribe({
+      next: (resp) => {
+        this.registroConfirmado = true;
+        this.detenerCronometro();
+        this.dialogRef.close({
+          estadoNuevo: resp.estado,
+          proximaLlamada: resp.proximaLlamada,
+        });
+      },
+      error: (err) => {
+        this.enviando = false;
+        this.errorEnvio =
+          err?.error?.message ??
+          err?.error?.mensaje ??
+          'Error al registrar la atención. Intenta de nuevo.';
+        this.cdr.markForCheck();
+      },
     });
+  }
+
+  // ── Cancelar / Cerrar ─────────────────────────────────────────────────────
+
+  onCerrar(): void {
+    if (!this.registroConfirmado && this.aperturaId !== null) {
+      // Best-effort: no bloquear el cierre aunque falle
+      this.prospectoService.cerrarApertura(this.aperturaId).subscribe({
+        error: () => { /* ignorar errores de cierre */ },
+      });
+    }
+    this.detenerCronometro();
+    this.dialogRef.close(null);
+  }
+
+  // ── Helpers de presentación ───────────────────────────────────────────────
+
+  getInitials(): string {
+    const n = (this.data.nombre?.charAt(0) ?? '').toUpperCase();
+    const a = (this.data.apellido?.charAt(0) ?? '').toUpperCase();
+    return `${n}${a}` || '?';
+  }
+
+  getResultadoLabel(resultado: string | null): string {
+    const map: Record<string, string> = {
+      NO_CONTESTO:     'No contestó',
+      DATOS_INVALIDOS: 'Datos inválidos',
+      INTERESADO:      'Interesado',
+      AGENDADO:        'Agendado',
+      VOLVER_LLAMAR:   'Volver a llamar',
+      DERIVADO:        'Derivado',
+      NO_VOLVER_LLAMAR:'No llamar',
+    };
+    return resultado ? (map[resultado] ?? resultado) : '-';
+  }
+
+  getResultadoIcon(resultado: string | null): string {
+    const map: Record<string, string> = {
+      NO_CONTESTO:     'phone_missed',
+      DATOS_INVALIDOS: 'wrong_location',
+      INTERESADO:      'star',
+      AGENDADO:        'event',
+      VOLVER_LLAMAR:   'schedule',
+      DERIVADO:        'forward',
+      NO_VOLVER_LLAMAR:'block',
+    };
+    return resultado ? (map[resultado] ?? 'help_outline') : 'help_outline';
+  }
+
+  getResultadoClass(resultado: string | null): string {
+    const map: Record<string, string> = {
+      NO_CONTESTO:     'hist-no-contesto',
+      DATOS_INVALIDOS: 'hist-datos-invalidos',
+      INTERESADO:      'hist-interesado',
+      AGENDADO:        'hist-agendado',
+      VOLVER_LLAMAR:   'hist-volver-llamar',
+      DERIVADO:        'hist-derivado',
+      NO_VOLVER_LLAMAR:'hist-no-llamar',
+    };
+    return resultado ? (map[resultado] ?? '') : '';
+  }
+
+  formatDuracion(secs: number | null): string {
+    if (!secs) return '-';
+    const m = Math.floor(secs / 60);
+    const s = secs % 60;
+    return m > 0 ? `${m}m ${s}s` : `${s}s`;
   }
 }

@@ -817,6 +817,314 @@ mat-spinner { display: inline-block; }
   .mobile-assign-btn, .mobile-details-btn { width: 100%; }
 }
 
+/* ── Multi-assign panel ──────────────────────────────────────────────────── */
+.assign-btn--multi {
+  font-size: 0.8rem;
+  border-radius: 8px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  transition: all 0.2s ease;
+}
+
+.assign-btn--multi:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+}
+
+.assign-btn--cancel {
+  font-size: 0.8rem;
+  border-radius: 8px;
+  color: #64748b;
+  border-color: #e2e8f0;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.multi-panel {
+  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+  border: 1px solid #c7d2fe;
+  border-radius: 10px;
+  padding: 1rem 1.25rem;
+  margin: 0.5rem 1rem 1rem 1rem;
+  animation: fadeIn 0.25s ease-out;
+}
+
+/* Saldo bar */
+.multi-saldo-bar {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+  font-size: 0.875rem;
+  flex-wrap: wrap;
+}
+
+.multi-saldo-label {
+  color: #475569;
+  font-weight: 500;
+}
+
+.multi-saldo-value {
+  font-size: 1.375rem;
+  font-weight: 700;
+  color: #0f172a;
+  min-width: 2.5ch;
+}
+
+.multi-saldo-value.multi-saldo--warn { color: #dc2626; }
+
+.multi-saldo-total {
+  font-size: 0.875rem;
+  color: #94a3b8;
+}
+
+.multi-saldo-overflow {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: #fef2f2;
+  color: #b91c1c;
+  border: 1px solid #fecaca;
+  border-radius: 6px;
+  padding: 3px 10px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  margin-left: 0.25rem;
+}
+
+.multi-saldo-overflow mat-icon {
+  font-size: 14px;
+  width: 14px;
+  height: 14px;
+}
+
+/* Row list */
+.multi-rows-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.multi-row {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 0.5rem 0.75rem;
+  transition: border-color 0.15s ease;
+}
+
+.multi-row:hover { border-color: #c7d2fe; }
+
+.multi-row-num {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #ede9fe;
+  color: #7c3aed;
+  font-size: 0.7rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.multi-select {
+  flex: 2;
+  min-width: 140px;
+}
+
+.multi-qty {
+  width: 100px;
+}
+
+.multi-select ::ng-deep .mat-mdc-form-field-subscript-wrapper,
+.multi-qty ::ng-deep .mat-mdc-form-field-subscript-wrapper { display: none; }
+
+.multi-remove-btn {
+  color: #94a3b8 !important;
+  flex-shrink: 0;
+  width: 32px !important;
+  height: 32px !important;
+}
+
+.multi-remove-btn:hover:not(:disabled) {
+  color: #ef4444 !important;
+  background: rgba(239, 68, 68, 0.08) !important;
+}
+
+/* Panel action row */
+.multi-panel-actions {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+  margin-bottom: 0.75rem;
+}
+
+.multi-add-btn {
+  font-size: 0.8rem;
+  border-radius: 8px;
+  color: #667eea;
+  border-color: #c7d2fe;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.multi-add-btn:hover:not(:disabled) { background: #ede9fe; }
+
+.multi-confirm-btn {
+  font-size: 0.8rem;
+  border-radius: 8px;
+  background: linear-gradient(135deg, #16a34a 0%, #15803d 100%) !important;
+  color: white !important;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  margin-left: auto;
+}
+
+.multi-confirm-btn:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(22, 163, 74, 0.3);
+}
+
+.multi-confirm-btn:disabled {
+  background: #e2e8f0 !important;
+  color: #94a3b8 !important;
+}
+
+/* Feedback */
+.multi-feedback {
+  border-radius: 10px;
+  border: 1px solid transparent;
+  margin-top: 0.75rem;
+  overflow: hidden;
+}
+
+.multi-feedback--error {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+  background: #fef2f2;
+  border-color: #fecaca;
+  color: #b91c1c;
+  font-size: 0.875rem;
+}
+
+.multi-feedback--error mat-icon { color: #dc2626; font-size: 18px; width: 18px; height: 18px; flex-shrink: 0; }
+
+.multi-feedback--success {
+  background: #f0fdf4;
+  border-color: #bbf7d0;
+}
+
+.multi-result-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+  background: #dcfce7;
+  font-weight: 600;
+  color: #166534;
+  font-size: 0.875rem;
+}
+
+.multi-result-header mat-icon { color: #16a34a; font-size: 18px; width: 18px; height: 18px; flex-shrink: 0; }
+
+.multi-result-close {
+  margin-left: auto;
+  color: #94a3b8 !important;
+  width: 28px !important;
+  height: 28px !important;
+}
+
+.multi-result-stats {
+  display: flex;
+  gap: 1rem;
+  padding: 0.75rem 1rem;
+  flex-wrap: wrap;
+}
+
+.multi-stat {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  min-width: 100px;
+}
+
+.multi-stat__val {
+  font-size: 1.375rem;
+  font-weight: 700;
+  color: #0f172a;
+  line-height: 1;
+}
+
+.multi-stat__lbl {
+  font-size: 0.7rem;
+  color: #64748b;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-top: 2px;
+}
+
+.multi-result-detail {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+  padding: 0 1rem 0.75rem;
+}
+
+.multi-result-row {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 0.5rem 0.75rem;
+}
+
+.multi-result-name {
+  flex: 1;
+  font-weight: 500;
+  color: #0f172a;
+  font-size: 0.875rem;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.multi-result-count {
+  font-weight: 700;
+  color: #16a34a;
+  font-size: 0.875rem;
+  flex-shrink: 0;
+}
+
+/* Mobile multi panel */
+.mobile-multi-panel {
+  padding: 0.75rem 0;
+}
+
+.multi-row-mobile {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  margin-bottom: 0.5rem;
+}
+
 /* Animations */
 @keyframes fadeIn {
   from { opacity: 0; transform: translateY(10px); }

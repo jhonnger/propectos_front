@@ -1,173 +1,501 @@
-<div class="dialog-wrapper">
-  <!-- Header -->
-  <div class="dialog-header">
-    <div class="dialog-header-left">
-      <div class="dialog-icon-wrapper">
+<div class="wizard-wrapper" role="dialog" aria-modal="true" aria-labelledby="wizard-title">
+
+  <!-- ── Header ──────────────────────────────────────────────────────────── -->
+  <div class="wizard-header">
+    <div class="wizard-header-left">
+      <div class="wizard-icon-ring" aria-hidden="true">
         <mat-icon>contact_phone</mat-icon>
       </div>
       <div>
-        <h2 class="dialog-title">Gestion de Contacto</h2>
-        <p class="dialog-subtitle">Registra o consulta gestiones del prospecto</p>
+        <h2 class="wizard-title" id="wizard-title">Atención al Prospecto</h2>
+        <p class="wizard-subtitle">Gestión guiada · Registro de contacto</p>
       </div>
     </div>
-    <button mat-icon-button class="close-btn" (click)="onCancel()">
+
+    <!-- Cronómetro -->
+    <div class="cronometro-badge" aria-label="Tiempo de gestión" title="Tiempo de gestión (informativo)">
+      <mat-icon class="crono-icon" aria-hidden="true">timer</mat-icon>
+      <span class="crono-display" data-testid="cronometro">{{ cronometroDisplay }}</span>
+    </div>
+
+    <button mat-icon-button class="close-btn" (click)="onCerrar()" aria-label="Cerrar modal">
       <mat-icon>close</mat-icon>
     </button>
   </div>
 
-  <!-- Prospect Info Card -->
-  <div class="prospect-info-card">
-    <div class="prospect-avatar">{{ getInitials() }}</div>
+  <!-- ── Info del prospecto ────────────────────────────────────────────────── -->
+  <div class="prospect-card" data-testid="prospect-info">
+    <div class="prospect-avatar" aria-hidden="true">{{ getInitials() }}</div>
     <div class="prospect-details">
-      <span class="prospect-name">{{ data.name }}</span>
-      <div class="prospect-phone">
-        <mat-icon>phone</mat-icon>
-        <span>{{ data.phone }}</span>
+      <span class="prospect-fullname">{{ data.nombre }} {{ data.apellido }}</span>
+      <div class="prospect-meta">
+        <span class="prospect-meta-item">
+          <mat-icon aria-hidden="true">badge</mat-icon>
+          {{ data.documentoIdentidad }}
+        </span>
+        <span class="prospect-meta-item">
+          <mat-icon aria-hidden="true">phone</mat-icon>
+          {{ data.celular }}
+        </span>
       </div>
     </div>
-    <span class="current-estado" *ngIf="data.estadoActual">
-      Estado actual: {{ data.estadoActual }}
-    </span>
+    @if (data.estadoActual) {
+      <span class="current-estado-tag">{{ data.estadoActual }}</span>
+    }
   </div>
 
-  <!-- Tabs -->
-  <mat-tab-group class="dialog-tabs" animationDuration="200ms">
-    <!-- Tab 1: Registrar -->
-    <mat-tab>
-      <ng-template mat-tab-label>
-        <mat-icon class="tab-icon">edit_note</mat-icon>
-        Registrar
-      </ng-template>
+  <!-- ── Scrollable body ───────────────────────────────────────────────────── -->
+  <div class="wizard-body" role="main">
 
-      <div class="dialog-body">
-        <!-- Paso 1: Contesto / No Contesto -->
-        <div class="form-section">
-          <div class="form-section-label">
-            <mat-icon>flag</mat-icon>
-            <span>Resultado de la llamada</span>
-          </div>
-          <div class="paso-buttons">
-            <button class="paso-button paso-contesto"
-              [class.paso-selected]="pasoSeleccionado === 'CONTESTO'"
-              (click)="selectPaso('CONTESTO')">
-              <mat-icon>phone_in_talk</mat-icon>
-              <span>Contesto</span>
-            </button>
-            <button class="paso-button paso-no-contesto"
-              [class.paso-selected]="pasoSeleccionado === 'NO_CONTESTO'"
-              (click)="selectPaso('NO_CONTESTO')">
-              <mat-icon>phone_missed</mat-icon>
-              <span>No Contesto</span>
-            </button>
-          </div>
-        </div>
-
-        <!-- Paso 2: Sub-opciones -->
-        <div class="form-section" *ngIf="pasoSeleccionado">
-          <div class="form-section-label">
-            <mat-icon>tune</mat-icon>
-            <span>{{ pasoSeleccionado === 'CONTESTO' ? 'Detalle del contacto' : 'Motivo de no contacto' }}</span>
-            <button class="paso-back-btn" (click)="selectPaso(pasoSeleccionado)">
-              <mat-icon>refresh</mat-icon>
-            </button>
-          </div>
-          <div class="estado-grid">
-            <button
-              *ngFor="let option of currentOptions"
-              class="estado-option"
-              [class.estado-selected]="subOpcionSeleccionada === option.value"
-              [ngClass]="subOpcionSeleccionada === option.value ? option.colorClass + '-active' : ''"
-              (click)="selectSubOpcion(option.value)">
-              <mat-icon class="estado-option-icon" [ngClass]="option.colorClass">{{ option.icon }}</mat-icon>
-              <span class="estado-option-label">{{ option.label }}</span>
-              <div class="terminal-badge" *ngIf="isTerminal(option.value)">Final</div>
-            </button>
-          </div>
-        </div>
-
-        <!-- Agenda Section -->
-        <div class="form-section agenda-section" *ngIf="subOpcionSeleccionada">
-          <div class="form-section-label">
-            <mat-icon>schedule</mat-icon>
-            <span>{{ isScheduleRequired ? 'Fecha y hora de la agenda' : 'Programar seguimiento (opcional)' }}</span>
-          </div>
-          <div class="agenda-inputs">
-            <div class="agenda-field">
-              <label class="input-label">Fecha</label>
-              <input type="date" class="native-input" [(ngModel)]="fechaAgenda">
-            </div>
-            <div class="agenda-field">
-              <label class="input-label">Hora</label>
-              <input type="time" class="native-input" [(ngModel)]="horaAgenda">
-            </div>
-          </div>
-        </div>
-
-        <!-- Comment Section -->
-        <div class="form-section" *ngIf="subOpcionSeleccionada">
-          <div class="form-section-label">
-            <mat-icon>comment</mat-icon>
-            <span>Comentario (opcional)</span>
-          </div>
-          <mat-form-field appearance="outline" class="full-width">
-            <mat-label>Escribe un comentario...</mat-label>
-            <textarea matInput [(ngModel)]="comentario" rows="3"></textarea>
-          </mat-form-field>
-        </div>
+    <!-- ── Carga inicial (apertura) ─────────────────────────────────────── -->
+    @if (aperturaPendiente) {
+      <div class="loading-full" role="status">
+        <mat-spinner diameter="36"></mat-spinner>
+        <span>Iniciando gestión…</span>
       </div>
+    }
 
-      <!-- Actions -->
-      <div class="dialog-actions">
-        <button mat-stroked-button class="cancel-btn" (click)="onCancel()">
-          Cancelar
-        </button>
-        <button mat-flat-button class="save-btn" (click)="onConfirm()" [disabled]="!isFormValid">
-          <mat-icon>save</mat-icon>
-          <span>Registrar Contacto</span>
-        </button>
-      </div>
-    </mat-tab>
+    @if (!aperturaPendiente) {
 
-    <!-- Tab 2: Historial -->
-    <mat-tab>
-      <ng-template mat-tab-label>
-        <mat-icon class="tab-icon">history</mat-icon>
-        Historial ({{ historial.length }})
-      </ng-template>
-
-      <div class="historial-container">
-        <!-- Loading -->
-        <div class="historial-loading" *ngIf="cargandoHistorial">
-          <mat-spinner diameter="32"></mat-spinner>
-          <span>Cargando historial...</span>
+      <!-- ── Historial ────────────────────────────────────────────────────── -->
+      <section class="historial-section" aria-labelledby="historial-heading">
+        <div class="section-heading" id="historial-heading">
+          <mat-icon aria-hidden="true">history</mat-icon>
+          <span>Historial de contactos</span>
+          @if (!cargandoHistorial) {
+            <span class="hist-count-badge">{{ historial.length }}</span>
+          }
         </div>
 
-        <!-- Empty -->
-        <div class="historial-empty" *ngIf="!cargandoHistorial && historial.length === 0">
-          <mat-icon>inbox</mat-icon>
-          <span>Sin gestiones previas</span>
-          <p>Este prospecto aun no tiene contactos registrados.</p>
-        </div>
+        @if (cargandoHistorial) {
+          <div class="hist-loading" role="status">
+            <mat-spinner diameter="20"></mat-spinner>
+            <span>Cargando historial…</span>
+          </div>
+        }
 
-        <!-- Timeline -->
-        <div class="historial-list" *ngIf="!cargandoHistorial && historial.length > 0">
-          <div class="historial-item" *ngFor="let contacto of historial" [ngClass]="getEstadoColorClass(contacto.estadoResultado)">
-            <div class="historial-item-header">
-              <div class="historial-estado-badge-row">
-                <div class="historial-estado-badge" [ngClass]="getEstadoColorClass(contacto.estadoResultado)">
-                  <mat-icon>{{ getEstadoIcon(contacto.estadoResultado) }}</mat-icon>
-                  <span>{{ getEstadoLabel(contacto.estadoResultado) }}</span>
+        @if (!cargandoHistorial && historialError) {
+          <p class="hist-error">No se pudo cargar el historial.</p>
+        }
+
+        @if (!cargandoHistorial && !historialError && historial.length === 0) {
+          <div class="hist-empty" role="status">
+            <mat-icon aria-hidden="true">inbox</mat-icon>
+            <span>Sin contactos previos</span>
+          </div>
+        }
+
+        @if (!cargandoHistorial && historial.length > 0) {
+          <div class="hist-timeline" role="list" aria-label="Historial de contactos">
+            @for (item of historial; track item.fechaContacto) {
+              <div class="hist-item" role="listitem" [ngClass]="getResultadoClass(item.resultado)">
+                <div class="hist-item-dot" aria-hidden="true"></div>
+                <div class="hist-item-body">
+                  <div class="hist-item-header">
+                    <span class="hist-badge" [ngClass]="getResultadoClass(item.resultado)">
+                      <mat-icon aria-hidden="true">{{ getResultadoIcon(item.resultado) }}</mat-icon>
+                      {{ getResultadoLabel(item.resultado) }}
+                    </span>
+                    @if (item.submotivoNoContesto) {
+                      <span class="hist-submotivo">{{ item.submotivoNoContesto }}</span>
+                    }
+                    @if (item.quienContesto) {
+                      <span class="hist-submotivo">{{ item.quienContesto }}</span>
+                    }
+                    <span class="hist-fecha">{{ item.fechaContacto | date:'dd/MM/yy HH:mm' }}</span>
+                  </div>
+                  @if (item.comentario) {
+                    <p class="hist-comentario">{{ item.comentario }}</p>
+                  }
+                  @if (item.duracionGestion) {
+                    <span class="hist-duracion">
+                      <mat-icon aria-hidden="true">timer</mat-icon>
+                      {{ formatDuracion(item.duracionGestion) }}
+                    </span>
+                  }
                 </div>
-                <span class="motivo-tag" *ngIf="contacto.motivoNoContesto">
-                  {{ getMotivoLabel(contacto.motivoNoContesto) }}
-                </span>
               </div>
-              <span class="historial-fecha">{{ contacto.fechaContacto | date:'dd/MM/yyyy HH:mm' }}</span>
-            </div>
-            <p class="historial-comentario" *ngIf="contacto.comentario">{{ contacto.comentario }}</p>
+            }
           </div>
+        }
+      </section>
+
+      <!-- ── Paso 0: Verificación SBS (BLOQUEANTE) ────────────────────────── -->
+      <section class="sbs-section" aria-labelledby="sbs-heading" data-testid="sbs-section">
+        <div class="section-heading" id="sbs-heading">
+          <mat-icon aria-hidden="true">verified_user</mat-icon>
+          <span>Paso 0 — Verificación SBS</span>
+          @if (sbsCompleto) {
+            <span class="sbs-apto-badge" data-testid="sbs-apto-badge">
+              <mat-icon aria-hidden="true">check_circle</mat-icon>
+              APTO
+            </span>
+          }
         </div>
-      </div>
-    </mat-tab>
-  </mat-tab-group>
-</div>
+
+        <!-- DNI visible -->
+        <div class="sbs-dni-row">
+          <mat-icon aria-hidden="true">badge</mat-icon>
+          <span class="sbs-dni-label">DNI/Doc:</span>
+          <strong data-testid="sbs-dni">{{ data.documentoIdentidad }}</strong>
+        </div>
+
+        <!-- Estado: pendiente o procesando -->
+        @if (pasoSbs === 'pendiente' || pasoSbs === 'procesando') {
+
+          <!-- Error SBS -->
+          @if (sbsError) {
+            <div class="sbs-error" role="alert" data-testid="sbs-error">
+              <mat-icon aria-hidden="true">error_outline</mat-icon>
+              {{ sbsError }}
+            </div>
+          }
+
+          <!-- Botones APTO / OBSERVADO -->
+          <div class="sbs-buttons" role="group" aria-label="Resultado verificación SBS">
+            <button
+              class="sbs-btn sbs-btn-apto"
+              [class.sbs-btn-loading]="sbsProcesando"
+              [disabled]="sbsProcesando"
+              (click)="registrarSbs('APTO')"
+              data-testid="btn-sbs-apto"
+              aria-label="Marcar como APTO en SBS">
+              @if (sbsProcesando) {
+                <mat-spinner diameter="16" class="sbs-spinner"></mat-spinner>
+              } @else {
+                <mat-icon aria-hidden="true">check_circle</mat-icon>
+              }
+              APTO
+            </button>
+
+            <button
+              class="sbs-btn sbs-btn-observado"
+              [class.sbs-btn-loading]="sbsProcesando"
+              [disabled]="sbsProcesando"
+              (click)="registrarSbs('OBSERVADO')"
+              data-testid="btn-sbs-observado"
+              aria-label="Marcar como OBSERVADO en SBS">
+              @if (sbsProcesando) {
+                <mat-spinner diameter="16" class="sbs-spinner"></mat-spinner>
+              } @else {
+                <mat-icon aria-hidden="true">warning</mat-icon>
+              }
+              OBSERVADO
+            </button>
+          </div>
+
+          <!-- Campos opcionales para OBSERVADO (siempre visibles por si el agente quiere pre-rellenar) -->
+          <details class="sbs-observado-extra">
+            <summary class="sbs-extra-toggle">Datos adicionales para OBSERVADO (opcional)</summary>
+            <div class="sbs-extra-fields">
+              <div class="form-field-group">
+                <label class="field-label" for="sbs-fecha-reeval">Fecha de re-evaluación</label>
+                <input
+                  id="sbs-fecha-reeval"
+                  type="date"
+                  class="native-input"
+                  [(ngModel)]="sbsFechaReevaluacion"
+                  aria-label="Fecha de re-evaluación SBS" />
+              </div>
+              <div class="form-field-group">
+                <label class="field-label" for="sbs-comentario">Comentario SBS</label>
+                <textarea
+                  id="sbs-comentario"
+                  class="native-textarea"
+                  rows="2"
+                  [(ngModel)]="sbsComentario"
+                  placeholder="Motivo de observación…"
+                  aria-label="Comentario verificación SBS"></textarea>
+              </div>
+            </div>
+          </details>
+        }
+
+        <!-- Estado: observado → mensaje y cierre automático -->
+        @if (pasoSbs === 'observado') {
+          <div class="sbs-observado-msg" role="alert" data-testid="sbs-observado-msg">
+            <mat-icon aria-hidden="true">event_busy</mat-icon>
+            <span>{{ sbsObservadoMensaje }}</span>
+          </div>
+        }
+
+        <!-- Estado: apto → check verde -->
+        @if (sbsCompleto) {
+          <div class="sbs-apto-confirm" role="status" data-testid="sbs-apto-confirm">
+            <mat-icon aria-hidden="true">verified</mat-icon>
+            Verificación SBS completada — Prospecto APTO
+          </div>
+        }
+      </section>
+
+      <!-- ── Wizard de llamada (solo si SBS=APTO) ──────────────────────────── -->
+      <div
+        class="wizard-llamada"
+        [class.wizard-disabled]="!sbsCompleto"
+        [attr.aria-disabled]="!sbsCompleto"
+        data-testid="wizard-llamada">
+
+        @if (!sbsCompleto) {
+          <div class="wizard-locked-overlay" role="status" aria-live="polite">
+            <mat-icon aria-hidden="true">lock</mat-icon>
+            <span>Completa la verificación SBS para continuar</span>
+          </div>
+        }
+
+        <!-- ── Paso 1: ¿Contestó? ──────────────────────────────────────────── -->
+        <section class="wizard-step" aria-labelledby="paso1-heading" data-testid="paso1">
+          <div class="step-heading" id="paso1-heading">
+            <span class="step-num" aria-hidden="true">1</span>
+            <span>¿Contestaron la llamada?</span>
+          </div>
+          <div class="paso1-buttons" role="group" aria-label="¿Contestó la llamada?">
+            <button
+              class="rama-btn rama-si"
+              [class.rama-selected]="ramaLlamada === 'contesto'"
+              (click)="seleccionarRama('contesto')"
+              [disabled]="!sbsCompleto"
+              data-testid="btn-contesto"
+              [attr.aria-pressed]="ramaLlamada === 'contesto'">
+              <mat-icon aria-hidden="true">phone_in_talk</mat-icon>
+              Sí, contestó
+            </button>
+            <button
+              class="rama-btn rama-no"
+              [class.rama-selected]="ramaLlamada === 'no_contesto'"
+              (click)="seleccionarRama('no_contesto')"
+              [disabled]="!sbsCompleto"
+              data-testid="btn-no-contesto"
+              [attr.aria-pressed]="ramaLlamada === 'no_contesto'">
+              <mat-icon aria-hidden="true">phone_missed</mat-icon>
+              No contestó
+            </button>
+          </div>
+        </section>
+
+        <!-- ── Rama NO contestó ────────────────────────────────────────────── -->
+        @if (ramaLlamada === 'no_contesto') {
+          <section class="wizard-step fade-in" aria-labelledby="paso2no-heading" data-testid="paso2-no">
+            <div class="step-heading" id="paso2no-heading">
+              <span class="step-num" aria-hidden="true">2</span>
+              <span>¿Qué ocurrió?</span>
+            </div>
+            <div class="opcion-grid" role="group" aria-label="Motivo de no contestación">
+              @for (op of ramaNoContestoOpciones; track op.label) {
+                <button
+                  class="opcion-tile"
+                  [class.opcion-selected]="noContestoOpcionSeleccionada === op"
+                  [class.opcion-tile-danger]="op.resultado === 'DATOS_INVALIDOS'"
+                  (click)="seleccionarNoContestoOpcion(op)"
+                  [attr.data-testid]="'no-contesto-op-' + (op.submotivo ?? 'datos-invalidos')"
+                  [attr.aria-pressed]="noContestoOpcionSeleccionada === op">
+                  <mat-icon aria-hidden="true">{{ op.icon }}</mat-icon>
+                  <span>{{ op.label }}</span>
+                </button>
+              }
+            </div>
+          </section>
+        }
+
+        <!-- ── Rama SÍ contestó: Quién ─────────────────────────────────────── -->
+        @if (ramaLlamada === 'contesto') {
+          <section class="wizard-step fade-in" aria-labelledby="paso2si-heading" data-testid="paso2-si">
+            <div class="step-heading" id="paso2si-heading">
+              <span class="step-num" aria-hidden="true">2</span>
+              <span>¿Quién contestó?</span>
+            </div>
+            <div class="quien-grid" role="group" aria-label="¿Quién contestó?">
+              <button
+                class="quien-btn quien-titular"
+                [class.quien-selected]="quienContestoSeleccionado === 'titular'"
+                (click)="seleccionarQuienContesto('titular')"
+                data-testid="btn-quien-titular"
+                [attr.aria-pressed]="quienContestoSeleccionado === 'titular'">
+                <mat-icon aria-hidden="true">person</mat-icon>
+                El titular
+              </button>
+              <button
+                class="quien-btn quien-tercero"
+                [class.quien-selected]="quienContestoSeleccionado === 'tercero'"
+                (click)="seleccionarQuienContesto('tercero')"
+                data-testid="btn-quien-tercero"
+                [attr.aria-pressed]="quienContestoSeleccionado === 'tercero'">
+                <mat-icon aria-hidden="true">group</mat-icon>
+                Familiar / Tercero
+              </button>
+              <button
+                class="quien-btn quien-equivocado"
+                [class.quien-selected]="quienContestoSeleccionado === 'equivocado'"
+                (click)="seleccionarQuienContesto('equivocado')"
+                data-testid="btn-quien-equivocado"
+                [attr.aria-pressed]="quienContestoSeleccionado === 'equivocado'">
+                <mat-icon aria-hidden="true">wrong_location</mat-icon>
+                Número equivocado
+              </button>
+            </div>
+          </section>
+        }
+
+        <!-- ── Tercero: opciones ────────────────────────────────────────────── -->
+        @if (ramaLlamada === 'contesto' && quienContestoSeleccionado === 'tercero') {
+          <section class="wizard-step fade-in" aria-labelledby="paso3tercero-heading" data-testid="paso3-tercero">
+            <div class="step-heading" id="paso3tercero-heading">
+              <span class="step-num" aria-hidden="true">3</span>
+              <span>Resultado con tercero</span>
+            </div>
+            <p class="tercero-info">
+              Se registrará como <strong>Volver a llamar</strong> con referencia "TERCERO". Puedes agregar fecha y comentario.
+            </p>
+            <div class="agenda-row">
+              <div class="form-field-group">
+                <label class="field-label" for="ag-fecha-tercero">
+                  Fecha de llamada
+                  <span class="field-optional">(opcional)</span>
+                </label>
+                <input id="ag-fecha-tercero" type="date" class="native-input" [(ngModel)]="fechaAgenda" />
+              </div>
+              <div class="form-field-group">
+                <label class="field-label" for="ag-hora-tercero">
+                  Hora
+                  <span class="field-optional">(opcional)</span>
+                </label>
+                <input id="ag-hora-tercero" type="time" class="native-input" [(ngModel)]="horaAgenda" />
+              </div>
+            </div>
+          </section>
+        }
+
+        <!-- ── Equivocado: confirmación rápida ─────────────────────────────── -->
+        @if (ramaLlamada === 'contesto' && quienContestoSeleccionado === 'equivocado') {
+          <section class="wizard-step fade-in" data-testid="paso3-equivocado">
+            <div class="equivocado-info" role="status">
+              <mat-icon aria-hidden="true">wrong_location</mat-icon>
+              <span>Se registrará como <strong>Datos inválidos</strong>. Confirma abajo.</span>
+            </div>
+          </section>
+        }
+
+        <!-- ── Titular: resultado ──────────────────────────────────────────── -->
+        @if (ramaLlamada === 'contesto' && quienContestoSeleccionado === 'titular') {
+          <section class="wizard-step fade-in" aria-labelledby="paso3titular-heading" data-testid="paso3-titular">
+            <div class="step-heading" id="paso3titular-heading">
+              <span class="step-num" aria-hidden="true">3</span>
+              <span>Resultado de la conversación</span>
+            </div>
+            <div class="opcion-grid opcion-grid-wide" role="group" aria-label="Resultado de la conversación con el titular">
+              @for (op of titularOpciones; track op.label) {
+                <button
+                  class="opcion-tile"
+                  [class.opcion-selected]="titularOpcionSeleccionada === op"
+                  [class.opcion-tile-terminal]="op.isTerminal"
+                  (click)="seleccionarTitularOpcion(op)"
+                  [attr.data-testid]="'titular-op-' + op.resultado"
+                  [attr.aria-pressed]="titularOpcionSeleccionada === op">
+                  <mat-icon aria-hidden="true">{{ op.icon }}</mat-icon>
+                  <span>{{ op.label }}</span>
+                  @if (op.isTerminal) {
+                    <span class="terminal-tag" aria-label="Acción final">Final</span>
+                  }
+                </button>
+              }
+            </div>
+
+            <!-- Fecha agenda (obligatoria si AGENDADO / VOLVER_LLAMAR) -->
+            @if (titularOpcionSeleccionada?.needsAgenda) {
+              <div class="agenda-row fade-in" data-testid="agenda-section">
+                <div class="form-field-group">
+                  <label class="field-label" for="ag-fecha">
+                    Fecha de cita
+                    <span class="field-required">*</span>
+                  </label>
+                  <input
+                    id="ag-fecha"
+                    type="date"
+                    class="native-input"
+                    [(ngModel)]="fechaAgenda"
+                    [min]="today"
+                    required
+                    data-testid="input-fecha-agenda"
+                    aria-required="true" />
+                </div>
+                <div class="form-field-group">
+                  <label class="field-label" for="ag-hora">
+                    Hora
+                    <span class="field-required">*</span>
+                  </label>
+                  <input
+                    id="ag-hora"
+                    type="time"
+                    class="native-input"
+                    [(ngModel)]="horaAgenda"
+                    required
+                    data-testid="input-hora-agenda"
+                    aria-required="true" />
+                </div>
+              </div>
+
+              @if (fechaAgenda && horaAgenda && !fechaAgendaEsFutura()) {
+                <p class="field-error" role="alert" data-testid="error-fecha-pasada">
+                  <mat-icon aria-hidden="true">error</mat-icon>
+                  La fecha y hora deben ser futuras.
+                </p>
+              }
+            }
+          </section>
+        }
+
+        <!-- ── Comentario libre ────────────────────────────────────────────── -->
+        @if (ramaLlamada) {
+          <section class="wizard-step fade-in" aria-labelledby="comentario-heading">
+            <div class="step-heading" id="comentario-heading">
+              <span class="step-num" aria-hidden="true">
+                <mat-icon aria-hidden="true" style="font-size:14px;line-height:1">chat</mat-icon>
+              </span>
+              <span>Comentario <span class="field-optional">(opcional)</span></span>
+            </div>
+            <textarea
+              class="native-textarea"
+              rows="2"
+              [(ngModel)]="comentario"
+              placeholder="Observaciones libres sobre la gestión…"
+              aria-label="Comentario de la gestión"
+              data-testid="textarea-comentario"></textarea>
+          </section>
+        }
+
+        <!-- ── Error de envío ──────────────────────────────────────────────── -->
+        @if (errorEnvio) {
+          <div class="error-banner" role="alert" data-testid="error-envio">
+            <mat-icon aria-hidden="true">error_outline</mat-icon>
+            <span>{{ errorEnvio }}</span>
+          </div>
+        }
+
+      </div><!-- /wizard-llamada -->
+
+    }<!-- /!aperturaPendiente -->
+
+  </div><!-- /wizard-body -->
+
+  <!-- ── Footer de acciones ────────────────────────────────────────────────── -->
+  <div class="wizard-footer">
+    <button mat-stroked-button class="btn-cancelar" (click)="onCerrar()" aria-label="Cancelar y cerrar modal">
+      Cancelar
+    </button>
+    <button
+      mat-flat-button
+      class="btn-confirmar"
+      (click)="onConfirmar()"
+      [disabled]="!puedeConfirmar"
+      data-testid="btn-confirmar"
+      aria-label="Confirmar registro de atención">
+      @if (enviando) {
+        <mat-spinner diameter="16" class="confirm-spinner"></mat-spinner>
+        Registrando…
+      } @else {
+        <mat-icon aria-hidden="true">save</mat-icon>
+        Registrar atención
+      }
+    </button>
+  </div>
+
+</div><!-- /wizard-wrapper -->

@@ -186,9 +186,22 @@
   white-space: nowrap;
 }
 
-.badge-gray { background: #f1f5f9; color: #64748b; }
-.badge-blue { background: rgba(59,130,246,0.1); color: #2563eb; }
-.badge-green { background: rgba(16,185,129,0.1); color: #059669; }
+.badge-gray   { background: #f1f5f9;                           color: #64748b; }
+.badge-blue   { background: rgba(59, 130, 246, 0.1);           color: #2563eb; }
+.badge-green  { background: rgba(16, 185, 129, 0.1);           color: #059669; }
+.badge-purple { background: rgba(124, 58, 237, 0.1);           color: #7c3aed; }
+.badge-gold   { background: rgba(245, 158, 11, 0.12);          color: #b45309; }
+
+.dialog-error {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  padding: 0.875rem 1.25rem;
+  background: rgba(239, 68, 68, 0.06);
+  border-top: 1px solid rgba(239, 68, 68, 0.15);
+  color: #dc2626;
+  font-size: 0.875rem;
+}
 
 /* Resultado Badge */
 .resultado-badge {
