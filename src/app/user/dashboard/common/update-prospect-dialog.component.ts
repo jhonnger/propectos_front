@@ -151,11 +151,15 @@ export class UpdateProspectDialogComponent implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit(): void {
+    // El cronómetro mide tiempo transcurrido desde que se abre el modal (D1).
+    // Es solo UX: se usa el reloj LOCAL del navegador. No derivar de
+    // resp.inicio (LocalDateTime sin zona del server en UTC → desfase). El
+    // backend recalcula la duración autoritativa desde AperturaEvento.
+    this.t0 = Date.now();
     // 1. Llamar apertura
     this.prospectoService.abrirModal(this.data.prospectoId).subscribe({
       next: (resp) => {
         this.aperturaId = resp.aperturaId;
-        this.t0 = new Date(resp.inicio).getTime();
         this.aperturaPendiente = false;
         this.iniciarCronometro();
         this.cdr.markForCheck();
