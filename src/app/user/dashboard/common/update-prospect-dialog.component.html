@@ -439,6 +439,12 @@
                   La fecha y hora deben ser futuras.
                 </p>
               }
+              @if (fechaAgenda && fechaAgendaEsDomingo()) {
+                <p class="field-error" role="alert" data-testid="error-fecha-domingo">
+                  <mat-icon aria-hidden="true">event_busy</mat-icon>
+                  Los domingos no son días laborables. Elige otro día.
+                </p>
+              }
             }
           </section>
         }

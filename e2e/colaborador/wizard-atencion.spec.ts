@@ -306,7 +306,136 @@ test.describe('Wizard de atención — Slice 1.3 (RF-04/13/14/15)', () => {
     await expect(page.locator('[data-testid="sbs-section"]')).toBeVisible();
   });
 
-  // ── Caso 6: Cerrar modal sin registrar llama a cerrar-apertura ──────────────
+  // ── Caso 6: Backend 400 "fecha agenda debe ser futura" → mensaje visible, wizard abierto ──
+
+  test('backend 400 fecha-agenda-debe-ser-futura: muestra el mensaje exacto del backend y mantiene el wizard abierto con el formulario editable', async ({ page }) => {
+    const MSG_FUTURA = 'La fecha de agenda debe ser futura (posterior a la fecha y hora actual).';
+
+    await setupWizardMocks(
+      page,
+      { resultado: 'APTO' },
+      { fail: true, failMessage: MSG_FUTURA },
+    );
+    await abrirWizard(page);
+
+    // SBS APTO
+    await page.locator('[data-testid="btn-sbs-apto"]').click();
+    await expect(page.locator('[data-testid="sbs-apto-badge"]')).toBeVisible({ timeout: 5000 });
+
+    // Rama SÍ → titular → AGENDADO
+    await page.locator('[data-testid="btn-contesto"]').click();
+    await page.locator('[data-testid="btn-quien-titular"]').click();
+    await page.locator('[data-testid="titular-op-AGENDADO"]').click();
+
+    // Ingresar fecha futura y hora (el mock rechazará igualmente)
+    const inputFecha = page.locator('[data-testid="input-fecha-agenda"]');
+    const inputHora = page.locator('[data-testid="input-hora-agenda"]');
+    await expect(inputFecha).toBeVisible({ timeout: 3000 });
+    await inputFecha.fill('2026-12-25');
+    await inputHora.fill('14:00');
+
+    // Confirmar habilitado → click
+    const btnConfirmar = page.locator('[data-testid="btn-confirmar"]');
+    await expect(btnConfirmar).toBeEnabled({ timeout: 3000 });
+    await btnConfirmar.click();
+
+    // El error-banner muestra el mensaje EXACTO del backend
+    const errorBanner = page.locator('[data-testid="error-envio"]');
+    await expect(errorBanner).toBeVisible({ timeout: 5000 });
+    await expect(errorBanner).toContainText(MSG_FUTURA);
+
+    // El wizard permanece abierto (SBS section visible)
+    await expect(page.locator('[data-testid="sbs-section"]')).toBeVisible();
+
+    // El formulario sigue editable (la fecha se puede modificar)
+    await expect(inputFecha).toBeVisible();
+    await expect(inputFecha).toBeEnabled();
+
+    // El botón confirmar se re-habilita (enviando=false) y el form no se pierde
+    await expect(btnConfirmar).toBeEnabled({ timeout: 3000 });
+
+    await page.screenshot({
+      path: 'test-results/screenshots/wizard-agenda-400-futura.png',
+      fullPage: false,
+    });
+  });
+
+  // ── Caso 7: Seleccionar domingo deshabilita el botón confirmar ───────────────
+
+  test('seleccionar un domingo en la fecha de agenda deshabilita el botón confirmar y muestra aviso', async ({ page }) => {
+    await setupWizardMocks(page, { resultado: 'APTO' }, { estado: 'AGENDADO' });
+    await abrirWizard(page);
+
+    // SBS APTO
+    await page.locator('[data-testid="btn-sbs-apto"]').click();
+    await expect(page.locator('[data-testid="sbs-apto-badge"]')).toBeVisible({ timeout: 5000 });
+
+    // Rama SÍ → titular → AGENDADO
+    await page.locator('[data-testid="btn-contesto"]').click();
+    await page.locator('[data-testid="btn-quien-titular"]').click();
+    await page.locator('[data-testid="titular-op-AGENDADO"]').click();
+
+    const inputFecha = page.locator('[data-testid="input-fecha-agenda"]');
+    const inputHora = page.locator('[data-testid="input-hora-agenda"]');
+    await expect(inputFecha).toBeVisible({ timeout: 3000 });
+
+    // 2026-12-27 es domingo (verificado: getDay()===0)
+    await inputFecha.fill('2026-12-27');
+    await inputHora.fill('10:00');
+
+    // El aviso de domingo debe aparecer
+    const errDomingo = page.locator('[data-testid="error-fecha-domingo"]');
+    await expect(errDomingo).toBeVisible({ timeout: 3000 });
+    await expect(errDomingo).toContainText('domingo');
+
+    // El botón confirmar debe estar deshabilitado (domingo no laborable)
+    const btnConfirmar = page.locator('[data-testid="btn-confirmar"]');
+    await expect(btnConfirmar).toBeDisabled();
+
+    await page.screenshot({
+      path: 'test-results/screenshots/wizard-agenda-domingo.png',
+      fullPage: false,
+    });
+  });
+
+  // ── Caso 8: Campo fecha con min=hoy — el picker no ofrece fechas pasadas ────
+
+  test('el campo fecha-agenda tiene el atributo min=hoy para evitar selección de fechas pasadas', async ({ page }) => {
+    await setupWizardMocks(page, { resultado: 'APTO' }, { estado: 'AGENDADO' });
+    await abrirWizard(page);
+
+    // SBS APTO → rama SÍ → titular → AGENDADO
+    await page.locator('[data-testid="btn-sbs-apto"]').click();
+    await expect(page.locator('[data-testid="sbs-apto-badge"]')).toBeVisible({ timeout: 5000 });
+    await page.locator('[data-testid="btn-contesto"]').click();
+    await page.locator('[data-testid="btn-quien-titular"]').click();
+    await page.locator('[data-testid="titular-op-AGENDADO"]').click();
+
+    const inputFecha = page.locator('[data-testid="input-fecha-agenda"]');
+    await expect(inputFecha).toBeVisible({ timeout: 3000 });
+
+    // Verificar que el atributo min está presente y apunta a hoy o antes de hoy
+    const minValue = await inputFecha.getAttribute('min');
+    expect(minValue).toBeTruthy();
+    // El min debe ser una fecha en formato YYYY-MM-DD (hoy)
+    expect(minValue).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+
+    // Intentar ingresar una fecha pasada → confirmar debe permanecer deshabilitado
+    // (el browser enforcement del min puede variar; probamos con la lógica de validación)
+    const inputHora = page.locator('[data-testid="input-hora-agenda"]');
+    await inputFecha.fill('2020-01-01');
+    await inputHora.fill('09:00');
+
+    const btnConfirmar = page.locator('[data-testid="btn-confirmar"]');
+    await expect(btnConfirmar).toBeDisabled();
+
+    // El mensaje de fecha pasada debe aparecer
+    const errPasada = page.locator('[data-testid="error-fecha-pasada"]');
+    await expect(errPasada).toBeVisible({ timeout: 3000 });
+    await expect(errPasada).toContainText('futuras');
+  });
+
+  // ── Caso 9: Cerrar modal sin registrar llama a cerrar-apertura ──────────────
 
   test('cerrar modal sin registrar llama a /api/contactos/apertura/{id}/cerrar', async ({ page }) => {
     const cerrarRequests: string[] = [];

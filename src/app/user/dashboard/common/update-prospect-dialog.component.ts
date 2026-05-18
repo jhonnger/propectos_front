@@ -316,7 +316,12 @@ export class UpdateProspectDialogComponent implements OnInit, OnDestroy {
       if (this.quienContestoSeleccionado === 'titular') {
         if (!this.titularOpcionSeleccionada) return false;
         if (this.titularOpcionSeleccionada.needsAgenda) {
-          return !!(this.fechaAgenda && this.horaAgenda && this.fechaAgendaEsFutura());
+          return !!(
+            this.fechaAgenda &&
+            this.horaAgenda &&
+            this.fechaAgendaEsFutura() &&
+            !this.fechaAgendaEsDomingo()
+          );
         }
         return true;
       }
@@ -329,6 +334,15 @@ export class UpdateProspectDialogComponent implements OnInit, OnDestroy {
     if (!this.fechaAgenda || !this.horaAgenda) return false;
     const fecha = new Date(`${this.fechaAgenda}T${this.horaAgenda}`);
     return fecha > new Date();
+  }
+
+  /** Devuelve true si la fecha seleccionada cae en domingo (getDay() === 0). */
+  fechaAgendaEsDomingo(): boolean {
+    if (!this.fechaAgenda) return false;
+    // Parsear como fecha local (YYYY-MM-DD) sin conversión de zona horaria
+    const [year, month, day] = this.fechaAgenda.split('-').map(Number);
+    const fecha = new Date(year, month - 1, day);
+    return fecha.getDay() === 0;
   }
 
   get agendaRequerida(): boolean {
