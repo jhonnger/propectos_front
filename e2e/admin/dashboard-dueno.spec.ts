@@ -7,6 +7,7 @@ import {
   seedSession,
   MOCK_DASHBOARD_DATA,
   MOCK_DRILLDOWN_RESULTADOS,
+  AsistenciaDiaMock,
 } from '../support/mocks';
 
 /**
@@ -209,6 +210,122 @@ test.describe('Dashboard del dueno — Slice 1.5', () => {
     await expect(page.locator('[data-testid="dashboard-loading"]')).toBeHidden({ timeout: 8_000 });
     await expect(page.locator('[data-testid="dashboard-error"]')).toBeVisible({ timeout: 5_000 });
     await expect(page.locator('[data-testid="dashboard-content"]')).toBeHidden();
+  });
+
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+
+test.describe('Dashboard del dueno — Slice 2.4: Asistencia del dia + En riesgo', () => {
+
+  // ── Caso 1: Sección asistencia visible, colaboradores presentes y ausentes ──
+
+  test('muestra seccion asistencia con colaborador presente y ausente', async ({ page }) => {
+    await setup(page);
+    await mockDashboardAdmin(page);
+    await mockColaboradorDrilldown(page);
+    await mockExportarProspectos(page);
+
+    await irAlDashboard(page);
+
+    // Heading visible
+    const asistenciaSection = page.locator('[data-testid="asistencia-section"]');
+    await expect(asistenciaSection).toBeVisible();
+    await expect(asistenciaSection.locator('h3')).toContainText('Asistencia de hoy');
+
+    // Tabla de asistencia existe
+    const tabla = page.locator('[data-testid="asistencia-table"]');
+    await expect(tabla).toBeVisible();
+
+    // Resumen de ausentes
+    const ausentesCount = page.locator('[data-testid="ausentes-count"]');
+    await expect(ausentesCount).toContainText(
+      String(MOCK_DASHBOARD_DATA.asistencia.totalAusentes),
+    );
+
+    // Filas de la tabla (2 colaboradores en el mock)
+    const filas = page.locator('[data-testid="asistencia-row"]');
+    await expect(filas).toHaveCount(MOCK_DASHBOARD_DATA.asistencia.colaboradores.length);
+
+    // Colaborador ausente (Luis Gomez) → chip "Ausente"
+    const chipAusente = page.locator('[data-testid="chip-ausente"]');
+    await expect(chipAusente).toBeVisible();
+    await expect(chipAusente).toContainText('Ausente');
+
+    // Colaborador presente (Ana Perez) → chip "Presente"
+    const chipPresente = page.locator('[data-testid="chip-presente"]');
+    await expect(chipPresente).toBeVisible();
+    await expect(chipPresente).toContainText('Presente');
+  });
+
+  // ── Caso 2: Badge "En riesgo" muestra 4 y enlaza a /admin/reasignacion ──────
+
+  test('badge en riesgo muestra el recuento y navega a /admin/reasignacion', async ({ page }) => {
+    await setup(page);
+    await mockDashboardAdmin(page, { porEnRiesgo: 4 });
+    await mockColaboradorDrilldown(page);
+    await mockExportarProspectos(page);
+
+    await irAlDashboard(page);
+
+    const enRiesgoCard = page.locator('[data-testid="en-riesgo-card"]');
+    await expect(enRiesgoCard).toBeVisible();
+
+    // El número muestra 4
+    await expect(page.locator('[data-testid="en-riesgo-count"]')).toContainText('4');
+
+    // Botón navega a la pantalla de reasignación
+    const btnReasignacion = page.locator('[data-testid="btn-ir-reasignacion"]');
+    await expect(btnReasignacion).toBeVisible();
+    await expect(btnReasignacion).toBeEnabled();
+    await btnReasignacion.click();
+    await expect(page).toHaveURL(/\/admin\/reasignacion/, { timeout: 5_000 });
+  });
+
+  // ── Caso 3: esLaborable=false → nota "Hoy no es día laborable." ─────────────
+
+  test('cuando esLaborable es false muestra nota sin tabla', async ({ page }) => {
+    await setup(page);
+    const asistenciaNoLaborable: AsistenciaDiaMock = {
+      esLaborable: false,
+      fecha: '2026-05-17',
+      totalColaboradores: 0,
+      totalAusentes: 0,
+      colaboradores: [],
+    };
+    await mockDashboardAdmin(page, { asistencia: asistenciaNoLaborable });
+    await mockColaboradorDrilldown(page);
+    await mockExportarProspectos(page);
+
+    await irAlDashboard(page);
+
+    // La nota "no laborable" es visible
+    const nota = page.locator('[data-testid="no-laborable-note"]');
+    await expect(nota).toBeVisible();
+    await expect(nota).toContainText('Hoy no es día laborable.');
+
+    // La tabla de asistencia NO se muestra
+    await expect(page.locator('[data-testid="asistencia-table"]')).toBeHidden();
+  });
+
+  // ── Caso 4: screenshot completo del dashboard con asistencia ─────────────────
+
+  test('screenshot completo del dashboard con bloque asistencia y en riesgo', async ({ page }) => {
+    await setup(page);
+    await mockDashboardAdmin(page);
+    await mockColaboradorDrilldown(page);
+    await mockExportarProspectos(page);
+
+    await irAlDashboard(page);
+
+    // Esperar que los elementos de asistencia sean visibles
+    await expect(page.locator('[data-testid="asistencia-section"]')).toBeVisible();
+    await expect(page.locator('[data-testid="en-riesgo-card"]')).toBeVisible();
+
+    await page.screenshot({
+      path: `${SCREENSHOTS_DIR}/dashboard-asistencia-en-riesgo.png`,
+      fullPage: true,
+    });
   });
 
 });

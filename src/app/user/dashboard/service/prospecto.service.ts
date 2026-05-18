@@ -3,6 +3,16 @@ import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../../../environments/environment';
 
+// ── Jornada RF-21 ────────────────────────────────────────────────────────────
+
+export interface JornadaEstado {
+  fecha: string;
+  iniciada: boolean;
+  finalizada: boolean;
+  inicio: string | null;
+  fin: string | null;
+}
+
 // ── Tipos de contacto (LEGACY — se mantienen para retrocompatibilidad) ────────
 
 /** @deprecated Usar AtencionRequest en su lugar */
@@ -371,5 +381,33 @@ export class ProspectoService {
       headers: new HttpHeaders({ Authorization: `Bearer ${this.getToken()}` }),
       params: httpParams,
     });
+  }
+
+  // ── Jornada RF-21 ─────────────────────────────────────────────────────────
+
+  /** GET /api/jornada/hoy */
+  getJornadaHoy(): Observable<JornadaEstado> {
+    return this.http.get<JornadaEstado>(
+      `${environment.apiUrl}/api/jornada/hoy`,
+      { headers: this.getAuthHeaders() },
+    );
+  }
+
+  /** POST /api/jornada/iniciar (body vacío, idempotente) */
+  iniciarJornada(): Observable<JornadaEstado> {
+    return this.http.post<JornadaEstado>(
+      `${environment.apiUrl}/api/jornada/iniciar`,
+      {},
+      { headers: this.getAuthHeaders() },
+    );
+  }
+
+  /** POST /api/jornada/finalizar (body vacío; 400 si no inició) */
+  finalizarJornada(): Observable<JornadaEstado> {
+    return this.http.post<JornadaEstado>(
+      `${environment.apiUrl}/api/jornada/finalizar`,
+      {},
+      { headers: this.getAuthHeaders() },
+    );
   }
 }

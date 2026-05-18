@@ -15,7 +15,9 @@ import {
   DashboardResumen,
   RankingColaborador,
   BaseResumen,
+  AsistenciaColaborador,
 } from '../services/admin.service';
+import { MatChipsModule } from '@angular/material/chips';
 import { TeleoperadorProspectosDialogComponent } from './teleoperador-prospectos-dialog/teleoperador-prospectos-dialog.component';
 
 @Component({
@@ -31,6 +33,7 @@ import { TeleoperadorProspectosDialogComponent } from './teleoperador-prospectos
     MatSnackBarModule,
     MatTooltipModule,
     MatDialogModule,
+    MatChipsModule,
   ],
   templateUrl: './dashboard-admin.component.html',
   styleUrls: ['./dashboard-admin.component.css'],
@@ -49,6 +52,7 @@ export class DashboardAdminComponent implements OnInit {
     'ultimaActividad',
   ];
   basesColumns = ['nombre', 'cantidad', 'asignados', 'sinAsignar', 'avancePct'];
+  asistenciaColumns = ['nombre', 'jornada', 'inicio', 'estado'];
 
   /** Pasos del embudo en orden descendente para la visualizacion. */
   readonly embudoSteps: Array<{ key: keyof DashboardResumen['embudo']; label: string }> = [
@@ -144,5 +148,13 @@ export class DashboardAdminComponent implements OnInit {
 
   trackRanking(_: number, row: RankingColaborador): number {
     return row.usuarioId;
+  }
+
+  trackAsistencia(_: number, row: AsistenciaColaborador): number {
+    return row.usuarioId;
+  }
+
+  irAReasignacion(): void {
+    this.router.navigate(['/admin/reasignacion']);
   }
 }

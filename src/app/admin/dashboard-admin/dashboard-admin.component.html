@@ -244,6 +244,121 @@
     </div>
   </div>
 
+  <!-- ── Asistencia + En riesgo ────────────────────────────────────────────── -->
+  <div class="asistencia-riesgo-row" *ngIf="dashboard.asistencia !== undefined || dashboard.porEnRiesgo !== undefined">
+
+    <!-- Asistencia del día -->
+    <div class="section-card asistencia-card" data-testid="asistencia-section" *ngIf="dashboard.asistencia !== undefined">
+      <h3 class="section-title">
+        <mat-icon>how_to_reg</mat-icon>
+        Asistencia de hoy
+      </h3>
+
+      <!-- Día no laborable -->
+      <p class="no-laborable-note" *ngIf="!dashboard.asistencia.esLaborable" data-testid="no-laborable-note">
+        Hoy no es día laborable.
+      </p>
+
+      <!-- Día laborable -->
+      <ng-container *ngIf="dashboard.asistencia.esLaborable">
+
+        <!-- Resumen de totales -->
+        <div class="asistencia-resumen" data-testid="asistencia-resumen">
+          <span>{{ dashboard.asistencia.totalColaboradores }} colaboradores</span>
+          <span class="separator">·</span>
+          <span
+            class="ausentes-count"
+            [class.ausentes-red]="dashboard.asistencia.totalAusentes > 0"
+            [class.ausentes-green]="dashboard.asistencia.totalAusentes === 0"
+            data-testid="ausentes-count">
+            {{ dashboard.asistencia.totalAusentes }} ausente(s)
+          </span>
+        </div>
+
+        <!-- Tabla de colaboradores -->
+        <div *ngIf="dashboard.asistencia.colaboradores.length > 0; else sinColaboradores">
+          <table mat-table [dataSource]="dashboard.asistencia.colaboradores"
+            class="asistencia-table"
+            [trackBy]="trackAsistencia"
+            data-testid="asistencia-table">
+
+            <ng-container matColumnDef="nombre">
+              <th mat-header-cell *matHeaderCellDef>Colaborador</th>
+              <td mat-cell *matCellDef="let c" class="nombre-cell">{{ c.nombre }}</td>
+            </ng-container>
+
+            <ng-container matColumnDef="jornada">
+              <th mat-header-cell *matHeaderCellDef>Jornada</th>
+              <td mat-cell *matCellDef="let c">
+                <span class="badge" [class.badge-green]="c.jornadaIniciada" [class.badge-gray]="!c.jornadaIniciada">
+                  {{ c.jornadaIniciada ? 'Sí' : 'No' }}
+                </span>
+              </td>
+            </ng-container>
+
+            <ng-container matColumnDef="inicio">
+              <th mat-header-cell *matHeaderCellDef>Inicio</th>
+              <td mat-cell *matCellDef="let c">{{ c.inicio ?? '—' }}</td>
+            </ng-container>
+
+            <ng-container matColumnDef="estado">
+              <th mat-header-cell *matHeaderCellDef>Estado</th>
+              <td mat-cell *matCellDef="let c">
+                <span
+                  class="badge"
+                  [class.badge-red]="c.ausente"
+                  [class.badge-green]="!c.ausente"
+                  [attr.data-testid]="c.ausente ? 'chip-ausente' : 'chip-presente'">
+                  {{ c.ausente ? 'Ausente' : 'Presente' }}
+                </span>
+              </td>
+            </ng-container>
+
+            <tr mat-header-row *matHeaderRowDef="asistenciaColumns"></tr>
+            <tr mat-row *matRowDef="let row; columns: asistenciaColumns;" data-testid="asistencia-row"></tr>
+          </table>
+        </div>
+
+        <ng-template #sinColaboradores>
+          <div class="empty-state" data-testid="sin-colaboradores">
+            <mat-icon>person_off</mat-icon>
+            <span>Sin colaboradores activos</span>
+          </div>
+        </ng-template>
+
+      </ng-container>
+    </div>
+
+    <!-- Casos En riesgo -->
+    <div class="section-card en-riesgo-card" data-testid="en-riesgo-card" *ngIf="dashboard.porEnRiesgo !== undefined">
+      <h3 class="section-title">
+        <mat-icon>warning_amber</mat-icon>
+        Casos En riesgo
+      </h3>
+      <div class="en-riesgo-body">
+        <span
+          class="en-riesgo-number"
+          [class.en-riesgo-red]="(dashboard.porEnRiesgo ?? 0) > 0"
+          [class.en-riesgo-green]="(dashboard.porEnRiesgo ?? 0) === 0"
+          data-testid="en-riesgo-count">
+          {{ dashboard.porEnRiesgo ?? 0 }}
+        </span>
+        <span class="en-riesgo-label">por reasignar</span>
+      </div>
+      <button
+        mat-flat-button
+        class="en-riesgo-btn"
+        [class.en-riesgo-btn-red]="(dashboard.porEnRiesgo ?? 0) > 0"
+        [class.en-riesgo-btn-neutral]="(dashboard.porEnRiesgo ?? 0) === 0"
+        (click)="irAReasignacion()"
+        data-testid="btn-ir-reasignacion">
+        <mat-icon>open_in_new</mat-icon>
+        Ir a Reasignación
+      </button>
+    </div>
+
+  </div>
+
   <!-- ── Estado de bases ────────────────────────────────────────────────────── -->
   <div class="section-card full-width" *ngIf="dashboard.bases.length > 0" data-testid="bases-section">
     <h3 class="section-title">

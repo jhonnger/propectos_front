@@ -194,6 +194,26 @@ export interface BaseResumen {
   avancePct: number;
 }
 
+// ── Slice 2.4: Asistencia del día ────────────────────────────────────────────
+
+export interface AsistenciaColaborador {
+  usuarioId: number;
+  nombre: string;
+  jornadaIniciada: boolean;
+  inicio: string | null;
+  fin: string | null;
+  ausente: boolean;
+}
+
+export interface AsistenciaDia {
+  fecha: string;
+  esLaborable: boolean;
+  limiteAusencia: string;
+  totalColaboradores: number;
+  totalAusentes: number;
+  colaboradores: AsistenciaColaborador[];
+}
+
 export interface DashboardResumen {
   dia: MetricasPeriodo;
   mes: MetricasPeriodo;
@@ -201,6 +221,8 @@ export interface DashboardResumen {
   embudo: Embudo;
   porCerrar: number;
   bases: BaseResumen[];
+  asistencia?: AsistenciaDia;
+  porEnRiesgo?: number;
 }
 
 export interface DrillDownColaboradorItem {
@@ -264,6 +286,121 @@ export interface CierreVentaResponse {
 export interface NoCerroResponse {
   ok: boolean;
   estado: string;
+}
+
+// ── Slice 2.2: Calendario laboral RF-22 ─────────────────────────────────────
+
+export interface Feriado {
+  id: number;
+  fecha: string;
+  esFeriado: boolean;
+  descripcion: string;
+}
+
+// ── Slice 2.1: Configuración del dueño ───────────────────────────────────────
+
+export interface ConfiguracionDueno {
+  id: number;
+  toggleEmailInstantaneo: boolean;
+  toggleEmailDigest: boolean;
+  toggleResumenDiario: boolean;
+  metaVentasMensual: number;
+  metaDerivadosPorColaborador: number;
+  plazoReevaluacionSbsDias: number;
+  maxIntentosNoContesto: number;
+  reglaReintentoNoContesto: string;
+  horaInicioJornada: string;
+  minutosGraciaAusencia: number;
+  ultimoEnvioResumenOk: boolean | null;
+  ultimoEnvioResumenFecha: string | null;
+  ultimoEnvioResumenDetalle: string | null;
+}
+
+/** Campos que se envían al PUT /api/reportes/config; null = no modificar. */
+export interface ConfiguracionPatch {
+  toggleEmailInstantaneo?: boolean | null;
+  toggleEmailDigest?: boolean | null;
+  toggleResumenDiario?: boolean | null;
+  metaVentasMensual?: number | null;
+  metaDerivadosPorColaborador?: number | null;
+  plazoReevaluacionSbsDias?: number | null;
+  maxIntentosNoContesto?: number | null;
+  reglaReintentoNoContesto?: string | null;
+  horaInicioJornada?: string | null;
+  minutosGraciaAusencia?: number | null;
+}
+
+export interface EstadoEmail {
+  ok: boolean;
+  fecha: string | null;
+  detalle: string | null;
+  toggleResumenDiario: boolean;
+  mailConfigurado: boolean;
+}
+
+// ── Slice 2.3: Reasignación + "En riesgo" (RF-23) ───────────────────────────
+
+export interface EnRiesgoItem {
+  asignacionId: number;
+  prospectoId: number;
+  nombre: string;
+  celular: string;
+  campania: string;
+  estado: string;
+  fechaAgenda: string | null;
+  colaboradorAusenteId: number;
+  colaboradorAusente: string;
+}
+
+export interface EnRiesgoResponse {
+  total: number;
+  resultados: EnRiesgoItem[];
+  nota?: string;
+}
+
+export interface ReasignacionResponse {
+  ok: boolean;
+  reasignados: number;
+  destinoId: number;
+  destinoNombre: string;
+}
+
+// ── Slice 2.5: Bitácora global de atenciones (RF-20) ─────────────────────────
+
+export interface BitacoraFiltros {
+  desde?: string;
+  hasta?: string;
+  colaboradorId?: number | null;
+  campania?: string;
+  baseId?: number | null;
+  resultado?: string;
+  quienContesto?: string;
+}
+
+export interface BitacoraFila {
+  contactoId: number;
+  asignacionId: number;
+  prospectoId: number;
+  fecha: string;
+  colaborador: string;
+  prospecto: string;
+  celular: string;
+  campania: string;
+  base: string;
+  estadoResultado: string;
+  submotivoNoContesto: string | null;
+  quienContesto: string | null;
+  verificacionSbs: string | null;
+  duracionGestion: number | null;
+  comentario: string | null;
+}
+
+export interface BitacoraResponse {
+  total: number;
+  totalPaginas: number;
+  pagina: number;
+  tamano: number;
+  resultados: BitacoraFila[];
 }
 
 @Injectable({
@@ -600,6 +737,156 @@ export class AdminService {
       `${environment.apiUrl}/api/cierre/${asignacionId}/no-cerro`,
       body,
       { headers },
+    );
+  }
+
+  // ── Slice 2.1: Configuración del dueño (RF-08) ────────────────────────────
+
+  getConfiguracion(): Observable<ConfiguracionDueno> {
+    return this.http.get<ConfiguracionDueno>(`${environment.apiUrl}/api/reportes/config`, {
+      headers: new HttpHeaders({ Authorization: `Bearer ${this.getToken()}` }),
+    });
+  }
+
+  actualizarConfiguracion(patch: ConfiguracionPatch): Observable<ConfiguracionDueno> {
+    return this.http.put<ConfiguracionDueno>(`${environment.apiUrl}/api/reportes/config`, patch, {
+      headers: new HttpHeaders({
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${this.getToken()}`,
+      }),
+    });
+  }
+
+  getEstadoEmail(): Observable<EstadoEmail> {
+    return this.http.get<EstadoEmail>(`${environment.apiUrl}/api/reportes/estado-email`, {
+      headers: new HttpHeaders({ Authorization: `Bearer ${this.getToken()}` }),
+    });
+  }
+
+  // ── Slice 2.2: Calendario laboral RF-22 ────────────────────────────────────
+
+  /** GET /api/calendario?anio={anio} — sin `anio` lista todo */
+  getCalendario(anio?: number): Observable<Feriado[]> {
+    let params = new HttpParams();
+    if (anio !== undefined) {
+      params = params.set('anio', anio.toString());
+    }
+    return this.http.get<Feriado[]>(`${environment.apiUrl}/api/calendario`, {
+      headers: new HttpHeaders({ Authorization: `Bearer ${this.getToken()}` }),
+      params,
+    });
+  }
+
+  /** POST /api/calendario — 400 si duplicado o fecha inválida */
+  agregarFeriado(fecha: string, descripcion: string): Observable<Feriado> {
+    return this.http.post<Feriado>(
+      `${environment.apiUrl}/api/calendario`,
+      { fecha, descripcion },
+      {
+        headers: new HttpHeaders({
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${this.getToken()}`,
+        }),
+      },
+    );
+  }
+
+  // ── Slice 2.3: Reasignación + "En riesgo" (RF-23) ────────────────────────
+
+  /** GET /api/reasignacion/en-riesgo */
+  getEnRiesgo(): Observable<EnRiesgoResponse> {
+    return this.http.get<EnRiesgoResponse>(`${environment.apiUrl}/api/reasignacion/en-riesgo`, {
+      headers: new HttpHeaders({ Authorization: `Bearer ${this.getToken()}` }),
+    });
+  }
+
+  /** POST /api/reasignacion — reasigna asignaciones individuales seleccionadas */
+  reasignar(
+    asignacionIds: number[],
+    nuevoUsuarioId: number,
+    motivo: string,
+  ): Observable<ReasignacionResponse> {
+    return this.http.post<ReasignacionResponse>(
+      `${environment.apiUrl}/api/reasignacion`,
+      { asignacionIds, nuevoUsuarioId, motivo },
+      {
+        headers: new HttpHeaders({
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${this.getToken()}`,
+        }),
+      },
+    );
+  }
+
+  /** POST /api/reasignacion/colaborador/{origenId} — reasigna todos los casos activos de un colaborador */
+  reasignarTodoColaborador(
+    origenId: number,
+    nuevoUsuarioId: number,
+    motivo: string,
+  ): Observable<ReasignacionResponse> {
+    return this.http.post<ReasignacionResponse>(
+      `${environment.apiUrl}/api/reasignacion/colaborador/${origenId}`,
+      { nuevoUsuarioId, motivo },
+      {
+        headers: new HttpHeaders({
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${this.getToken()}`,
+        }),
+      },
+    );
+  }
+
+  // ── Slice 2.5: Bitácora global de atenciones (RF-20) ─────────────────────
+
+  /** GET /api/reportes/bitacora (paginado) */
+  getBitacora(
+    filtros: BitacoraFiltros,
+    pagina: number = 1,
+    tamano: number = 50,
+  ): Observable<BitacoraResponse> {
+    let params = new HttpParams()
+      .set('pagina', pagina.toString())
+      .set('tamano', tamano.toString());
+
+    if (filtros.desde) params = params.set('desde', filtros.desde);
+    if (filtros.hasta) params = params.set('hasta', filtros.hasta);
+    if (filtros.colaboradorId != null) params = params.set('colaboradorId', filtros.colaboradorId.toString());
+    if (filtros.campania) params = params.set('campania', filtros.campania);
+    if (filtros.baseId != null) params = params.set('baseId', filtros.baseId.toString());
+    if (filtros.resultado) params = params.set('resultado', filtros.resultado);
+    if (filtros.quienContesto) params = params.set('quienContesto', filtros.quienContesto);
+
+    return this.http.get<BitacoraResponse>(`${environment.apiUrl}/api/reportes/bitacora`, {
+      headers: new HttpHeaders({ Authorization: `Bearer ${this.getToken()}` }),
+      params,
+    });
+  }
+
+  /** GET /api/reportes/bitacora/exportar — devuelve Blob xlsx */
+  exportarBitacora(filtros: BitacoraFiltros): Observable<Blob> {
+    let params = new HttpParams();
+    if (filtros.desde) params = params.set('desde', filtros.desde);
+    if (filtros.hasta) params = params.set('hasta', filtros.hasta);
+    if (filtros.colaboradorId != null) params = params.set('colaboradorId', filtros.colaboradorId.toString());
+    if (filtros.campania) params = params.set('campania', filtros.campania);
+    if (filtros.baseId != null) params = params.set('baseId', filtros.baseId.toString());
+    if (filtros.resultado) params = params.set('resultado', filtros.resultado);
+    if (filtros.quienContesto) params = params.set('quienContesto', filtros.quienContesto);
+
+    return this.http.get(`${environment.apiUrl}/api/reportes/bitacora/exportar`, {
+      headers: new HttpHeaders({ Authorization: `Bearer ${this.getToken()}` }),
+      params,
+      responseType: 'blob',
+    });
+  }
+
+  /** DELETE /api/calendario/{id} — 400 si no existe */
+  eliminarFeriado(id: number): Observable<{ ok: boolean }> {
+    return this.http.delete<{ ok: boolean }>(
+      `${environment.apiUrl}/api/calendario/${id}`,
+      {
+        headers: new HttpHeaders({ Authorization: `Bearer ${this.getToken()}` }),
+      },
     );
   }
 

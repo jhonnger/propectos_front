@@ -1,0 +1,297 @@
+.bitacora-container {
+  padding: 24px;
+  max-width: 1400px;
+}
+
+/* ── Header ─────────────────────────────────────────────────────────────────── */
+
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.page-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0 0 4px;
+  font-size: 1.4rem;
+  font-weight: 600;
+  color: #1a1a2e;
+}
+
+.page-title mat-icon {
+  color: #5b3df5;
+}
+
+.page-subtitle {
+  margin: 0;
+  color: #666;
+  font-size: 0.9rem;
+}
+
+/* ── Export button ───────────────────────────────────────────────────────────── */
+
+.btn-exportar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 600;
+  border-radius: 8px;
+}
+
+.btn-spinner {
+  margin-right: 4px;
+}
+
+/* ── Filtros ─────────────────────────────────────────────────────────────────── */
+
+.filtros-card {
+  background: white;
+  border-radius: 12px;
+  border: 1px solid #e0e0e0;
+  padding: 20px 24px;
+  margin-bottom: 20px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+}
+
+.filtros-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.filtro-field {
+  width: 100%;
+}
+
+.filtros-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+/* ── Loading ─────────────────────────────────────────────────────────────────── */
+
+.loading-overlay {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  padding: 60px;
+  color: #666;
+}
+
+/* ── Empty state ─────────────────────────────────────────────────────────────── */
+
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 60px;
+  color: #888;
+  text-align: center;
+}
+
+.empty-state mat-icon {
+  font-size: 48px;
+  width: 48px;
+  height: 48px;
+  color: #bbb;
+}
+
+/* ── Tabla ───────────────────────────────────────────────────────────────────── */
+
+.table-wrapper {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  overflow: auto;
+  max-height: 65vh;
+  margin-bottom: 0;
+}
+
+.bitacora-table {
+  width: 100%;
+  min-width: 1100px;
+}
+
+.mat-mdc-header-cell {
+  font-weight: 600;
+  color: #555;
+  font-size: 0.82rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  white-space: nowrap;
+  background: white;
+}
+
+.data-row:hover {
+  background: #f5f3ff;
+}
+
+/* ── Celdas especiales ───────────────────────────────────────────────────────── */
+
+.fecha-cell {
+  font-size: 0.82rem;
+  color: #555;
+  white-space: nowrap;
+}
+
+.colaborador-cell {
+  font-weight: 500;
+  color: #1a1a2e;
+  white-space: nowrap;
+}
+
+.prospecto-nombre {
+  font-weight: 600;
+  color: #1a1a2e;
+}
+
+.celular-masked {
+  font-family: monospace;
+  font-size: 0.88rem;
+  color: #555;
+}
+
+.campania-chip {
+  display: inline-block;
+  padding: 3px 10px;
+  background: #ede7f6;
+  color: #4527a0;
+  border-radius: 12px;
+  font-size: 0.78rem;
+  font-weight: 500;
+}
+
+.base-cell {
+  font-size: 0.82rem;
+  color: #666;
+}
+
+/* ── Resultado chip ──────────────────────────────────────────────────────────── */
+
+.resultado-chip {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 12px;
+  font-size: 0.76rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+  background: #e0e0e0;
+  color: #333;
+}
+
+.resultado-no_contesto {
+  background: #fce4ec;
+  color: #c62828;
+}
+
+.resultado-volver_llamar {
+  background: #fff3e0;
+  color: #e65100;
+}
+
+.resultado-agendado {
+  background: #e3f2fd;
+  color: #1565c0;
+}
+
+.resultado-interesado {
+  background: #e8f5e9;
+  color: #2e7d32;
+}
+
+.resultado-derivado {
+  background: #ede7f6;
+  color: #4527a0;
+}
+
+.resultado-no_volver_llamar {
+  background: #f3e5f5;
+  color: #6a1b9a;
+}
+
+.resultado-datos_invalidos,
+.resultado-ilocalizable {
+  background: #efebe9;
+  color: #4e342e;
+}
+
+/* ── Quién contestó ──────────────────────────────────────────────────────────── */
+
+.quien-chip {
+  font-size: 0.82rem;
+  color: #444;
+}
+
+/* ── SBS ────────────────────────────────────────────────────────────────────── */
+
+.sbs-chip {
+  font-size: 0.82rem;
+  font-weight: 500;
+  color: #666;
+}
+
+.sbs-apto {
+  color: #2e7d32;
+  font-weight: 600;
+}
+
+.sbs-observado {
+  color: #c62828;
+  font-weight: 600;
+}
+
+/* ── Duración ────────────────────────────────────────────────────────────────── */
+
+.duracion-cell {
+  font-size: 0.82rem;
+  color: #555;
+  white-space: nowrap;
+}
+
+/* ── Comentario ──────────────────────────────────────────────────────────────── */
+
+.comentario-cell {
+  font-size: 0.82rem;
+  color: #555;
+  cursor: default;
+}
+
+/* ── Paginator ───────────────────────────────────────────────────────────────── */
+
+mat-paginator {
+  background: white;
+  border-top: 1px solid #e0e0e0;
+  border-radius: 0 0 12px 12px;
+}
+
+/* ── Responsive ──────────────────────────────────────────────────────────────── */
+
+@media (max-width: 768px) {
+  .bitacora-container {
+    padding: 16px;
+  }
+
+  .page-header {
+    flex-direction: column;
+  }
+
+  .filtros-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .table-wrapper {
+    max-height: none;
+  }
+}

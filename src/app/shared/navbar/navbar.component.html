@@ -10,6 +10,64 @@
     </div>
 
     <div class="navbar-right">
+
+      <!-- ── Jornada RF-21: solo TELEOPERADOR ────────────────────────────── -->
+      @if (isTeleoperador()) {
+        <div class="jornada-control" data-testid="jornada-estado">
+
+          @if (jornadaCargando) {
+            <mat-spinner diameter="20" aria-label="Cargando estado de jornada"></mat-spinner>
+          }
+
+          @if (!jornadaCargando && jornada) {
+
+            @if (!jornada.iniciada) {
+              <button
+                mat-flat-button
+                color="primary"
+                class="btn-jornada btn-iniciar"
+                data-testid="btn-iniciar-jornada"
+                [disabled]="jornadaAccionando"
+                (click)="iniciarJornada()"
+                aria-label="Iniciar jornada laboral">
+                <mat-icon>play_circle</mat-icon>
+                <span>Iniciar jornada</span>
+              </button>
+            }
+
+            @if (jornada.iniciada && !jornada.finalizada) {
+              <div class="jornada-en-curso">
+                <span class="jornada-badge badge-en-curso" aria-live="polite">
+                  <mat-icon>radio_button_checked</mat-icon>
+                  Jornada iniciada {{ formatHora(jornada.inicio) }}
+                </span>
+                <button
+                  mat-stroked-button
+                  color="warn"
+                  class="btn-jornada btn-finalizar"
+                  data-testid="btn-finalizar-jornada"
+                  [disabled]="jornadaAccionando"
+                  (click)="finalizarJornada()"
+                  aria-label="Finalizar jornada laboral">
+                  <mat-icon>stop_circle</mat-icon>
+                  <span>Finalizar</span>
+                </button>
+              </div>
+            }
+
+            @if (jornada.finalizada) {
+              <span class="jornada-badge badge-finalizada" aria-live="polite">
+                <mat-icon>check_circle</mat-icon>
+                Jornada {{ formatHora(jornada.inicio) }}–{{ formatHora(jornada.fin) }}
+              </span>
+            }
+
+          }
+
+        </div>
+      }
+      <!-- ─────────────────────────────────────────────────────────────────── -->
+
       <div class="user-info" [matMenuTriggerFor]="menu">
         <div class="user-avatar">{{ getInitials() }}</div>
         <div class="user-details">

@@ -1,0 +1,264 @@
+<div class="configuracion-container">
+
+  <!-- Header -->
+  <div class="page-header">
+    <mat-icon class="header-icon">settings</mat-icon>
+    <h1 class="page-title">Configuración del sistema</h1>
+  </div>
+
+  <!-- Loading -->
+  <div *ngIf="loading" class="loading-wrapper" data-testid="config-loading">
+    <mat-spinner diameter="48"></mat-spinner>
+    <p>Cargando configuración...</p>
+  </div>
+
+  <!-- Error de carga -->
+  <div *ngIf="!loading && errorCarga" class="error-banner" data-testid="config-error">
+    <mat-icon>error_outline</mat-icon>
+    <span>{{ errorCarga }}</span>
+    <button mat-button (click)="cargar()">Reintentar</button>
+  </div>
+
+  <!-- Contenido principal -->
+  <div *ngIf="!loading && !errorCarga" data-testid="config-content">
+
+    <form [formGroup]="form" (ngSubmit)="guardar()">
+
+      <!-- ── Sección Notificaciones (RF-08) ─────────────────────────────── -->
+      <mat-card class="config-card">
+        <mat-card-header>
+          <mat-icon mat-card-avatar>notifications</mat-icon>
+          <mat-card-title>Notificaciones por correo</mat-card-title>
+          <mat-card-subtitle>Configura cuándo y cómo se envían los correos automáticos</mat-card-subtitle>
+        </mat-card-header>
+
+        <mat-card-content>
+
+          <!-- Banner estado de email -->
+          <ng-container *ngIf="estadoEmail !== null">
+
+            <!-- Email no configurado -->
+            <div
+              *ngIf="!estadoEmail.mailConfigurado"
+              class="banner-warning"
+              data-testid="banner-email-no-configurado"
+            >
+              <mat-icon>warning_amber</mat-icon>
+              <span>
+                El envío de correos está desactivado
+                (configurar credenciales en el servidor:
+                <code>MAIL_ENABLED</code> / <code>MAIL_USERNAME</code> / <code>MAIL_APP_PASSWORD</code>).
+              </span>
+            </div>
+
+            <!-- Último estado del resumen diario -->
+            <div
+              *ngIf="estadoEmail.mailConfigurado && estadoEmail.fecha"
+              class="banner-info"
+              data-testid="banner-ultimo-envio"
+            >
+              <mat-icon>{{ estadoEmail.ok ? 'check_circle' : 'error' }}</mat-icon>
+              <span>
+                Último envío de resumen:
+                <strong>{{ estadoEmail.fecha | date:'dd/MM/yyyy HH:mm' }}</strong>
+                — {{ estadoEmail.ok ? 'OK' : 'con error' }}
+                <span *ngIf="estadoEmail.detalle"> — {{ estadoEmail.detalle }}</span>
+              </span>
+            </div>
+
+          </ng-container>
+
+          <div class="toggle-list">
+            <div class="toggle-row" data-testid="toggle-row-instantaneo">
+              <div class="toggle-info">
+                <span class="toggle-label">Email instantáneo por atención (RF-06a)</span>
+                <span class="toggle-hint">Se envía un correo cada vez que un colaborador registra una atención</span>
+              </div>
+              <mat-slide-toggle
+                formControlName="toggleEmailInstantaneo"
+                color="primary"
+                data-testid="toggle-email-instantaneo"
+              ></mat-slide-toggle>
+            </div>
+
+            <mat-divider></mat-divider>
+
+            <div class="toggle-row" data-testid="toggle-row-digest">
+              <div class="toggle-info">
+                <span class="toggle-label">Digest cada 5 atenciones (RF-06b)</span>
+                <span class="toggle-hint">Se envía un resumen agrupado cuando se acumulan 5 atenciones</span>
+              </div>
+              <mat-slide-toggle
+                formControlName="toggleEmailDigest"
+                color="primary"
+                data-testid="toggle-email-digest"
+              ></mat-slide-toggle>
+            </div>
+
+            <mat-divider></mat-divider>
+
+            <div class="toggle-row" data-testid="toggle-row-resumen">
+              <div class="toggle-info">
+                <span class="toggle-label">Resumen diario 9pm (RF-07)</span>
+                <span class="toggle-hint">Se envía un resumen del día cada noche a las 21:00</span>
+              </div>
+              <mat-slide-toggle
+                formControlName="toggleResumenDiario"
+                color="primary"
+                data-testid="toggle-resumen-diario"
+              ></mat-slide-toggle>
+            </div>
+          </div>
+        </mat-card-content>
+      </mat-card>
+
+      <!-- ── Sección Metas ────────────────────────────────────────────── -->
+      <mat-card class="config-card">
+        <mat-card-header>
+          <mat-icon mat-card-avatar>flag</mat-icon>
+          <mat-card-title>Metas</mat-card-title>
+          <mat-card-subtitle>Objetivos mensuales del equipo</mat-card-subtitle>
+        </mat-card-header>
+
+        <mat-card-content>
+          <div class="fields-grid">
+
+            <mat-form-field appearance="outline">
+              <mat-label>Meta de ventas mensual</mat-label>
+              <input
+                matInput
+                type="number"
+                formControlName="metaVentasMensual"
+                min="0"
+                data-testid="input-meta-ventas"
+              />
+              <mat-hint>Número de ventas objetivo por mes</mat-hint>
+              <mat-error *ngIf="hasError('metaVentasMensual', 'min')">Debe ser mayor o igual a 0</mat-error>
+              <mat-error *ngIf="hasError('metaVentasMensual', 'required')">Campo requerido</mat-error>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+              <mat-label>Meta de derivados por colaborador</mat-label>
+              <input
+                matInput
+                type="number"
+                formControlName="metaDerivadosPorColaborador"
+                min="0"
+                data-testid="input-meta-derivados"
+              />
+              <mat-hint>Número de derivaciones objetivo por colaborador</mat-hint>
+              <mat-error *ngIf="hasError('metaDerivadosPorColaborador', 'min')">Debe ser mayor o igual a 0</mat-error>
+              <mat-error *ngIf="hasError('metaDerivadosPorColaborador', 'required')">Campo requerido</mat-error>
+            </mat-form-field>
+
+          </div>
+        </mat-card-content>
+      </mat-card>
+
+      <!-- ── Sección Parámetros operativos (6b.1) ───────────────────── -->
+      <mat-card class="config-card">
+        <mat-card-header>
+          <mat-icon mat-card-avatar>tune</mat-icon>
+          <mat-card-title>Parámetros operativos</mat-card-title>
+          <mat-card-subtitle>Reglas de negocio para el seguimiento de prospectos</mat-card-subtitle>
+        </mat-card-header>
+
+        <mat-card-content>
+          <div class="fields-grid">
+
+            <mat-form-field appearance="outline">
+              <mat-label>Plazo re-evaluación SBS (días)</mat-label>
+              <input
+                matInput
+                type="number"
+                formControlName="plazoReevaluacionSbsDias"
+                min="1"
+                data-testid="input-plazo-sbs"
+              />
+              <mat-hint>Días antes de poder re-evaluar un prospecto en SBS</mat-hint>
+              <mat-error *ngIf="hasError('plazoReevaluacionSbsDias', 'min')">Debe ser al menos 1 día</mat-error>
+              <mat-error *ngIf="hasError('plazoReevaluacionSbsDias', 'required')">Campo requerido</mat-error>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+              <mat-label>Máx. intentos "no contesto"</mat-label>
+              <input
+                matInput
+                type="number"
+                formControlName="maxIntentosNoContesto"
+                min="1"
+                data-testid="input-max-intentos"
+              />
+              <mat-hint>Intentos fallidos antes de descartar el prospecto</mat-hint>
+              <mat-error *ngIf="hasError('maxIntentosNoContesto', 'min')">Debe ser al menos 1</mat-error>
+              <mat-error *ngIf="hasError('maxIntentosNoContesto', 'required')">Campo requerido</mat-error>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Regla de reintento</mat-label>
+              <input
+                matInput
+                type="text"
+                formControlName="reglaReintentoNoContesto"
+                placeholder="+3h,+24h,+48h,+72h,+120h"
+                data-testid="input-regla-reintento"
+              />
+              <mat-hint>Intervalos de espera entre reintentos (ej: +3h,+24h,+48h)</mat-hint>
+              <mat-error *ngIf="hasError('reglaReintentoNoContesto', 'required')">Campo requerido</mat-error>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+              <mat-label>Hora inicio de jornada</mat-label>
+              <input
+                matInput
+                type="time"
+                formControlName="horaInicioJornada"
+                data-testid="input-hora-inicio"
+              />
+              <mat-hint>Hora de inicio de la jornada laboral (HH:mm)</mat-hint>
+              <mat-error *ngIf="hasError('horaInicioJornada', 'required')">Campo requerido</mat-error>
+              <mat-error *ngIf="hasError('horaInicioJornada', 'pattern')">Formato inválido (HH:mm)</mat-error>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+              <mat-label>Minutos de gracia ausencia</mat-label>
+              <input
+                matInput
+                type="number"
+                formControlName="minutosGraciaAusencia"
+                min="0"
+                data-testid="input-minutos-gracia"
+              />
+              <mat-hint>Minutos de tolerancia antes de marcar ausencia</mat-hint>
+              <mat-error *ngIf="hasError('minutosGraciaAusencia', 'min')">Debe ser mayor o igual a 0</mat-error>
+              <mat-error *ngIf="hasError('minutosGraciaAusencia', 'required')">Campo requerido</mat-error>
+            </mat-form-field>
+
+          </div>
+        </mat-card-content>
+      </mat-card>
+
+      <!-- Error de guardado -->
+      <div *ngIf="errorGuardar" class="error-banner error-guardar" data-testid="error-guardar">
+        <mat-icon>error_outline</mat-icon>
+        <span>{{ errorGuardar }}</span>
+      </div>
+
+      <!-- Botón Guardar -->
+      <div class="actions-row">
+        <button
+          mat-raised-button
+          color="primary"
+          type="submit"
+          [disabled]="form.invalid || saving"
+          data-testid="btn-guardar"
+        >
+          <mat-icon *ngIf="!saving">save</mat-icon>
+          <mat-spinner *ngIf="saving" diameter="20" class="btn-spinner"></mat-spinner>
+          {{ saving ? 'Guardando...' : 'Guardar configuración' }}
+        </button>
+      </div>
+
+    </form>
+  </div>
+</div>

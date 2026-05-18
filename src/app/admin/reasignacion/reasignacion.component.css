@@ -1,0 +1,355 @@
+.reasignacion-container {
+  padding: 24px;
+  max-width: 1200px;
+}
+
+/* ── Header ─────────────────────────────────────────────────────────────────── */
+
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.page-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0 0 4px;
+  font-size: 1.4rem;
+  font-weight: 600;
+  color: #1a1a2e;
+}
+
+.page-title mat-icon {
+  color: #e65100;
+}
+
+.page-subtitle {
+  margin: 0;
+  color: #666;
+  font-size: 0.9rem;
+}
+
+/* ── Stat badge ─────────────────────────────────────────────────────────────── */
+
+.stat-badge {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background: #fff3e0;
+  border: 1px solid #ffcc80;
+  border-radius: 10px;
+  padding: 10px 20px;
+  min-width: 90px;
+}
+
+.stat-number {
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: #e65100;
+  line-height: 1;
+}
+
+.stat-label {
+  font-size: 0.75rem;
+  color: #bf360c;
+  margin-top: 4px;
+}
+
+/* ── Loading ─────────────────────────────────────────────────────────────────── */
+
+.loading-overlay {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  padding: 60px;
+  color: #666;
+}
+
+/* ── Error / Empty states ─────────────────────────────────────────────────────── */
+
+.error-state,
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 60px;
+  color: #666;
+  text-align: center;
+}
+
+.error-state {
+  color: #c62828;
+}
+
+.error-state mat-icon,
+.empty-state mat-icon {
+  font-size: 48px;
+  width: 48px;
+  height: 48px;
+}
+
+/* ── Barra de accion ─────────────────────────────────────────────────────────── */
+
+.accion-bar {
+  background: white;
+  border-radius: 12px;
+  border: 1px solid #e0e0e0;
+  padding: 16px 20px;
+  margin-bottom: 16px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+}
+
+.accion-bar-inner {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.field-destino {
+  min-width: 220px;
+  flex: 1;
+}
+
+.field-motivo {
+  min-width: 200px;
+  flex: 2;
+}
+
+.btn-reasignar {
+  height: 56px;
+  white-space: nowrap;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 600;
+  border-radius: 8px;
+  flex-shrink: 0;
+}
+
+/* ── Error inline ────────────────────────────────────────────────────────────── */
+
+.error-inline {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 10px;
+  padding: 10px 14px;
+  background: #fdecea;
+  border: 1px solid #f5c6cb;
+  border-radius: 8px;
+  color: #b71c1c;
+  font-size: 0.875rem;
+}
+
+.error-inline mat-icon {
+  font-size: 18px;
+  width: 18px;
+  height: 18px;
+  color: #c62828;
+  flex-shrink: 0;
+}
+
+/* ── Tabla ───────────────────────────────────────────────────────────────────── */
+
+.table-wrapper {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  overflow: hidden;
+  margin-bottom: 24px;
+}
+
+.riesgo-table {
+  width: 100%;
+}
+
+.mat-mdc-header-cell {
+  font-weight: 600;
+  color: #555;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.data-row:hover {
+  background: #fff8f5;
+}
+
+.row-selected {
+  background: #fff3e0 !important;
+}
+
+/* ── Celda prospecto ─────────────────────────────────────────────────────────── */
+
+.prospecto-nombre {
+  font-weight: 600;
+  color: #1a1a2e;
+}
+
+/* ── Celular enmascarado ─────────────────────────────────────────────────────── */
+
+.celular-masked {
+  font-family: monospace;
+  font-size: 0.9rem;
+  color: #555;
+}
+
+/* ── Campaña chip ─────────────────────────────────────────────────────────────── */
+
+.campania-chip {
+  display: inline-block;
+  padding: 3px 10px;
+  background: #e3f2fd;
+  color: #1565c0;
+  border-radius: 12px;
+  font-size: 0.8rem;
+  font-weight: 500;
+}
+
+/* ── Estado chip ─────────────────────────────────────────────────────────────── */
+
+.estado-chip {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 12px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+.estado-sin_gestionar {
+  background: #fce4ec;
+  color: #c62828;
+  border: 1px solid #ef9a9a;
+}
+
+.estado-en_gestion {
+  background: #e8f5e9;
+  color: #2e7d32;
+  border: 1px solid #a5d6a7;
+}
+
+.estado-en_seguimiento {
+  background: #e3f2fd;
+  color: #1565c0;
+  border: 1px solid #90caf9;
+}
+
+.estado-pendiente {
+  background: #f3e5f5;
+  color: #6a1b9a;
+  border: 1px solid #ce93d8;
+}
+
+/* ── Fecha agenda ─────────────────────────────────────────────────────────────── */
+
+.fecha-agenda {
+  font-size: 0.85rem;
+  color: #666;
+  white-space: nowrap;
+}
+
+/* ── Colaborador ausente ─────────────────────────────────────────────────────── */
+
+.colaborador-ausente {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-weight: 500;
+  color: #c62828;
+}
+
+.ausente-icon {
+  font-size: 16px;
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+}
+
+/* ── Acordeón reasignar todo ─────────────────────────────────────────────────── */
+
+.reasignar-todo-accordion {
+  margin-top: 8px;
+}
+
+.reasignar-todo-form {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding-top: 8px;
+}
+
+.field-origen,
+.field-destino-todo {
+  min-width: 200px;
+  flex: 1;
+}
+
+.field-motivo-todo {
+  min-width: 220px;
+  flex: 2;
+}
+
+.btn-reasignar-todo {
+  height: 56px;
+  white-space: nowrap;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 600;
+  border-radius: 8px;
+  flex-shrink: 0;
+}
+
+/* ── Spinner dentro de botones ───────────────────────────────────────────────── */
+
+.btn-spinner {
+  margin-right: 4px;
+}
+
+/* ── Responsive ──────────────────────────────────────────────────────────────── */
+
+@media (max-width: 768px) {
+  .reasignacion-container {
+    padding: 16px;
+  }
+
+  .page-header {
+    flex-direction: column;
+  }
+
+  .accion-bar-inner,
+  .reasignar-todo-form {
+    flex-direction: column;
+  }
+
+  .field-destino,
+  .field-motivo,
+  .field-origen,
+  .field-destino-todo,
+  .field-motivo-todo {
+    min-width: 100%;
+    width: 100%;
+  }
+
+  .btn-reasignar,
+  .btn-reasignar-todo {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .riesgo-table {
+    display: block;
+    overflow-x: auto;
+  }
+}

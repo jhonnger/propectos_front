@@ -809,11 +809,31 @@ export async function mockNoCerro(
 
 // ── Slice 1.5: Dashboard del dueño helpers ───────────────────────────────────
 
+export interface AsistenciaColaboradorMock {
+  usuarioId: number;
+  nombre: string;
+  jornadaIniciada: boolean;
+  inicio: string | null;
+  fin: string | null;
+  ausente: boolean;
+}
+
+export interface AsistenciaDiaMock {
+  fecha?: string;
+  esLaborable: boolean;
+  limiteAusencia?: string;
+  totalColaboradores?: number;
+  totalAusentes?: number;
+  colaboradores?: AsistenciaColaboradorMock[];
+}
+
 export interface DashboardMockOptions {
   fail?: boolean;
   failStatus?: number;
   failMessage?: string;
   porCerrar?: number;
+  asistencia?: AsistenciaDiaMock | null;
+  porEnRiesgo?: number;
   dia?: Partial<{
     ventasCerradas: number;
     derivados: number;
@@ -919,6 +939,32 @@ export const MOCK_DASHBOARD_DATA = {
       avancePct: 1.0,
     },
   ],
+  asistencia: {
+    fecha: '2026-05-18',
+    esLaborable: true,
+    limiteAusencia: '2026-05-18T09:45',
+    totalColaboradores: 3,
+    totalAusentes: 1,
+    colaboradores: [
+      {
+        usuarioId: 5,
+        nombre: 'Ana Perez',
+        jornadaIniciada: true,
+        inicio: '09:05',
+        fin: null,
+        ausente: false,
+      },
+      {
+        usuarioId: 6,
+        nombre: 'Luis Gomez',
+        jornadaIniciada: false,
+        inicio: null,
+        fin: null,
+        ausente: true,
+      },
+    ],
+  },
+  porEnRiesgo: 4,
 };
 
 export const MOCK_DRILLDOWN_RESULTADOS = [
@@ -972,14 +1018,28 @@ export async function mockDashboardAdmin(
       return;
     }
 
-    const body = {
+    // asistencia: opts.asistencia===null omits it (simulates older backend);
+    // opts.asistencia===undefined uses the default mock data.
+    const asistencia =
+      opts.asistencia === null
+        ? undefined
+        : opts.asistencia !== undefined
+          ? { ...MOCK_DASHBOARD_DATA.asistencia, ...opts.asistencia }
+          : MOCK_DASHBOARD_DATA.asistencia;
+
+    const body: Record<string, unknown> = {
       dia: { ...MOCK_DASHBOARD_DATA.dia, ...(opts.dia ?? {}) },
       mes: { ...MOCK_DASHBOARD_DATA.mes, ...(opts.mes ?? {}) },
       ranking: MOCK_DASHBOARD_DATA.ranking,
       embudo: MOCK_DASHBOARD_DATA.embudo,
       porCerrar: opts.porCerrar ?? MOCK_DASHBOARD_DATA.porCerrar,
       bases: MOCK_DASHBOARD_DATA.bases,
+      porEnRiesgo: opts.porEnRiesgo ?? MOCK_DASHBOARD_DATA.porEnRiesgo,
     };
+
+    if (asistencia !== undefined) {
+      body['asistencia'] = asistencia;
+    }
 
     await route.fulfill({
       status: 200,
@@ -1046,6 +1106,712 @@ export async function mockExportarProspectos(page: Page): Promise<void> {
     });
   });
 }
+
+// ── Slice 2.1: Configuración del dueño helpers ───────────────────────────────
+
+export interface ConfiguracionDuenoMock {
+  id?: number;
+  toggleEmailInstantaneo?: boolean;
+  toggleEmailDigest?: boolean;
+  toggleResumenDiario?: boolean;
+  metaVentasMensual?: number;
+  metaDerivadosPorColaborador?: number;
+  plazoReevaluacionSbsDias?: number;
+  maxIntentosNoContesto?: number;
+  reglaReintentoNoContesto?: string;
+  horaInicioJornada?: string;
+  minutosGraciaAusencia?: number;
+  ultimoEnvioResumenOk?: boolean | null;
+  ultimoEnvioResumenFecha?: string | null;
+  ultimoEnvioResumenDetalle?: string | null;
+}
+
+export interface ConfiguracionMockOptions {
+  /** Si true, GET /api/reportes/config responde 500. */
+  failGet?: boolean;
+  /** Si true, PUT /api/reportes/config responde 400 con `failMessage`. */
+  failPut?: boolean;
+  failMessage?: string;
+  /** Valores de la configuración a devolver en GET y en el PUT exitoso. */
+  config?: ConfiguracionDuenoMock;
+}
+
+export interface EstadoEmailMockOptions {
+  mailConfigurado?: boolean;
+  ok?: boolean;
+  fecha?: string | null;
+  detalle?: string | null;
+  toggleResumenDiario?: boolean;
+}
+
+export const MOCK_CONFIGURACION_DEFAULT: Required<ConfiguracionDuenoMock> = {
+  id: 1,
+  toggleEmailInstantaneo: false,
+  toggleEmailDigest: false,
+  toggleResumenDiario: false,
+  metaVentasMensual: 20,
+  metaDerivadosPorColaborador: 5,
+  plazoReevaluacionSbsDias: 90,
+  maxIntentosNoContesto: 6,
+  reglaReintentoNoContesto: '+3h,+24h,+48h,+72h,+120h',
+  horaInicioJornada: '09:00',
+  minutosGraciaAusencia: 45,
+  ultimoEnvioResumenOk: null,
+  ultimoEnvioResumenFecha: null,
+  ultimoEnvioResumenDetalle: null,
+};
+
+/**
+ * Mockea GET y PUT /api/reportes/config.
+ * Debe llamarse DESPUÉS de mockBackend().
+ */
+export async function mockConfiguracion(
+  page: Page,
+  opts: ConfiguracionMockOptions = {},
+): Promise<void> {
+  if (REAL_BACKEND) return;
+
+  const config = { ...MOCK_CONFIGURACION_DEFAULT, ...(opts.config ?? {}) };
+
+  // GET /api/reportes/config
+  await page.route('**/api/reportes/config', async (route) => {
+    if (route.request().method() === 'GET') {
+      if (opts.failGet) {
+        await route.fulfill({
+          status: 500,
+          contentType: 'application/json',
+          body: JSON.stringify({ message: 'Error al cargar la configuración.' }),
+        });
+        return;
+      }
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify(config),
+      });
+      return;
+    }
+
+    // PUT /api/reportes/config
+    if (route.request().method() === 'PUT') {
+      if (opts.failPut) {
+        await route.fulfill({
+          status: 400,
+          contentType: 'application/json',
+          body: JSON.stringify({
+            message: opts.failMessage ?? 'Error de validación.',
+          }),
+        });
+        return;
+      }
+      // Merge el patch con la config base y devolver el resultado
+      let patch: Partial<ConfiguracionDuenoMock> = {};
+      try { patch = JSON.parse(route.request().postData() ?? '{}') as Partial<ConfiguracionDuenoMock>; } catch { /* */ }
+      const updated = { ...config, ...patch };
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify(updated),
+      });
+      return;
+    }
+
+    await route.fallback();
+  });
+}
+
+/**
+ * Mockea GET /api/reportes/estado-email.
+ * Debe llamarse DESPUÉS de mockBackend().
+ */
+export async function mockEstadoEmail(
+  page: Page,
+  opts: EstadoEmailMockOptions = {},
+): Promise<void> {
+  if (REAL_BACKEND) return;
+
+  await page.route('**/api/reportes/estado-email', async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        ok: opts.ok ?? true,
+        fecha: opts.fecha ?? null,
+        detalle: opts.detalle ?? null,
+        toggleResumenDiario: opts.toggleResumenDiario ?? false,
+        mailConfigurado: opts.mailConfigurado ?? true,
+      }),
+    });
+  });
+}
+
+// ── Slice 2.2: Jornada RF-21 helpers ────────────────────────────────────────
+
+export interface JornadaEstadoMock {
+  fecha?: string;
+  iniciada?: boolean;
+  finalizada?: boolean;
+  inicio?: string | null;
+  fin?: string | null;
+}
+
+export interface JornadaMockOptions {
+  /** Estado inicial devuelto por GET /api/jornada/hoy */
+  estadoInicial?: JornadaEstadoMock;
+  /** Estado devuelto tras POST /api/jornada/iniciar */
+  estadoTrasIniciar?: JornadaEstadoMock;
+  /** Estado devuelto tras POST /api/jornada/finalizar */
+  estadoTrasFinalizar?: JornadaEstadoMock;
+  /** Si true, POST finalizar responde 400 con failMessage */
+  failFinalizar?: boolean;
+  failMessage?: string;
+}
+
+const JORNADA_HOY = '2026-05-18';
+
+/**
+ * Mockea GET /api/jornada/hoy, POST /api/jornada/iniciar y POST /api/jornada/finalizar.
+ * Debe llamarse DESPUÉS de mockBackend().
+ */
+export async function mockJornada(
+  page: Page,
+  opts: JornadaMockOptions = {},
+): Promise<void> {
+  if (REAL_BACKEND) return;
+
+  const estadoInicial: Required<JornadaEstadoMock> = {
+    fecha: JORNADA_HOY,
+    iniciada: false,
+    finalizada: false,
+    inicio: null,
+    fin: null,
+    ...(opts.estadoInicial ?? {}),
+  };
+
+  const estadoTrasIniciar: Required<JornadaEstadoMock> = {
+    fecha: JORNADA_HOY,
+    iniciada: true,
+    finalizada: false,
+    inicio: `${JORNADA_HOY}T08:00:00`,
+    fin: null,
+    ...(opts.estadoTrasIniciar ?? {}),
+  };
+
+  const estadoTrasFinalizar: Required<JornadaEstadoMock> = {
+    fecha: JORNADA_HOY,
+    iniciada: true,
+    finalizada: true,
+    inicio: `${JORNADA_HOY}T08:00:00`,
+    fin: `${JORNADA_HOY}T17:00:00`,
+    ...(opts.estadoTrasFinalizar ?? {}),
+  };
+
+  // GET /api/jornada/hoy
+  await page.route('**/api/jornada/hoy', async (route) => {
+    if (route.request().method() !== 'GET') { await route.fallback(); return; }
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify(estadoInicial),
+    });
+  });
+
+  // POST /api/jornada/iniciar
+  await page.route('**/api/jornada/iniciar', async (route) => {
+    if (route.request().method() !== 'POST') { await route.fallback(); return; }
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify(estadoTrasIniciar),
+    });
+  });
+
+  // POST /api/jornada/finalizar
+  await page.route('**/api/jornada/finalizar', async (route) => {
+    if (route.request().method() !== 'POST') { await route.fallback(); return; }
+    if (opts.failFinalizar) {
+      await route.fulfill({
+        status: 400,
+        contentType: 'application/json',
+        body: JSON.stringify({ message: opts.failMessage ?? 'La jornada no ha sido iniciada.' }),
+      });
+      return;
+    }
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify(estadoTrasFinalizar),
+    });
+  });
+}
+
+// ── Slice 2.2: Calendario RF-22 helpers ─────────────────────────────────────
+
+export interface FeriadoMock {
+  id: number;
+  fecha: string;
+  esFeriado: boolean;
+  descripcion: string;
+}
+
+export interface CalendarioMockOptions {
+  feriados?: FeriadoMock[];
+  failGet?: boolean;
+  failPost?: boolean;
+  failPostMessage?: string;
+  failDelete?: boolean;
+  failDeleteMessage?: string;
+}
+
+export const MOCK_FERIADOS_DEFAULT: FeriadoMock[] = [
+  { id: 1, fecha: '2026-01-01', esFeriado: true, descripcion: 'Año Nuevo' },
+  { id: 2, fecha: '2026-05-01', esFeriado: true, descripcion: 'Dia del Trabajo' },
+  { id: 3, fecha: '2026-07-28', esFeriado: true, descripcion: 'Fiestas Patrias' },
+];
+
+/**
+ * Mockea GET /api/calendario, POST /api/calendario y DELETE /api/calendario/{id}.
+ * Debe llamarse DESPUÉS de mockBackend().
+ */
+export async function mockCalendario(
+  page: Page,
+  opts: CalendarioMockOptions = {},
+): Promise<void> {
+  if (REAL_BACKEND) return;
+
+  const feriados = opts.feriados ?? MOCK_FERIADOS_DEFAULT;
+
+  // DELETE /api/calendario/{id} — debe registrarse ANTES que el GET para que Playwright (LIFO)
+  // lo evalúe correctamente al comparar path exacto vs. prefijo.
+  await page.route('**/api/calendario/**', async (route) => {
+    if (route.request().method() !== 'DELETE') { await route.fallback(); return; }
+    if (opts.failDelete) {
+      await route.fulfill({
+        status: 400,
+        contentType: 'application/json',
+        body: JSON.stringify({ message: opts.failDeleteMessage ?? 'Feriado no encontrado.' }),
+      });
+      return;
+    }
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({ ok: true }),
+    });
+  });
+
+  // GET + POST /api/calendario (path exacto sin trailing segment)
+  await page.route(
+    (url) => {
+      const path = new URL(url).pathname;
+      return path.endsWith('/api/calendario');
+    },
+    async (route) => {
+      const method = route.request().method();
+
+      if (method === 'GET') {
+        if (opts.failGet) {
+          await route.fulfill({
+            status: 500,
+            contentType: 'application/json',
+            body: JSON.stringify({ message: 'Error al cargar el calendario.' }),
+          });
+          return;
+        }
+        await route.fulfill({
+          status: 200,
+          contentType: 'application/json',
+          body: JSON.stringify(feriados),
+        });
+        return;
+      }
+
+      if (method === 'POST') {
+        if (opts.failPost) {
+          await route.fulfill({
+            status: 400,
+            contentType: 'application/json',
+            body: JSON.stringify({ message: opts.failPostMessage ?? 'Fecha duplicada.' }),
+          });
+          return;
+        }
+        let body: { fecha?: string; descripcion?: string } = {};
+        try { body = JSON.parse(route.request().postData() ?? '{}') as typeof body; } catch { /* */ }
+        const newItem: FeriadoMock = {
+          id: 99,
+          fecha: body.fecha ?? '2026-12-25',
+          esFeriado: true,
+          descripcion: body.descripcion ?? 'Feriado nuevo',
+        };
+        await route.fulfill({
+          status: 200,
+          contentType: 'application/json',
+          body: JSON.stringify(newItem),
+        });
+        return;
+      }
+
+      await route.fallback();
+    },
+  );
+}
+
+// ── Slice 2.3: Reasignación + "En riesgo" (RF-23) helpers ───────────────────
+
+export interface EnRiesgoMockItem {
+  asignacionId: number;
+  prospectoId: number;
+  nombre: string;
+  celular: string;
+  campania: string;
+  estado: string;
+  fechaAgenda: string | null;
+  colaboradorAusenteId: number;
+  colaboradorAusente: string;
+}
+
+export interface EnRiesgoMockOptions {
+  resultados?: EnRiesgoMockItem[];
+  total?: number;
+  nota?: string;
+  fail?: boolean;
+  failMessage?: string;
+}
+
+export interface ReasignarMockOptions {
+  fail?: boolean;
+  failMessage?: string;
+  reasignados?: number;
+  destinoId?: number;
+  destinoNombre?: string;
+}
+
+export interface ReasignarTodoMockOptions {
+  fail?: boolean;
+  failMessage?: string;
+  reasignados?: number;
+  destinoId?: number;
+  destinoNombre?: string;
+}
+
+export const MOCK_EN_RIESGO_ITEMS: EnRiesgoMockItem[] = [
+  {
+    asignacionId: 1,
+    prospectoId: 1,
+    nombre: 'Rea2 Sig',
+    celular: '*****000',
+    campania: 'CampR',
+    estado: 'SIN_GESTIONAR',
+    fechaAgenda: null,
+    colaboradorAusenteId: 2,
+    colaboradorAusente: 'Col c1',
+  },
+  {
+    asignacionId: 2,
+    prospectoId: 2,
+    nombre: 'Pedro Torres',
+    celular: '*****001',
+    campania: 'CampA',
+    estado: 'EN_SEGUIMIENTO',
+    fechaAgenda: '2026-05-18T10:00:00',
+    colaboradorAusenteId: 2,
+    colaboradorAusente: 'Col c1',
+  },
+];
+
+/**
+ * Mockea GET /api/reasignacion/en-riesgo.
+ * Debe llamarse DESPUÉS de mockBackend().
+ */
+export async function mockEnRiesgo(
+  page: Page,
+  opts: EnRiesgoMockOptions = {},
+): Promise<void> {
+  if (REAL_BACKEND) return;
+
+  await page.route('**/api/reasignacion/en-riesgo', async (route) => {
+    if (route.request().method() !== 'GET') { await route.fallback(); return; }
+
+    if (opts.fail) {
+      await route.fulfill({
+        status: 500,
+        contentType: 'application/json',
+        body: JSON.stringify({ message: opts.failMessage ?? 'Error al cargar prospectos en riesgo.' }),
+      });
+      return;
+    }
+
+    const resultados = opts.resultados ?? [];
+    const total = opts.total ?? resultados.length;
+
+    const body: Record<string, unknown> = { total, resultados };
+    if (total === 0 && opts.nota) {
+      body['nota'] = opts.nota;
+    }
+
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify(body),
+    });
+  });
+}
+
+/**
+ * Mockea POST /api/reasignacion (reasignacion de IDs seleccionados).
+ * Debe llamarse DESPUÉS de mockBackend().
+ */
+export async function mockReasignar(
+  page: Page,
+  opts: ReasignarMockOptions = {},
+): Promise<void> {
+  if (REAL_BACKEND) return;
+
+  await page.route(
+    (url) => {
+      const path = new URL(url).pathname;
+      return path.endsWith('/api/reasignacion');
+    },
+    async (route) => {
+      if (route.request().method() !== 'POST') { await route.fallback(); return; }
+
+      if (opts.fail) {
+        await route.fulfill({
+          status: 400,
+          contentType: 'application/json',
+          body: JSON.stringify({ message: opts.failMessage ?? 'Error al reasignar.' }),
+        });
+        return;
+      }
+
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          ok: true,
+          reasignados: opts.reasignados ?? 2,
+          destinoId: opts.destinoId ?? 3,
+          destinoNombre: opts.destinoNombre ?? 'Beta Dos',
+        }),
+      });
+    },
+  );
+}
+
+/**
+ * Mockea POST /api/reasignacion/colaborador/{origenId}.
+ * Debe llamarse DESPUÉS de mockBackend().
+ */
+export async function mockReasignarTodoColaborador(
+  page: Page,
+  opts: ReasignarTodoMockOptions = {},
+): Promise<void> {
+  if (REAL_BACKEND) return;
+
+  await page.route('**/api/reasignacion/colaborador/**', async (route) => {
+    if (route.request().method() !== 'POST') { await route.fallback(); return; }
+
+    if (opts.fail) {
+      await route.fulfill({
+        status: 400,
+        contentType: 'application/json',
+        body: JSON.stringify({ message: opts.failMessage ?? 'El colaborador no tiene casos activos.' }),
+      });
+      return;
+    }
+
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        ok: true,
+        reasignados: opts.reasignados ?? 5,
+        destinoId: opts.destinoId ?? 3,
+        destinoNombre: opts.destinoNombre ?? 'Beta Dos',
+      }),
+    });
+  });
+}
+
+/**
+ * Mockea GET /api/usuarios/no-admins (si no está ya mockeado por mockAsignacionMulti).
+ * Debe llamarse DESPUÉS de mockBackend().
+ */
+export async function mockUsuariosNoAdmins(page: Page): Promise<void> {
+  if (REAL_BACKEND) return;
+
+  await page.route('**/api/usuarios/no-admins**', async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify(MOCK_USUARIOS),
+    });
+  });
+}
+
+// ── Slice 2.5: Bitácora global (RF-20) helpers ──────────────────────────────
+
+export interface BitacoraFilaMock {
+  contactoId: number;
+  asignacionId: number;
+  prospectoId: number;
+  fecha: string;
+  colaborador: string;
+  prospecto: string;
+  celular: string;
+  campania: string;
+  base: string;
+  estadoResultado: string;
+  submotivoNoContesto: string | null;
+  quienContesto: string | null;
+  verificacionSbs: string | null;
+  duracionGestion: number | null;
+  comentario: string | null;
+}
+
+export interface BitacoraMockOptions {
+  /** Si true, GET /api/reportes/bitacora responde 400. */
+  fail?: boolean;
+  failMessage?: string;
+  /** Si true, devuelve resultados vacíos con total=0. */
+  empty?: boolean;
+  resultados?: BitacoraFilaMock[];
+  total?: number;
+}
+
+export const MOCK_BITACORA_FILAS: BitacoraFilaMock[] = [
+  {
+    contactoId: 1,
+    asignacionId: 10,
+    prospectoId: 20,
+    fecha: '2026-05-10T14:03:00',
+    colaborador: 'Ana Perez',
+    prospecto: 'Juan Lopez',
+    celular: '*****789',
+    campania: 'Campaña A',
+    base: 'base_mayo.xlsx',
+    estadoResultado: 'NO_CONTESTO',
+    submotivoNoContesto: 'BUZON',
+    quienContesto: 'TITULAR',
+    verificacionSbs: 'APTO',
+    duracionGestion: 125,
+    comentario: 'Reagendar',
+  },
+  {
+    contactoId: 2,
+    asignacionId: 11,
+    prospectoId: 21,
+    fecha: '2026-05-10T15:20:00',
+    colaborador: 'Beta Dos',
+    prospecto: 'Maria Garcia',
+    celular: '*****456',
+    campania: 'Campaña B',
+    base: 'base_abril.xlsx',
+    estadoResultado: 'AGENDADO',
+    submotivoNoContesto: null,
+    quienContesto: 'TITULAR',
+    verificacionSbs: 'APTO',
+    duracionGestion: 240,
+    comentario: 'Cita para el lunes',
+  },
+  {
+    contactoId: 3,
+    asignacionId: 12,
+    prospectoId: 22,
+    fecha: '2026-05-11T09:45:00',
+    colaborador: 'Ana Perez',
+    prospecto: 'Carlos Quispe',
+    celular: '*****123',
+    campania: 'Campaña A',
+    base: 'base_mayo.xlsx',
+    estadoResultado: 'INTERESADO',
+    submotivoNoContesto: null,
+    quienContesto: 'TITULAR',
+    verificacionSbs: null,
+    duracionGestion: 310,
+    comentario: null,
+  },
+];
+
+/**
+ * Mockea GET /api/reportes/bitacora (con query params) y
+ * GET /api/reportes/bitacora/exportar (blob xlsx).
+ * Debe llamarse DESPUÉS de mockBackend().
+ */
+export async function mockBitacora(
+  page: Page,
+  opts: BitacoraMockOptions = {},
+): Promise<void> {
+  if (REAL_BACKEND) return;
+
+  // ── GET /api/reportes/bitacora/exportar ─────────────────────────────────
+  await page.route('**/api/reportes/bitacora/exportar**', async (route) => {
+    if (route.request().method() !== 'GET') { await route.fallback(); return; }
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      headers: {
+        'Content-Disposition': 'attachment; filename="bitacora.xlsx"',
+      },
+      body: Buffer.from('PK mock bitacora xlsx'),
+    });
+  });
+
+  // ── GET /api/reportes/bitacora (paginado) ───────────────────────────────
+  await page.route('**/api/reportes/bitacora**', async (route) => {
+    if (route.request().method() !== 'GET') { await route.fallback(); return; }
+
+    if (opts.fail) {
+      await route.fulfill({
+        status: 400,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          message: opts.failMessage ?? 'Parámetro de fecha inválido.',
+        }),
+      });
+      return;
+    }
+
+    if (opts.empty) {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          total: 0,
+          totalPaginas: 0,
+          pagina: 1,
+          tamano: 25,
+          resultados: [],
+        }),
+      });
+      return;
+    }
+
+    const resultados = opts.resultados ?? MOCK_BITACORA_FILAS;
+    const total = opts.total ?? resultados.length;
+    const url = new URL(route.request().url());
+    const pagina = parseInt(url.searchParams.get('pagina') ?? '1', 10);
+    const tamano = parseInt(url.searchParams.get('tamano') ?? '25', 10);
+
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        total,
+        totalPaginas: Math.ceil(total / tamano),
+        pagina,
+        tamano,
+        resultados,
+      }),
+    });
+  });
+}
+
+/**
+ * Mockea GET /api/usuarios/no-admins (si no está ya mockeado por mockAsignacionMulti).
+ * Alias para los specs de bitácora que necesitan el dropdown de colaboradores.
+ * (El helper mockUsuariosNoAdmins ya existe; este comentario documenta el reuso.)
+ */
 
 /**
  * Mockea POST /api/contactos (registrar atención — path exacto, sin subpaths).

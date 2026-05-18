@@ -301,6 +301,7 @@
 .badge-green  { background: rgba(16, 185, 129, 0.1);  color: #059669; }
 .badge-orange { background: rgba(249, 115, 22, 0.12); color: #c2410c; }
 .badge-gray   { background: #f1f5f9;                  color: #64748b; }
+.badge-red    { background: rgba(239, 68, 68, 0.1);   color: #dc2626; }
 
 /* ── Bases avance ──────────────────────────────────────────────────────────── */
 .avance-cell {
@@ -375,6 +376,107 @@
   height: 2rem;
 }
 
+/* ── Asistencia + En riesgo row ────────────────────────────────────────────── */
+.asistencia-riesgo-row {
+  display: grid;
+  grid-template-columns: 1fr 260px;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.asistencia-card {
+  min-width: 0;
+}
+
+.no-laborable-note {
+  color: #94a3b8;
+  font-size: 0.875rem;
+  font-style: italic;
+  margin: 0.5rem 0 0 0;
+}
+
+.asistencia-resumen {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: #334155;
+  margin-bottom: 0.875rem;
+}
+
+.asistencia-resumen .separator {
+  color: #cbd5e1;
+}
+
+.ausentes-count {
+  font-weight: 700;
+}
+
+.ausentes-red   { color: #dc2626; }
+.ausentes-green { color: #059669; }
+
+.asistencia-table {
+  width: 100%;
+}
+
+.asistencia-table th {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.025em;
+}
+
+.asistencia-table td {
+  font-size: 0.875rem;
+  color: #334155;
+}
+
+/* ── En riesgo card ────────────────────────────────────────────────────────── */
+.en-riesgo-card {
+  display: flex;
+  flex-direction: column;
+}
+
+.en-riesgo-body {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 1rem 0;
+  flex: 1;
+}
+
+.en-riesgo-number {
+  font-size: 3rem;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.en-riesgo-red   { color: #dc2626; }
+.en-riesgo-green { color: #059669; }
+
+.en-riesgo-label {
+  font-size: 0.8125rem;
+  color: #64748b;
+  text-align: center;
+}
+
+.en-riesgo-btn {
+  border-radius: 8px;
+  width: 100%;
+  margin-top: 0.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.375rem;
+  color: white !important;
+}
+
+.en-riesgo-btn-red     { background: #dc2626 !important; }
+.en-riesgo-btn-neutral { background: linear-gradient(135deg, #667eea 0%, #5b3df5 100%) !important; }
+
 /* ── Responsive ────────────────────────────────────────────────────────────── */
 @media (max-width: 1200px) {
   .kpi-grid {
@@ -387,6 +489,9 @@
 
 @media (max-width: 900px) {
   .mid-row {
+    grid-template-columns: 1fr;
+  }
+  .asistencia-riesgo-row {
     grid-template-columns: 1fr;
   }
 }

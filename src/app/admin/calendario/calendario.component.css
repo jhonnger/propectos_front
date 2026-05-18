@@ -1,0 +1,166 @@
+.calendario-container {
+  padding: 1.5rem;
+  max-width: 900px;
+}
+
+/* ── Header ──────────────────────────────────────────────────────────────────── */
+
+.page-header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.header-icon-wrapper {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.header-icon-wrapper mat-icon {
+  color: white;
+  font-size: 1.5rem;
+  width: 1.5rem;
+  height: 1.5rem;
+}
+
+.page-title {
+  font-size: 1.375rem;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0;
+}
+
+.page-subtitle {
+  font-size: 0.875rem;
+  color: #64748b;
+  margin: 0.125rem 0 0;
+}
+
+/* ── Selector año ────────────────────────────────────────────────────────────── */
+
+.anio-selector {
+  margin-bottom: 1.5rem;
+}
+
+.anio-field {
+  width: 160px;
+}
+
+/* ── Secciones ───────────────────────────────────────────────────────────────── */
+
+.section-title {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #1e293b;
+  margin: 0 0 1rem;
+}
+
+.form-section {
+  background: white;
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
+  padding: 1.25rem 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.form-agregar {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.form-field {
+  width: 180px;
+}
+
+.form-field-descripcion {
+  width: 280px;
+}
+
+.btn-agregar {
+  height: 56px;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  border-radius: 8px;
+  font-weight: 600;
+  margin-top: 0;
+}
+
+.btn-spinner {
+  margin-right: 0.25rem;
+}
+
+.error-agregar {
+  color: #dc2626;
+  font-size: 0.875rem;
+  margin: 0.5rem 0 0;
+}
+
+/* ── Tabla ───────────────────────────────────────────────────────────────────── */
+
+.table-section {
+  background: white;
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
+  overflow: hidden;
+}
+
+.feriados-table {
+  width: 100%;
+}
+
+/* ── Estados vacío / error / cargando ─────────────────────────────────────── */
+
+.loading-state,
+.empty-state,
+.error-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 2.5rem 1.5rem;
+  text-align: center;
+  color: #64748b;
+  font-size: 0.9375rem;
+}
+
+.loading-state mat-icon,
+.empty-state mat-icon {
+  font-size: 2.5rem;
+  width: 2.5rem;
+  height: 2.5rem;
+  color: #94a3b8;
+}
+
+.error-state mat-icon {
+  font-size: 2.5rem;
+  width: 2.5rem;
+  height: 2.5rem;
+}
+
+/* ── Responsive ──────────────────────────────────────────────────────────────── */
+
+@media (max-width: 600px) {
+  .calendario-container {
+    padding: 1rem;
+  }
+
+  .form-field,
+  .form-field-descripcion {
+    width: 100%;
+  }
+
+  .btn-agregar {
+    width: 100%;
+    justify-content: center;
+  }
+}

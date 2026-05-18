@@ -1,0 +1,158 @@
+<div class="calendario-container" data-testid="calendario-content">
+
+  <!-- ── Header ─────────────────────────────────────────────────────────────── -->
+  <div class="page-header">
+    <div class="header-icon-wrapper" aria-hidden="true">
+      <mat-icon>event</mat-icon>
+    </div>
+    <div>
+      <h1 class="page-title">Calendario Laboral</h1>
+      <p class="page-subtitle">Gestiona los dias no laborables y feriados</p>
+    </div>
+  </div>
+
+  <!-- ── Selector de año ────────────────────────────────────────────────────── -->
+  <div class="anio-selector" data-testid="anio-selector">
+    <mat-form-field appearance="outline" class="anio-field">
+      <mat-label>Año</mat-label>
+      <mat-select
+        [(ngModel)]="anioSeleccionado"
+        (ngModelChange)="onAnioChange()"
+        aria-label="Seleccionar año">
+        @for (anio of anios; track anio) {
+          <mat-option [value]="anio">{{ anio }}</mat-option>
+        }
+      </mat-select>
+    </mat-form-field>
+  </div>
+
+  <!-- ── Formulario agregar feriado ─────────────────────────────────────────── -->
+  <section class="form-section" aria-label="Agregar feriado">
+    <h2 class="section-title">Agregar feriado</h2>
+
+    <form [formGroup]="formAgregar" (ngSubmit)="agregarFeriado()" class="form-agregar" novalidate>
+
+      <mat-form-field appearance="outline" class="form-field">
+        <mat-label>Fecha (AAAA-MM-DD)</mat-label>
+        <input
+          matInput
+          type="date"
+          formControlName="fecha"
+          data-testid="input-fecha"
+          aria-label="Fecha del feriado" />
+        @if (fechaCtrl?.invalid && fechaCtrl?.touched) {
+          <mat-error>Ingresa una fecha válida (AAAA-MM-DD)</mat-error>
+        }
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="form-field form-field-descripcion">
+        <mat-label>Descripcion</mat-label>
+        <input
+          matInput
+          formControlName="descripcion"
+          maxlength="200"
+          placeholder="Ej: Navidad"
+          data-testid="input-descripcion"
+          aria-label="Descripcion del feriado" />
+        @if (descripcionCtrl?.invalid && descripcionCtrl?.touched) {
+          <mat-error>La descripcion es obligatoria</mat-error>
+        }
+      </mat-form-field>
+
+      <button
+        mat-flat-button
+        color="primary"
+        type="submit"
+        class="btn-agregar"
+        data-testid="btn-agregar-feriado"
+        [disabled]="agregando"
+        aria-label="Agregar feriado">
+        @if (agregando) {
+          <mat-spinner diameter="16" class="btn-spinner"></mat-spinner>
+        } @else {
+          <mat-icon>add</mat-icon>
+        }
+        Agregar
+      </button>
+
+    </form>
+
+    @if (errorAgregar) {
+      <p class="error-agregar" role="alert" data-testid="error-agregar">{{ errorAgregar }}</p>
+    }
+
+  </section>
+
+  <!-- ── Tabla de feriados ───────────────────────────────────────────────────── -->
+  <section class="table-section" aria-label="Lista de feriados">
+
+    @if (cargando) {
+      <div class="loading-state" data-testid="cargando-feriados">
+        <mat-spinner diameter="36"></mat-spinner>
+        <p>Cargando calendario...</p>
+      </div>
+    }
+
+    @if (!cargando && errorCarga) {
+      <div class="error-state" role="alert" data-testid="error-carga">
+        <mat-icon color="warn">error_outline</mat-icon>
+        <p>{{ errorCarga }}</p>
+        <button mat-stroked-button (click)="cargarFeriados()">Reintentar</button>
+      </div>
+    }
+
+    @if (!cargando && !errorCarga) {
+
+      @if (feriados.length === 0) {
+        <div class="empty-state" data-testid="sin-feriados">
+          <mat-icon>event_busy</mat-icon>
+          <p>No hay feriados registrados para {{ anioSeleccionado }}</p>
+        </div>
+      }
+
+      @if (feriados.length > 0) {
+        <table
+          mat-table
+          [dataSource]="feriados"
+          class="feriados-table"
+          data-testid="tabla-feriados"
+          aria-label="Feriados del año">
+
+          <!-- Fecha -->
+          <ng-container matColumnDef="fecha">
+            <th mat-header-cell *matHeaderCellDef>Fecha</th>
+            <td mat-cell *matCellDef="let f" data-testid="feriado-fecha">{{ formatFecha(f.fecha) }}</td>
+          </ng-container>
+
+          <!-- Descripcion -->
+          <ng-container matColumnDef="descripcion">
+            <th mat-header-cell *matHeaderCellDef>Descripcion</th>
+            <td mat-cell *matCellDef="let f" data-testid="feriado-descripcion">{{ f.descripcion }}</td>
+          </ng-container>
+
+          <!-- Acciones -->
+          <ng-container matColumnDef="acciones">
+            <th mat-header-cell *matHeaderCellDef>Acciones</th>
+            <td mat-cell *matCellDef="let f">
+              <button
+                mat-icon-button
+                color="warn"
+                (click)="eliminarFeriado(f)"
+                [attr.data-testid]="'btn-eliminar-' + f.id"
+                [matTooltip]="'Eliminar ' + f.descripcion"
+                aria-label="Eliminar feriado">
+                <mat-icon>delete</mat-icon>
+              </button>
+            </td>
+          </ng-container>
+
+          <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+          <tr mat-row *matRowDef="let row; columns: displayedColumns;" class="feriado-row" data-testid="feriado-row"></tr>
+        </table>
+      }
+
+    }
+
+  </section>
+
+</div>

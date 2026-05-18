@@ -1,0 +1,299 @@
+<div class="bitacora-container">
+
+  <!-- ── Encabezado ──────────────────────────────────────────────────────── -->
+  <div class="page-header">
+    <div class="header-info">
+      <h2 class="page-title" data-testid="bitacora-heading">
+        <mat-icon>receipt_long</mat-icon>
+        Bitácora
+      </h2>
+      <p class="page-subtitle">Registro global de atenciones a prospectos</p>
+    </div>
+    <div class="header-actions">
+      <button
+        mat-flat-button
+        color="primary"
+        class="btn-exportar"
+        [disabled]="exportando"
+        (click)="exportar()"
+        data-testid="btn-exportar"
+        aria-label="Exportar bitácora a Excel"
+      >
+        <mat-spinner *ngIf="exportando" diameter="18" class="btn-spinner"></mat-spinner>
+        <mat-icon *ngIf="!exportando">download</mat-icon>
+        Exportar Excel
+      </button>
+    </div>
+  </div>
+
+  <!-- ── Filtros ────────────────────────────────────────────────────────── -->
+  <div class="filtros-card">
+    <div class="filtros-grid">
+
+      <!-- Desde -->
+      <mat-form-field appearance="outline" class="filtro-field">
+        <mat-label>Desde</mat-label>
+        <input
+          matInput
+          [matDatepicker]="pickerDesde"
+          [(ngModel)]="desdeDate"
+          name="desde"
+          data-testid="input-desde"
+          placeholder="DD/MM/AAAA"
+        />
+        <mat-datepicker-toggle matIconSuffix [for]="pickerDesde"></mat-datepicker-toggle>
+        <mat-datepicker #pickerDesde></mat-datepicker>
+      </mat-form-field>
+
+      <!-- Hasta -->
+      <mat-form-field appearance="outline" class="filtro-field">
+        <mat-label>Hasta</mat-label>
+        <input
+          matInput
+          [matDatepicker]="pickerHasta"
+          [(ngModel)]="hastaDate"
+          name="hasta"
+          data-testid="input-hasta"
+          placeholder="DD/MM/AAAA"
+        />
+        <mat-datepicker-toggle matIconSuffix [for]="pickerHasta"></mat-datepicker-toggle>
+        <mat-datepicker #pickerHasta></mat-datepicker>
+      </mat-form-field>
+
+      <!-- Colaborador -->
+      <mat-form-field appearance="outline" class="filtro-field">
+        <mat-label>Colaborador</mat-label>
+        <mat-select
+          [(ngModel)]="filtroColaboradorId"
+          name="colaborador"
+          data-testid="select-colaborador"
+          aria-label="Filtrar por colaborador"
+        >
+          <mat-option [value]="null">Todos</mat-option>
+          <mat-option *ngFor="let u of colaboradores" [value]="u.id">
+            {{ u.nombreCompleto || (u.nombre + ' ' + u.apellidos) }}
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
+
+      <!-- Campaña (texto libre) -->
+      <mat-form-field appearance="outline" class="filtro-field">
+        <mat-label>Campaña</mat-label>
+        <input
+          matInput
+          [(ngModel)]="filtroCampania"
+          name="campania"
+          data-testid="input-campania"
+          placeholder="Nombre exacto de campaña"
+          maxlength="255"
+        />
+      </mat-form-field>
+
+      <!-- Resultado -->
+      <mat-form-field appearance="outline" class="filtro-field">
+        <mat-label>Resultado</mat-label>
+        <mat-select
+          [(ngModel)]="filtroResultado"
+          name="resultado"
+          data-testid="select-resultado"
+          aria-label="Filtrar por resultado de atención"
+        >
+          <mat-option value="">Todos</mat-option>
+          <mat-option *ngFor="let r of resultadoValues" [value]="r">
+            {{ resultadoLabels[r] }}
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
+
+      <!-- Quién contestó -->
+      <mat-form-field appearance="outline" class="filtro-field">
+        <mat-label>Quién contestó</mat-label>
+        <mat-select
+          [(ngModel)]="filtroQuienContesto"
+          name="quienContesto"
+          data-testid="select-quien-contesto"
+          aria-label="Filtrar por quién contestó"
+        >
+          <mat-option value="">Todos</mat-option>
+          <mat-option *ngFor="let q of quienContesoValues" [value]="q">
+            {{ quienContesoLabels[q] }}
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
+
+    </div>
+
+    <!-- Botones de acción -->
+    <div class="filtros-actions">
+      <button
+        mat-flat-button
+        color="primary"
+        (click)="buscar()"
+        data-testid="btn-buscar"
+        aria-label="Aplicar filtros y buscar"
+      >
+        <mat-icon>search</mat-icon>
+        Buscar
+      </button>
+      <button
+        mat-stroked-button
+        (click)="limpiar()"
+        data-testid="btn-limpiar"
+        aria-label="Limpiar filtros"
+      >
+        <mat-icon>clear</mat-icon>
+        Limpiar
+      </button>
+    </div>
+  </div>
+
+  <!-- ── Cargando ───────────────────────────────────────────────────────── -->
+  <div *ngIf="cargando" class="loading-overlay" role="status" aria-label="Cargando bitácora">
+    <mat-spinner diameter="48"></mat-spinner>
+    <span>Cargando bitácora...</span>
+  </div>
+
+  <!-- ── Estado vacío ───────────────────────────────────────────────────── -->
+  <div
+    *ngIf="!cargando && !errorCarga && filas.length === 0"
+    class="empty-state"
+    data-testid="bitacora-empty"
+    role="status"
+  >
+    <mat-icon>inbox</mat-icon>
+    <p>Sin resultados para los filtros aplicados.</p>
+  </div>
+
+  <!-- ── Tabla ──────────────────────────────────────────────────────────── -->
+  <ng-container *ngIf="!cargando && filas.length > 0">
+    <div class="table-wrapper">
+      <table
+        mat-table
+        [dataSource]="filas"
+        class="bitacora-table"
+        aria-label="Bitácora de atenciones"
+      >
+
+        <!-- Fecha -->
+        <ng-container matColumnDef="fecha">
+          <th mat-header-cell *matHeaderCellDef>Fecha</th>
+          <td mat-cell *matCellDef="let row">
+            <span class="fecha-cell" data-testid="fila-fecha">{{ formatFecha(row.fecha) }}</span>
+          </td>
+        </ng-container>
+
+        <!-- Colaborador -->
+        <ng-container matColumnDef="colaborador">
+          <th mat-header-cell *matHeaderCellDef>Colaborador</th>
+          <td mat-cell *matCellDef="let row">
+            <span class="colaborador-cell" [attr.data-testid]="'fila-colaborador'">{{ row.colaborador }}</span>
+          </td>
+        </ng-container>
+
+        <!-- Prospecto -->
+        <ng-container matColumnDef="prospecto">
+          <th mat-header-cell *matHeaderCellDef>Prospecto</th>
+          <td mat-cell *matCellDef="let row">
+            <span class="prospecto-nombre" [attr.data-testid]="'fila-prospecto'">{{ row.prospecto }}</span>
+          </td>
+        </ng-container>
+
+        <!-- Celular -->
+        <ng-container matColumnDef="celular">
+          <th mat-header-cell *matHeaderCellDef>Celular</th>
+          <td mat-cell *matCellDef="let row">
+            <span class="celular-masked">{{ row.celular }}</span>
+          </td>
+        </ng-container>
+
+        <!-- Campaña -->
+        <ng-container matColumnDef="campania">
+          <th mat-header-cell *matHeaderCellDef>Campaña</th>
+          <td mat-cell *matCellDef="let row">
+            <span class="campania-chip">{{ row.campania }}</span>
+          </td>
+        </ng-container>
+
+        <!-- Base -->
+        <ng-container matColumnDef="base">
+          <th mat-header-cell *matHeaderCellDef>Base</th>
+          <td mat-cell *matCellDef="let row">
+            <span class="base-cell">{{ row.base || '—' }}</span>
+          </td>
+        </ng-container>
+
+        <!-- Resultado -->
+        <ng-container matColumnDef="resultado">
+          <th mat-header-cell *matHeaderCellDef>Resultado</th>
+          <td mat-cell *matCellDef="let row">
+            <span
+              class="resultado-chip"
+              [class]="'resultado-' + row.estadoResultado?.toLowerCase()"
+              [attr.data-testid]="'fila-resultado'"
+            >
+              {{ resultadoLabel(row.estadoResultado) }}
+            </span>
+          </td>
+        </ng-container>
+
+        <!-- Quién contestó -->
+        <ng-container matColumnDef="quienContesto">
+          <th mat-header-cell *matHeaderCellDef>Quién contestó</th>
+          <td mat-cell *matCellDef="let row">
+            <span class="quien-chip">{{ quienContesoLabel(row.quienContesto) }}</span>
+          </td>
+        </ng-container>
+
+        <!-- SBS -->
+        <ng-container matColumnDef="sbs">
+          <th mat-header-cell *matHeaderCellDef>SBS</th>
+          <td mat-cell *matCellDef="let row">
+            <span
+              class="sbs-chip"
+              [class.sbs-apto]="row.verificacionSbs === 'APTO'"
+              [class.sbs-observado]="row.verificacionSbs === 'OBSERVADO'"
+            >{{ row.verificacionSbs || '—' }}</span>
+          </td>
+        </ng-container>
+
+        <!-- Duración -->
+        <ng-container matColumnDef="duracion">
+          <th mat-header-cell *matHeaderCellDef>Duración</th>
+          <td mat-cell *matCellDef="let row">
+            <span class="duracion-cell">{{ duracionLabel(row.duracionGestion) }}</span>
+          </td>
+        </ng-container>
+
+        <!-- Comentario -->
+        <ng-container matColumnDef="comentario">
+          <th mat-header-cell *matHeaderCellDef>Comentario</th>
+          <td mat-cell *matCellDef="let row">
+            <span
+              class="comentario-cell"
+              [matTooltip]="row.comentario ?? ''"
+              [matTooltipDisabled]="!row.comentario"
+            >
+              {{ row.comentario ? (row.comentario.length > 40 ? (row.comentario | slice:0:40) + '...' : row.comentario) : '—' }}
+            </span>
+          </td>
+        </ng-container>
+
+        <tr mat-header-row *matHeaderRowDef="displayedColumns; sticky: true"></tr>
+        <tr mat-row *matRowDef="let row; columns: displayedColumns;" class="data-row"></tr>
+      </table>
+    </div>
+
+    <!-- Paginador -->
+    <mat-paginator
+      [length]="total"
+      [pageSize]="tamano"
+      [pageSizeOptions]="pageSizeOptions"
+      [pageIndex]="pagina - 1"
+      (page)="onPageChange($event)"
+      showFirstLastButtons
+      aria-label="Paginación de la bitácora"
+      data-testid="bitacora-paginator"
+    ></mat-paginator>
+  </ng-container>
+
+</div>

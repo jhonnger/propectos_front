@@ -1,0 +1,285 @@
+<div class="reasignacion-container">
+
+  <!-- ── Page header ─────────────────────────────────────────────────────── -->
+  <div class="page-header">
+    <div class="header-info">
+      <h2 class="page-title">
+        <mat-icon>swap_horiz</mat-icon>
+        En riesgo / Reasignacion
+      </h2>
+      <p class="page-subtitle">Prospectos asignados a colaboradores ausentes hoy</p>
+    </div>
+    <div class="header-stats">
+      <div class="stat-badge" data-testid="total-en-riesgo">
+        <span class="stat-number">{{ total }}</span>
+        <span class="stat-label">en riesgo</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Loading ─────────────────────────────────────────────────────────── -->
+  <div *ngIf="cargando" class="loading-overlay" role="status" aria-label="Cargando prospectos en riesgo">
+    <mat-spinner diameter="48"></mat-spinner>
+    <span>Cargando prospectos en riesgo...</span>
+  </div>
+
+  <!-- ── Error de carga ──────────────────────────────────────────────────── -->
+  <div *ngIf="!cargando && errorCarga" class="error-state" data-testid="error-carga" role="alert">
+    <mat-icon>error_outline</mat-icon>
+    <span>{{ errorCarga }}</span>
+    <button mat-button color="primary" (click)="cargarDatos()">Reintentar</button>
+  </div>
+
+  <!-- ── Estado vacío ────────────────────────────────────────────────────── -->
+  <div
+    *ngIf="!cargando && !errorCarga && items.length === 0"
+    class="empty-state"
+    data-testid="empty-en-riesgo"
+  >
+    <mat-icon>check_circle_outline</mat-icon>
+    <p>{{ notaVacia ?? 'No hay prospectos en riesgo en este momento.' }}</p>
+  </div>
+
+  <!-- ── Tabla + barra de accion ─────────────────────────────────────────── -->
+  <ng-container *ngIf="!cargando && !errorCarga && items.length > 0">
+
+    <!-- Barra de reasignacion de seleccionados -->
+    <div class="accion-bar">
+      <div class="accion-bar-inner">
+
+        <mat-form-field appearance="outline" class="field-destino">
+          <mat-label>Colaborador destino</mat-label>
+          <mat-select
+            [(ngModel)]="destinoId"
+            name="destino"
+            data-testid="select-destino"
+            aria-label="Seleccionar colaborador destino"
+          >
+            <mat-option *ngFor="let u of colaboradores" [value]="u.id">
+              {{ u.nombreCompleto || (u.nombre + ' ' + u.apellidos) }}
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="field-motivo">
+          <mat-label>Motivo (opcional)</mat-label>
+          <input
+            matInput
+            [(ngModel)]="motivo"
+            name="motivo"
+            data-testid="input-motivo"
+            placeholder="Ej: ausencia imprevista"
+            maxlength="255"
+          />
+        </mat-form-field>
+
+        <button
+          mat-flat-button
+          color="primary"
+          class="btn-reasignar"
+          [disabled]="!puedeReasignar || reasignando"
+          (click)="reasignarSeleccionados()"
+          data-testid="btn-reasignar"
+          aria-label="Reasignar prospectos seleccionados"
+        >
+          <mat-spinner *ngIf="reasignando" diameter="18" class="btn-spinner"></mat-spinner>
+          <mat-icon *ngIf="!reasignando">swap_horiz</mat-icon>
+          Reasignar seleccionados ({{ selection.selected.length }})
+        </button>
+
+      </div>
+
+      <!-- Error reasignacion -->
+      <div
+        *ngIf="errorReasignacion"
+        class="error-inline"
+        data-testid="error-reasignacion"
+        role="alert"
+      >
+        <mat-icon>warning</mat-icon>
+        {{ errorReasignacion }}
+      </div>
+    </div>
+
+    <!-- Tabla de prospectos en riesgo -->
+    <div class="table-wrapper">
+      <table
+        mat-table
+        [dataSource]="items"
+        class="riesgo-table"
+        aria-label="Prospectos en riesgo"
+      >
+
+        <!-- Checkbox column -->
+        <ng-container matColumnDef="select">
+          <th mat-header-cell *matHeaderCellDef>
+            <mat-checkbox
+              [checked]="isAllSelected()"
+              [indeterminate]="isIndeterminate()"
+              (change)="toggleAll()"
+              aria-label="Seleccionar todos los prospectos"
+            ></mat-checkbox>
+          </th>
+          <td mat-cell *matCellDef="let row" [attr.data-testid]="'fila-en-riesgo'">
+            <mat-checkbox
+              [checked]="selection.isSelected(row)"
+              (change)="selection.toggle(row)"
+              [attr.data-testid]="'chk-' + row.asignacionId"
+              [attr.aria-label]="'Seleccionar ' + row.nombre"
+            ></mat-checkbox>
+          </td>
+        </ng-container>
+
+        <!-- Prospecto column -->
+        <ng-container matColumnDef="nombre">
+          <th mat-header-cell *matHeaderCellDef>Prospecto</th>
+          <td mat-cell *matCellDef="let row">
+            <span class="prospecto-nombre">{{ row.nombre }}</span>
+          </td>
+        </ng-container>
+
+        <!-- Celular column -->
+        <ng-container matColumnDef="celular">
+          <th mat-header-cell *matHeaderCellDef>Celular</th>
+          <td mat-cell *matCellDef="let row">
+            <span class="celular-masked">{{ row.celular }}</span>
+          </td>
+        </ng-container>
+
+        <!-- Campaña column -->
+        <ng-container matColumnDef="campania">
+          <th mat-header-cell *matHeaderCellDef>Campana</th>
+          <td mat-cell *matCellDef="let row">
+            <span class="campania-chip">{{ row.campania }}</span>
+          </td>
+        </ng-container>
+
+        <!-- Estado column -->
+        <ng-container matColumnDef="estado">
+          <th mat-header-cell *matHeaderCellDef>Estado</th>
+          <td mat-cell *matCellDef="let row">
+            <span class="estado-chip" [class]="'estado-' + row.estado.toLowerCase()">
+              {{ estadoLabel(row.estado) }}
+            </span>
+          </td>
+        </ng-container>
+
+        <!-- Fecha agenda column -->
+        <ng-container matColumnDef="fechaAgenda">
+          <th mat-header-cell *matHeaderCellDef>Agenda</th>
+          <td mat-cell *matCellDef="let row">
+            <span class="fecha-agenda">{{ formatFechaAgenda(row.fechaAgenda) }}</span>
+          </td>
+        </ng-container>
+
+        <!-- Colaborador ausente column -->
+        <ng-container matColumnDef="colaboradorAusente">
+          <th mat-header-cell *matHeaderCellDef>Colaborador ausente</th>
+          <td mat-cell *matCellDef="let row">
+            <span class="colaborador-ausente">
+              <mat-icon class="ausente-icon">person_off</mat-icon>
+              {{ row.colaboradorAusente }}
+            </span>
+          </td>
+        </ng-container>
+
+        <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+        <tr
+          mat-row
+          *matRowDef="let row; columns: displayedColumns;"
+          class="data-row"
+          [class.row-selected]="selection.isSelected(row)"
+        ></tr>
+      </table>
+    </div>
+  </ng-container>
+
+  <!-- ── Acordeón: Reasignar TODO de un colaborador ───────────────────────── -->
+  <mat-accordion class="reasignar-todo-accordion">
+    <mat-expansion-panel>
+      <mat-expansion-panel-header>
+        <mat-panel-title>
+          <mat-icon>group</mat-icon>
+          &nbsp;Reasignar TODOS los casos de un colaborador
+        </mat-panel-title>
+        <mat-panel-description>
+          Mueve todos los casos activos de un colaborador a otro
+        </mat-panel-description>
+      </mat-expansion-panel-header>
+
+      <div class="reasignar-todo-form">
+
+        <mat-form-field appearance="outline" class="field-origen">
+          <mat-label>Colaborador origen</mat-label>
+          <mat-select
+            [(ngModel)]="origenId"
+            name="origen"
+            data-testid="select-origen"
+            aria-label="Seleccionar colaborador origen"
+          >
+            <mat-option *ngFor="let u of colaboradores" [value]="u.id">
+              {{ u.nombreCompleto || (u.nombre + ' ' + u.apellidos) }}
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="field-destino-todo">
+          <mat-label>Colaborador destino</mat-label>
+          <mat-select
+            [(ngModel)]="destinoTodoId"
+            name="destinoTodo"
+            data-testid="select-destino-todo"
+            aria-label="Seleccionar colaborador destino para reasignacion total"
+          >
+            <mat-option
+              *ngFor="let u of colaboradores"
+              [value]="u.id"
+              [disabled]="u.id === origenId"
+            >
+              {{ u.nombreCompleto || (u.nombre + ' ' + u.apellidos) }}
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="field-motivo-todo">
+          <mat-label>Motivo (opcional)</mat-label>
+          <input
+            matInput
+            [(ngModel)]="motivoTodo"
+            name="motivoTodo"
+            data-testid="input-motivo-todo"
+            placeholder="Ej: vacaciones, baja médica"
+            maxlength="255"
+          />
+        </mat-form-field>
+
+        <button
+          mat-flat-button
+          color="warn"
+          class="btn-reasignar-todo"
+          [disabled]="!puedeReasignarTodo || reasignandoTodo"
+          (click)="reasignarTodo()"
+          data-testid="btn-reasignar-todo"
+          aria-label="Reasignar todos los casos del colaborador origen al destino"
+        >
+          <mat-spinner *ngIf="reasignandoTodo" diameter="18" class="btn-spinner"></mat-spinner>
+          <mat-icon *ngIf="!reasignandoTodo">swap_horiz</mat-icon>
+          Reasignar TODO
+        </button>
+
+        <!-- Error reasignacion todo -->
+        <div
+          *ngIf="errorReasignacionTodo"
+          class="error-inline"
+          data-testid="error-reasignacion-todo"
+          role="alert"
+        >
+          <mat-icon>warning</mat-icon>
+          {{ errorReasignacionTodo }}
+        </div>
+
+      </div>
+    </mat-expansion-panel>
+  </mat-accordion>
+
+</div>
