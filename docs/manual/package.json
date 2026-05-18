@@ -1,0 +1,13 @@
+{
+  "name": "prospectos-manual-build",
+  "private": true,
+  "type": "module",
+  "description": "Genera los manuales (PDF + DOCX) desde los .md. No es parte de la app.",
+  "scripts": {
+    "build": "node build.mjs"
+  },
+  "dependencies": {
+    "marked": "^12.0.2",
+    "html-to-docx": "^1.8.0"
+  }
+}
