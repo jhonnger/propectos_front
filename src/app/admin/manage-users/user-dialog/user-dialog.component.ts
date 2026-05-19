@@ -8,6 +8,7 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { AdminService, RolDTO, UpdateUsuarioRequest, UsuarioDTO } from '../../services/admin.service';
 
 export interface UserDialogData {
@@ -27,6 +28,7 @@ export interface UserDialogData {
     MatButtonModule,
     MatIconModule,
     MatProgressSpinnerModule,
+    MatSnackBarModule,
   ],
   templateUrl: './user-dialog.component.html',
   styleUrl: './user-dialog.component.css'
@@ -36,6 +38,14 @@ export class UserDialogComponent implements OnInit {
   roles: RolDTO[] = [];
   isSaving = false;
   hidePassword = true;
+
+  // ── Tarjeta WhatsApp ──────────────────────────────────────────────────────
+  /** Nombre del archivo de imagen seleccionado para la tarjeta. */
+  tarjetaFileName: string | null = null;
+  /** Indica que se está subiendo la imagen al backend. */
+  isSavingTarjeta = false;
+  /** Error de validación de tamaño en cliente (>2 MB). */
+  tarjetaError: string | null = null;
 
   get isEditMode(): boolean {
     return this.data.mode === 'edit';
@@ -48,6 +58,7 @@ export class UserDialogComponent implements OnInit {
   constructor(
     private fb: FormBuilder,
     private adminService: AdminService,
+    private snackBar: MatSnackBar,
     private dialogRef: MatDialogRef<UserDialogComponent>,
     @Inject(MAT_DIALOG_DATA) public data: UserDialogData
   ) {}
@@ -126,5 +137,68 @@ export class UserDialogComponent implements OnInit {
 
   onCancel() {
     this.dialogRef.close();
+  }
+
+  // ── Tarjeta WhatsApp ──────────────────────────────────────────────────────
+
+  /**
+   * Maneja la selección de archivo para la tarjeta WhatsApp.
+   * Valida tamaño (≤2 MB), lee en base64 y hace POST al backend.
+   * Solo disponible en modo edición (usuario ya tiene id).
+   */
+  onTarjetaFileSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    if (!file) return;
+
+    this.tarjetaError = null;
+    this.tarjetaFileName = null;
+
+    // Validación de tamaño en cliente: ≤ 2 MB
+    const MAX_BYTES = 2 * 1024 * 1024;
+    if (file.size > MAX_BYTES) {
+      this.tarjetaError = 'La imagen no puede superar los 2 MB.';
+      input.value = '';
+      return;
+    }
+
+    this.tarjetaFileName = file.name;
+    const contentType = file.type;
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      const dataUrl = reader.result as string;
+      // Quitar el prefijo "data:<mime>;base64,"
+      const base64 = dataUrl.split(',')[1];
+      this.subirTarjeta(contentType, base64);
+    };
+    reader.readAsDataURL(file);
+
+    // Limpiar el input para que el mismo archivo pueda volverse a seleccionar
+    input.value = '';
+  }
+
+  private subirTarjeta(contentType: string, base64: string): void {
+    const userId = this.data.user!.id;
+    this.isSavingTarjeta = true;
+    this.tarjetaError = null;
+
+    this.adminService.subirTarjetaWhatsapp(userId, contentType, base64).subscribe({
+      next: () => {
+        this.isSavingTarjeta = false;
+        this.snackBar.open('Tarjeta WhatsApp subida correctamente', 'Cerrar', {
+          duration: 4000,
+          panelClass: ['success-snackbar'],
+        });
+      },
+      error: (err) => {
+        this.isSavingTarjeta = false;
+        this.tarjetaFileName = null;
+        this.tarjetaError =
+          err?.error?.message ??
+          err?.message ??
+          'Error al subir la tarjeta. Intenta de nuevo.';
+      },
+    });
   }
 }

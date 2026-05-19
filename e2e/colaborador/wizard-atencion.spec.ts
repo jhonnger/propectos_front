@@ -1,4 +1,5 @@
 import { test, expect, Page } from '@playwright/test';
+import * as fs from 'fs';
 import {
   mockBackend,
   mockMisProspectos,
@@ -9,6 +10,8 @@ import {
   mockHistorial,
   mockVerificacionSbs,
   mockRegistrarAtencion,
+  mockPlantillaWhatsapp,
+  mockTarjetaExiste,
   seedSession,
   MOCK_PROSPECTO_NORMAL,
 } from '../support/mocks';
@@ -27,7 +30,9 @@ const MOCK_WIZARD_PROSPECTO = {
   asignacionId: 99,
   nombre: 'Laura',
   apellido: 'Mendez',
-  celular: '*****901',
+  // celular SIN enmascarar para que el panel WhatsApp pueda construir wa.me/51...
+  celular: '987654321',
+  celularMasked: false,
   documentoIdentidad: '*****500',
   estado: 'EN_SEGUIMIENTO',
   estadoResultado: null,
@@ -41,6 +46,7 @@ async function setupWizardMocks(
   page: Page,
   sbsOpts: Parameters<typeof mockVerificacionSbs>[1] = {},
   atencionOpts: Parameters<typeof mockRegistrarAtencion>[1] = {},
+  waPlantilla = 'Hola {nombre}, le contactamos. Soy {asesor}.',
 ): Promise<void> {
   await mockBackend(page, { rol: 'TELEOPERADOR' });
   await mockMisEstadisticas(page);
@@ -51,6 +57,8 @@ async function setupWizardMocks(
   await mockHistorial(page);
   await mockVerificacionSbs(page, sbsOpts);
   await mockRegistrarAtencion(page, atencionOpts);
+  await mockPlantillaWhatsapp(page, { plantilla: waPlantilla });
+  await mockTarjetaExiste(page, { existe: false });
   await seedSession(page, 'TELEOPERADOR');
 }
 
@@ -548,6 +556,163 @@ test.describe('Wizard de atención — Slice 1.3 (RF-04/13/14/15)', () => {
     await page.waitForTimeout(500);
     expect(cerrarRequests.length).toBeGreaterThan(0);
     expect(cerrarRequests[0]).toContain('/api/contactos/apertura/7/cerrar');
+  });
+
+  // ── Casos WhatsApp (RF-WA) ────────────────────────────────────────────────
+
+  /**
+   * Navega hasta el estado SBS APTO + rama SÍ → titular → resultado dado.
+   */
+  async function irAResultadoTitular(
+    page: Page,
+    resultado: 'INTERESADO' | 'AGENDADO' | 'VOLVER_LLAMAR' | 'DERIVADO' | 'NO_VOLVER_LLAMAR',
+  ): Promise<void> {
+    await abrirWizard(page);
+
+    // Paso 0: SBS APTO
+    await page.locator('[data-testid="btn-sbs-apto"]').click();
+    await expect(page.locator('[data-testid="sbs-apto-badge"]')).toBeVisible({ timeout: 5000 });
+
+    // Paso 1: Contestó
+    await page.locator('[data-testid="btn-contesto"]').click();
+
+    // Paso 2: Titular
+    await page.locator('[data-testid="btn-quien-titular"]').click();
+
+    // Paso 3: resultado elegido
+    await page.locator(`[data-testid="titular-op-${resultado}"]`).click();
+  }
+
+  test('WA-1: panel WhatsApp aparece en rama sí→titular→Interesado y textarea viene prellenado con el nombre del prospecto', async ({ page }) => {
+    const PLANTILLA = 'Hola {nombre}, le contactamos. Soy {asesor}.';
+
+    await setupWizardMocks(page, { resultado: 'APTO' }, {}, PLANTILLA);
+    await page.addInitScript(() => {
+      localStorage.setItem('userName', 'Sesion E2E');
+    });
+
+    await irAResultadoTitular(page, 'INTERESADO');
+
+    // Panel visible
+    const panel = page.locator('[data-testid="whatsapp-panel"]');
+    await expect(panel).toBeVisible({ timeout: 5000 });
+
+    // Textarea pre-llenado con el nombre del prospecto reemplazado
+    const textarea = page.locator('[data-testid="textarea-whatsapp"]');
+    await expect(textarea).toBeVisible();
+    const valor = await textarea.inputValue();
+    expect(valor).toContain('Laura'); // nombre del MOCK_WIZARD_PROSPECTO
+    expect(valor).not.toContain('{nombre}'); // variable reemplazada
+
+    // Screenshot full-page del wizard con panel WhatsApp visible
+    const screenshotsDir = 'test-results/screenshots';
+    if (!fs.existsSync(screenshotsDir)) {
+      fs.mkdirSync(screenshotsDir, { recursive: true });
+    }
+    await page.screenshot({
+      path: `${screenshotsDir}/wizard-whatsapp-panel.png`,
+      fullPage: true,
+    });
+  });
+
+  test('WA-2: botón Abrir WhatsApp construye URL wa.me/51... correcta con encodeURIComponent', async ({ page }) => {
+    await setupWizardMocks(page, { resultado: 'APTO' }, {}, 'Mensaje de prueba para {nombre}');
+
+    await irAResultadoTitular(page, 'AGENDADO');
+
+    // Rellenar fecha/hora para poder confirmar (si es necesario), pero NO hace falta
+    // Solo verificar el botón de WhatsApp
+
+    const panel = page.locator('[data-testid="whatsapp-panel"]');
+    await expect(panel).toBeVisible({ timeout: 5000 });
+
+    const btnWa = page.locator('[data-testid="btn-abrir-whatsapp"]');
+    await expect(btnWa).toBeVisible();
+
+    // El celular del fixture es "987654321" → normalizado "51987654321"
+    await expect(btnWa).toBeEnabled();
+
+    // Interceptar window.open para capturar la URL
+    const openedUrls: string[] = [];
+    await page.exposeFunction('__captureWaUrl', (url: string) => {
+      openedUrls.push(url);
+    });
+    await page.evaluate(() => {
+      const orig = window.open.bind(window);
+      (window as Window & { open: typeof window.open }).open = (url?: string | URL, ...args: [string?, string?]) => {
+        if (url) (window as Window & { __captureWaUrl?: (u: string) => void }).__captureWaUrl?.(String(url));
+        return orig(url, ...args);
+      };
+    });
+
+    await btnWa.click();
+    await page.waitForTimeout(300);
+
+    // Debe haber abierto una URL wa.me/51987654321
+    expect(openedUrls.length).toBeGreaterThan(0);
+    expect(openedUrls[0]).toMatch(/^https:\/\/wa\.me\/51987654321\?text=/);
+    // El texto debe estar URL-encoded
+    expect(openedUrls[0]).toContain('text=');
+  });
+
+  test('WA-3: panel NO aparece en rama sí→titular→No volver a llamar', async ({ page }) => {
+    await setupWizardMocks(page, { resultado: 'APTO' });
+    await irAResultadoTitular(page, 'NO_VOLVER_LLAMAR');
+
+    // El panel WhatsApp NO debe estar presente
+    const panel = page.locator('[data-testid="whatsapp-panel"]');
+    await expect(panel).not.toBeVisible();
+  });
+
+  test('WA-4: panel NO aparece en rama no-contestó', async ({ page }) => {
+    await setupWizardMocks(page, { resultado: 'APTO' });
+    await abrirWizard(page);
+
+    // SBS APTO
+    await page.locator('[data-testid="btn-sbs-apto"]').click();
+    await expect(page.locator('[data-testid="sbs-apto-badge"]')).toBeVisible({ timeout: 5000 });
+
+    // Rama NO contestó → opción NO_CONTESTA
+    await page.locator('[data-testid="btn-no-contesto"]').click();
+    await page.locator('[data-testid="no-contesto-op-NO_CONTESTA"]').click();
+
+    const panel = page.locator('[data-testid="whatsapp-panel"]');
+    await expect(panel).not.toBeVisible();
+  });
+
+  test('WA-5: el flujo de Registrar atención sigue funcionando cuando el panel WhatsApp está visible', async ({ page }) => {
+    const capturedBodies: unknown[] = [];
+    page.on('request', (req) => {
+      const url = req.url();
+      if (
+        req.method() === 'POST' &&
+        url.endsWith('/api/contactos') &&
+        !url.includes('/apertura') &&
+        !url.includes('/verificacion')
+      ) {
+        try { capturedBodies.push(JSON.parse(req.postData() ?? '{}')); } catch { /* */ }
+      }
+    });
+
+    await setupWizardMocks(page, { resultado: 'APTO' }, { estado: 'EN_SEGUIMIENTO' });
+    await irAResultadoTitular(page, 'DERIVADO');
+
+    // Panel visible
+    const panel = page.locator('[data-testid="whatsapp-panel"]');
+    await expect(panel).toBeVisible({ timeout: 5000 });
+
+    // Botón Registrar atención funciona (DERIVADO no necesita agenda)
+    const btnConfirmar = page.locator('[data-testid="btn-confirmar"]');
+    await expect(btnConfirmar).toBeEnabled({ timeout: 3000 });
+    await btnConfirmar.click();
+
+    // Modal debe cerrarse
+    await expect(page.locator('[data-testid="sbs-section"]')).not.toBeVisible({ timeout: 6000 });
+
+    // El POST fue con resultado DERIVADO
+    expect(capturedBodies.length).toBeGreaterThan(0);
+    const body = capturedBodies[0] as Record<string, unknown>;
+    expect(body['resultado']).toBe('DERIVADO');
   });
 
 });

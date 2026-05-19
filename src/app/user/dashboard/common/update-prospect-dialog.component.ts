@@ -13,6 +13,7 @@ import { MatInputModule } from '@angular/material/input';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { CommonModule } from '@angular/common';
 import {
   ProspectoService,
@@ -22,6 +23,7 @@ import {
   QuienContesto,
   VerificacionSbsResponse,
 } from '../service/prospecto.service';
+import { AuthService } from '../../../auth/service/auth.service';
 
 // ── Tipos de datos para el modal ──────────────────────────────────────────────
 
@@ -73,6 +75,7 @@ interface RamaContestoTitularOpcion {
     MatFormFieldModule,
     MatIconModule,
     MatProgressSpinnerModule,
+    MatTooltipModule,
     CommonModule,
   ],
   selector: 'app-update-prospect-dialog',
@@ -140,6 +143,20 @@ export class UpdateProspectDialogComponent implements OnInit, OnDestroy {
   /** true después de confirmar → no llamar cerrarApertura */
   registroConfirmado = false;
 
+  // ── WhatsApp panel (RF-WA) ─────────────────────────────────────────────────
+  /** Texto editable del mensaje a enviar (pre-rellenado con la plantilla). */
+  whatsappTexto = '';
+  /** Si el panel ya fue inicializado (para evitar peticiones repetidas). */
+  private whatsappPanelInit = false;
+  /** Cache de la plantilla cruda del backend. */
+  private plantillaCache: string | null = null;
+  /** true si la tarjeta del colaborador existe en el backend. */
+  tarjetaExiste = false;
+  /** true mientras se consulta la existencia de la tarjeta. */
+  tarjetaComprobando = true;
+  /** true mientras se descarga la tarjeta. */
+  descargandoTarjeta = false;
+
   /** Mínimo para el date input de agenda: HOY en hora LOCAL (no UTC).
    *  toISOString() es UTC y de noche en Perú (UTC-5) devolvía mañana,
    *  bloqueando la selección del día actual. Se construye local. */
@@ -154,6 +171,7 @@ export class UpdateProspectDialogComponent implements OnInit, OnDestroy {
     public dialogRef: MatDialogRef<UpdateProspectDialogComponent, WizardDialogResult | null>,
     @Inject(MAT_DIALOG_DATA) public data: WizardDialogData,
     private prospectoService: ProspectoService,
+    private authService: AuthService,
     private cdr: ChangeDetectorRef,
   ) {}
 
@@ -323,6 +341,11 @@ export class UpdateProspectDialogComponent implements OnInit, OnDestroy {
       this.horaAgenda = '09:00';
     }
     this.errorEnvio = null;
+
+    // Inicializar panel WhatsApp cuando corresponde (una sola vez)
+    if (this.mostrarPanelWhatsapp) {
+      this.inicializarPanelWhatsapp();
+    }
   }
 
   // ── Validación del formulario ─────────────────────────────────────────────
@@ -537,5 +560,124 @@ export class UpdateProspectDialogComponent implements OnInit, OnDestroy {
     const m = Math.floor(secs / 60);
     const s = secs % 60;
     return m > 0 ? `${m}m ${s}s` : `${s}s`;
+  }
+
+  // ── WhatsApp panel (RF-WA) ─────────────────────────────────────────────────
+
+  /**
+   * El panel WhatsApp es visible cuando:
+   *  - rama = contesto
+   *  - quien = titular
+   *  - resultado ∈ {INTERESADO, AGENDADO, VOLVER_LLAMAR, DERIVADO}
+   */
+  get mostrarPanelWhatsapp(): boolean {
+    if (this.ramaLlamada !== 'contesto') return false;
+    if (this.quienContestoSeleccionado !== 'titular') return false;
+    const res = this.titularOpcionSeleccionada?.resultado;
+    return res === 'INTERESADO'
+      || res === 'AGENDADO'
+      || res === 'VOLVER_LLAMAR'
+      || res === 'DERIVADO';
+  }
+
+  /**
+   * Inicializa el panel: carga plantilla (una sola vez) y comprueba tarjeta.
+   * Se llama desde la template en ngOnChanges o al hacerse visible.
+   */
+  inicializarPanelWhatsapp(): void {
+    if (this.whatsappPanelInit) return;
+    this.whatsappPanelInit = true;
+
+    // Cargar plantilla si no está en caché
+    if (this.plantillaCache === null) {
+      this.prospectoService.getPlantillaWhatsapp().subscribe({
+        next: (resp) => {
+          this.plantillaCache = resp.plantilla;
+          this.whatsappTexto = this.aplicarVariables(resp.plantilla);
+          this.cdr.markForCheck();
+        },
+        error: () => {
+          this.whatsappTexto = '';
+          this.cdr.markForCheck();
+        },
+      });
+    } else {
+      this.whatsappTexto = this.aplicarVariables(this.plantillaCache);
+    }
+
+    // Comprobar si existe tarjeta
+    this.tarjetaComprobando = true;
+    this.prospectoService.miTarjetaWhatsappExiste().subscribe({
+      next: (resp) => {
+        this.tarjetaExiste = resp.existe;
+        this.tarjetaComprobando = false;
+        this.cdr.markForCheck();
+      },
+      error: () => {
+        this.tarjetaExiste = false;
+        this.tarjetaComprobando = false;
+        this.cdr.markForCheck();
+      },
+    });
+  }
+
+  /** Reemplaza {nombre} y {asesor} en la plantilla cruda. */
+  private aplicarVariables(plantilla: string): string {
+    const nombre = this.data.nombre ?? '';
+    const asesor = this.authService.getUsername() ?? '';
+    return plantilla
+      .replace(/\{nombre\}/g, nombre)
+      .replace(/\{asesor\}/g, asesor);
+  }
+
+  /**
+   * Normaliza el número de celular para wa.me:
+   *  - quitar todo lo no-dígito
+   *  - si quedan 9 dígitos → agregar prefijo 51 (Perú)
+   *  - si ya empieza con 51 y tiene 11 dígitos → OK
+   *  - cualquier otro resultado → vacío (botón deshabilitado)
+   */
+  get whatsappTelNormalizado(): string {
+    const raw = (this.data.celular ?? '').replace(/\D/g, '');
+    if (!raw) return '';
+    if (raw.length === 9) return `51${raw}`;
+    if (raw.startsWith('51') && raw.length === 11) return raw;
+    return '';
+  }
+
+  get whatsappUrl(): string {
+    const tel = this.whatsappTelNormalizado;
+    if (!tel) return '';
+    return `https://wa.me/${tel}?text=${encodeURIComponent(this.whatsappTexto)}`;
+  }
+
+  abrirWhatsapp(): void {
+    const url = this.whatsappUrl;
+    if (url) {
+      window.open(url, '_blank');
+    }
+  }
+
+  descargarTarjeta(): void {
+    if (this.descargandoTarjeta) return;
+    this.descargandoTarjeta = true;
+    this.cdr.markForCheck();
+
+    this.prospectoService.descargarMiTarjetaWhatsapp().subscribe({
+      next: (blob) => {
+        this.descargandoTarjeta = false;
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'mi-tarjeta-whatsapp';
+        a.click();
+        window.URL.revokeObjectURL(url);
+        this.cdr.markForCheck();
+      },
+      error: () => {
+        this.descargandoTarjeta = false;
+        this.cdr.markForCheck();
+      },
+    });
   }
 }

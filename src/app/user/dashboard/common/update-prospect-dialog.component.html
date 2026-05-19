@@ -482,6 +482,81 @@
           </div>
         }
 
+        <!-- ── Panel WhatsApp (RF-WA) ──────────────────────────────────────── -->
+        @if (mostrarPanelWhatsapp) {
+          <section
+            class="wizard-step fade-in whatsapp-panel"
+            aria-labelledby="wa-heading"
+            data-testid="whatsapp-panel"
+          >
+            <div class="step-heading" id="wa-heading">
+              <mat-icon aria-hidden="true" class="wa-icon">chat</mat-icon>
+              <span>Enviar WhatsApp al prospecto</span>
+              <span class="wa-optional-tag">opcional</span>
+            </div>
+
+            <!-- Textarea editable del mensaje -->
+            <div class="form-field-group">
+              <label class="field-label" for="wa-texto">Mensaje a enviar</label>
+              <textarea
+                id="wa-texto"
+                class="native-textarea"
+                rows="4"
+                [(ngModel)]="whatsappTexto"
+                placeholder="Escribe el mensaje para el prospecto…"
+                aria-label="Mensaje de WhatsApp"
+                data-testid="textarea-whatsapp"
+              ></textarea>
+            </div>
+
+            <!-- Botones de acción -->
+            <div class="wa-actions">
+              <button
+                class="wa-btn wa-btn-open"
+                type="button"
+                [disabled]="!whatsappTelNormalizado"
+                (click)="abrirWhatsapp()"
+                data-testid="btn-abrir-whatsapp"
+                [attr.aria-label]="whatsappTelNormalizado ? 'Abrir WhatsApp' : 'Sin celular válido'"
+                [matTooltip]="whatsappTelNormalizado ? '' : 'Sin celular válido'"
+              >
+                <mat-icon aria-hidden="true">send</mat-icon>
+                Abrir WhatsApp
+              </button>
+
+              @if (!tarjetaComprobando && tarjetaExiste) {
+                <button
+                  class="wa-btn wa-btn-tarjeta"
+                  type="button"
+                  [disabled]="descargandoTarjeta"
+                  (click)="descargarTarjeta()"
+                  data-testid="btn-descargar-tarjeta"
+                  aria-label="Descargar mi tarjeta de presentación"
+                >
+                  @if (descargandoTarjeta) {
+                    <mat-spinner diameter="16" class="wa-spinner"></mat-spinner>
+                  } @else {
+                    <mat-icon aria-hidden="true">download</mat-icon>
+                  }
+                  Descargar mi tarjeta
+                </button>
+              }
+
+              @if (!tarjetaComprobando && !tarjetaExiste) {
+                <p class="wa-no-tarjeta" data-testid="wa-no-tarjeta">
+                  <mat-icon aria-hidden="true">info_outline</mat-icon>
+                  Tu administrador aún no cargó tu tarjeta.
+                </p>
+              }
+            </div>
+
+            <p class="wa-hint" data-testid="wa-hint">
+              <mat-icon aria-hidden="true" style="font-size:14px;vertical-align:middle">info</mat-icon>
+              WhatsApp no adjunta imágenes por enlace: descarga tu tarjeta y envíala como segundo mensaje.
+            </p>
+          </section>
+        }
+
       </div><!-- /wizard-llamada -->
 
     }<!-- /!aperturaPendiente -->

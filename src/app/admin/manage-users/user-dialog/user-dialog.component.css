@@ -152,6 +152,53 @@
   opacity: 0.6;
 }
 
+/* Tarjeta WhatsApp */
+.tarjeta-file-input {
+  display: none;
+}
+
+.tarjeta-upload-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 8px;
+}
+
+.tarjeta-btn {
+  border-radius: 8px !important;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.tarjeta-spinner {
+  display: inline-block;
+}
+
+.tarjeta-filename {
+  font-size: 0.82rem;
+  color: #15803d;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.tarjeta-error {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: #dc2626;
+  font-size: 0.82rem;
+  margin-bottom: 6px;
+}
+
+.tarjeta-hint {
+  font-size: 0.78rem;
+  color: #94a3b8;
+  margin: 4px 0 0;
+}
+
 /* Responsive */
 @media (max-width: 600px) {
   .dialog-body {

@@ -314,6 +314,8 @@ export interface ConfiguracionDueno {
   ultimoEnvioResumenOk: boolean | null;
   ultimoEnvioResumenFecha: string | null;
   ultimoEnvioResumenDetalle: string | null;
+  /** Plantilla de mensaje WhatsApp (RF-WA). Variables: {nombre}, {asesor}. */
+  plantillaWhatsapp?: string;
 }
 
 /** Campos que se envían al PUT /api/reportes/config; null = no modificar. */
@@ -328,6 +330,8 @@ export interface ConfiguracionPatch {
   reglaReintentoNoContesto?: string | null;
   horaInicioJornada?: string | null;
   minutosGraciaAusencia?: number | null;
+  /** Plantilla de mensaje WhatsApp (RF-WA). */
+  plantillaWhatsapp?: string | null;
 }
 
 export interface EstadoEmail {
@@ -886,6 +890,30 @@ export class AdminService {
       `${environment.apiUrl}/api/calendario/${id}`,
       {
         headers: new HttpHeaders({ Authorization: `Bearer ${this.getToken()}` }),
+      },
+    );
+  }
+
+  // ── RF-WA: WhatsApp — tarjeta por colaborador ────────────────────────────
+
+  /**
+   * POST /api/whatsapp/usuario/{userId}/tarjeta (solo admin)
+   * Sube la imagen de tarjeta de presentación de un colaborador.
+   * body: { contentType: string; base64: string } (base64 sin prefijo data:)
+   */
+  subirTarjetaWhatsapp(
+    userId: number,
+    contentType: string,
+    base64: string,
+  ): Observable<{ ok: boolean; bytes: number }> {
+    return this.http.post<{ ok: boolean; bytes: number }>(
+      `${environment.apiUrl}/api/whatsapp/usuario/${userId}/tarjeta`,
+      { contentType, base64 },
+      {
+        headers: new HttpHeaders({
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${this.getToken()}`,
+        }),
       },
     );
   }

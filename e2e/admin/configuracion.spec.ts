@@ -171,4 +171,56 @@ test.describe('Configuracion del dueno — Slice 2.1', () => {
     await expect(banner).toContainText('MAIL_ENABLED');
   });
 
+  // ── Caso 5 (RF-WA): Plantilla de WhatsApp se carga y se guarda ──────────────
+
+  test('plantillaWhatsapp se carga en el textarea y se envía en el PUT al guardar', async ({ page }) => {
+    const PLANTILLA = 'Hola {nombre}, soy {asesor} del equipo de ventas.';
+    const capturedBodies: Array<Record<string, unknown>> = [];
+
+    page.on('request', (req) => {
+      if (req.url().includes('/api/reportes/config') && req.method() === 'PUT') {
+        try { capturedBodies.push(JSON.parse(req.postData() ?? '{}')); } catch { /* */ }
+      }
+    });
+
+    await setup(page);
+    await mockEstadoEmail(page, { mailConfigurado: true });
+    await mockConfiguracion(page, {
+      config: { ...MOCK_CONFIGURACION_DEFAULT, plantillaWhatsapp: PLANTILLA },
+    });
+
+    await irAConfiguracion(page);
+
+    // El textarea de plantilla debe tener el valor cargado del mock
+    const textareaPlantilla = page.locator('[data-testid="textarea-plantilla-whatsapp"]');
+    await expect(textareaPlantilla).toBeVisible({ timeout: 8_000 });
+    await expect(textareaPlantilla).toHaveValue(PLANTILLA);
+
+    // Modificar la plantilla
+    const NUEVA_PLANTILLA = 'Buenos días {nombre}, le llama {asesor}.';
+    await textareaPlantilla.fill(NUEVA_PLANTILLA);
+
+    // Guardar
+    const btnGuardar = page.locator('[data-testid="btn-guardar"]');
+    await expect(btnGuardar).toBeEnabled();
+    await btnGuardar.click();
+
+    // Snackbar de éxito
+    const snack = page.locator('simple-snack-bar');
+    await expect(snack).toContainText('Configuración guardada', { timeout: 8_000 });
+
+    // El PUT contiene plantillaWhatsapp con el nuevo valor
+    await page.waitForTimeout(300);
+    expect(capturedBodies.length).toBeGreaterThan(0);
+    expect(capturedBodies[0]['plantillaWhatsapp']).toBe(NUEVA_PLANTILLA);
+
+    if (!fs.existsSync(SCREENSHOTS_DIR)) {
+      fs.mkdirSync(SCREENSHOTS_DIR, { recursive: true });
+    }
+    await page.screenshot({
+      path: `${SCREENSHOTS_DIR}/configuracion-whatsapp.png`,
+      fullPage: true,
+    });
+  });
+
 });

@@ -67,6 +67,8 @@ export class ConfiguracionComponent implements OnInit {
       reglaReintentoNoContesto: ['+3h,+24h,+48h,+72h,+120h', [Validators.required]],
       horaInicioJornada: ['09:00', [Validators.required, Validators.pattern(/^\d{2}:\d{2}$/)]],
       minutosGraciaAusencia: [45, [Validators.required, Validators.min(0)]],
+      // WhatsApp (RF-WA)
+      plantillaWhatsapp: [''],
     });
   }
 
@@ -91,6 +93,7 @@ export class ConfiguracionComponent implements OnInit {
           reglaReintentoNoContesto: config.reglaReintentoNoContesto,
           horaInicioJornada: config.horaInicioJornada,
           minutosGraciaAusencia: config.minutosGraciaAusencia,
+          plantillaWhatsapp: config.plantillaWhatsapp ?? '',
         });
         this.loading = false;
       },
@@ -129,6 +132,7 @@ export class ConfiguracionComponent implements OnInit {
       reglaReintentoNoContesto: string;
       horaInicioJornada: string;
       minutosGraciaAusencia: number;
+      plantillaWhatsapp: string;
     };
 
     const patch: ConfiguracionPatch = {
@@ -142,6 +146,7 @@ export class ConfiguracionComponent implements OnInit {
       reglaReintentoNoContesto: v.reglaReintentoNoContesto,
       horaInicioJornada: v.horaInicioJornada,
       minutosGraciaAusencia: v.minutosGraciaAusencia,
+      plantillaWhatsapp: v.plantillaWhatsapp ?? null,
     };
 
     this.adminService.actualizarConfiguracion(patch).subscribe({
@@ -158,6 +163,7 @@ export class ConfiguracionComponent implements OnInit {
           reglaReintentoNoContesto: updated.reglaReintentoNoContesto,
           horaInicioJornada: updated.horaInicioJornada,
           minutosGraciaAusencia: updated.minutosGraciaAusencia,
+          plantillaWhatsapp: updated.plantillaWhatsapp ?? '',
         });
         this.snackBar.open('Configuración guardada', 'Cerrar', {
           duration: 4000,

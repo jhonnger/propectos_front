@@ -93,6 +93,53 @@
           </mat-form-field>
         </div>
       </div>
+
+      <!-- WhatsApp tarjeta section — solo en modo edición -->
+      <div *ngIf="isEditMode" class="form-section" data-testid="tarjeta-whatsapp-section">
+        <div class="form-section-label">
+          <mat-icon>chat</mat-icon>
+          <span>Tarjeta WhatsApp</span>
+        </div>
+
+        <div class="tarjeta-upload-row">
+          <input
+            id="tarjeta-file-input"
+            type="file"
+            accept="image/*"
+            class="tarjeta-file-input"
+            (change)="onTarjetaFileSelected($event)"
+            [disabled]="isSavingTarjeta"
+            data-testid="input-tarjeta-whatsapp"
+            aria-label="Seleccionar imagen de tarjeta WhatsApp"
+            #tarjetaFileInput
+          />
+          <button
+            mat-stroked-button
+            type="button"
+            class="tarjeta-btn"
+            [disabled]="isSavingTarjeta"
+            (click)="tarjetaFileInput.click()"
+            data-testid="btn-subir-tarjeta"
+            aria-label="Subir tarjeta WhatsApp"
+          >
+            <mat-spinner *ngIf="isSavingTarjeta" diameter="16" class="tarjeta-spinner"></mat-spinner>
+            <mat-icon *ngIf="!isSavingTarjeta">upload</mat-icon>
+            {{ isSavingTarjeta ? 'Subiendo...' : 'Subir tarjeta' }}
+          </button>
+
+          <span *ngIf="tarjetaFileName && !isSavingTarjeta" class="tarjeta-filename" data-testid="tarjeta-filename">
+            <mat-icon style="font-size:14px;vertical-align:middle">check_circle</mat-icon>
+            {{ tarjetaFileName }}
+          </span>
+        </div>
+
+        <div *ngIf="tarjetaError" class="tarjeta-error" role="alert" data-testid="tarjeta-error">
+          <mat-icon>error_outline</mat-icon>
+          {{ tarjetaError }}
+        </div>
+
+        <p class="tarjeta-hint">Imagen de presentacion que el colaborador enviará por WhatsApp. Maximo 2 MB.</p>
+      </div>
     </form>
   </div>
 

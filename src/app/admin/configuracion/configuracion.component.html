@@ -238,6 +238,30 @@
         </mat-card-content>
       </mat-card>
 
+      <!-- ── Sección WhatsApp (RF-WA) ──────────────────────────────────── -->
+      <mat-card class="config-card">
+        <mat-card-header>
+          <mat-icon mat-card-avatar>chat</mat-icon>
+          <mat-card-title>Plantilla de WhatsApp</mat-card-title>
+          <mat-card-subtitle>Mensaje predeterminado que se enviará al prospecto</mat-card-subtitle>
+        </mat-card-header>
+
+        <mat-card-content>
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Plantilla de WhatsApp</mat-label>
+            <textarea
+              matInput
+              formControlName="plantillaWhatsapp"
+              rows="4"
+              placeholder="Hola &#123;nombre&#125;, le contactamos. Mi nombre es &#123;asesor&#125;..."
+              data-testid="textarea-plantilla-whatsapp"
+              aria-label="Plantilla de mensaje WhatsApp"
+            ></textarea>
+            <mat-hint>Variables disponibles: {{ '{' }}nombre{{ '}' }} (prospecto), {{ '{' }}asesor{{ '}' }} (colaborador)</mat-hint>
+          </mat-form-field>
+        </mat-card-content>
+      </mat-card>
+
       <!-- Error de guardado -->
       <div *ngIf="errorGuardar" class="error-banner error-guardar" data-testid="error-guardar">
         <mat-icon>error_outline</mat-icon>

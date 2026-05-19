@@ -1029,6 +1029,97 @@
   to   { opacity: 1; transform: translateY(0); }
 }
 
+/* ── WhatsApp panel (RF-WA) ─────────────────────────────────────────── */
+.whatsapp-panel {
+  border: 1px solid #dcfce7;
+  border-radius: 10px;
+  background: #f0fdf4;
+  padding: 1rem !important;
+}
+
+.wa-icon {
+  color: #16a34a;
+}
+
+.wa-optional-tag {
+  font-size: 0.7rem;
+  background: #d1fae5;
+  color: #15803d;
+  border-radius: 4px;
+  padding: 1px 6px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.wa-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  margin: 0.75rem 0 0.5rem;
+}
+
+.wa-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: none;
+  border-radius: 8px;
+  padding: 0.45rem 1rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.15s, transform 0.1s;
+}
+
+.wa-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.wa-btn-open {
+  background: #16a34a;
+  color: #fff;
+}
+
+.wa-btn-open:hover:not(:disabled) {
+  background: #15803d;
+  transform: translateY(-1px);
+}
+
+.wa-btn-tarjeta {
+  background: #fff;
+  color: #16a34a;
+  border: 1.5px solid #86efac;
+}
+
+.wa-btn-tarjeta:hover:not(:disabled) {
+  background: #f0fdf4;
+}
+
+.wa-spinner {
+  display: inline-block;
+}
+
+.wa-no-tarjeta {
+  font-size: 0.8rem;
+  color: #94a3b8;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin: 0;
+}
+
+.wa-hint {
+  font-size: 0.78rem;
+  color: #6b7280;
+  margin: 0.5rem 0 0;
+  display: flex;
+  align-items: flex-start;
+  gap: 4px;
+}
+
 /* ── Responsive ─────────────────────────────────────────────────────── */
 @media (max-width: 480px) {
   .wizard-header { padding: 0.875rem 1rem; }

@@ -1124,6 +1124,8 @@ export interface ConfiguracionDuenoMock {
   ultimoEnvioResumenOk?: boolean | null;
   ultimoEnvioResumenFecha?: string | null;
   ultimoEnvioResumenDetalle?: string | null;
+  /** Plantilla de mensaje WhatsApp (RF-WA). */
+  plantillaWhatsapp?: string;
 }
 
 export interface ConfiguracionMockOptions {
@@ -1159,6 +1161,7 @@ export const MOCK_CONFIGURACION_DEFAULT: Required<ConfiguracionDuenoMock> = {
   ultimoEnvioResumenOk: null,
   ultimoEnvioResumenFecha: null,
   ultimoEnvioResumenDetalle: null,
+  plantillaWhatsapp: 'Hola {nombre}, le contactamos desde nuestro equipo. Mi nombre es {asesor}.',
 };
 
 /**
@@ -1812,6 +1815,145 @@ export async function mockBitacora(
  * Alias para los specs de bitácora que necesitan el dropdown de colaboradores.
  * (El helper mockUsuariosNoAdmins ya existe; este comentario documenta el reuso.)
  */
+
+// ── RF-WA: WhatsApp helpers ──────────────────────────────────────────────────
+
+export interface PlantillaWhatsappMockOptions {
+  plantilla?: string;
+  fail?: boolean;
+}
+
+export interface TarjetaExisteMockOptions {
+  existe?: boolean;
+  fail?: boolean;
+}
+
+export interface TarjetaDescargaMockOptions {
+  fail?: boolean;
+}
+
+export interface SubirTarjetaMockOptions {
+  fail?: boolean;
+  failMessage?: string;
+  failStatus?: number;
+}
+
+/**
+ * Mockea GET /api/whatsapp/plantilla.
+ * Debe llamarse DESPUÉS de mockBackend().
+ */
+export async function mockPlantillaWhatsapp(
+  page: Page,
+  opts: PlantillaWhatsappMockOptions = {},
+): Promise<void> {
+  if (REAL_BACKEND) return;
+
+  await page.route('**/api/whatsapp/plantilla', async (route) => {
+    if (route.request().method() !== 'GET') { await route.fallback(); return; }
+    if (opts.fail) {
+      await route.fulfill({
+        status: 500,
+        contentType: 'application/json',
+        body: JSON.stringify({ message: 'Error al obtener plantilla.' }),
+      });
+      return;
+    }
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        plantilla: opts.plantilla ?? 'Hola {nombre}, le contactamos. Soy {asesor}.',
+      }),
+    });
+  });
+}
+
+/**
+ * Mockea GET /api/whatsapp/mi-tarjeta/existe.
+ * Debe llamarse DESPUÉS de mockBackend().
+ */
+export async function mockTarjetaExiste(
+  page: Page,
+  opts: TarjetaExisteMockOptions = {},
+): Promise<void> {
+  if (REAL_BACKEND) return;
+
+  await page.route('**/api/whatsapp/mi-tarjeta/existe', async (route) => {
+    if (route.request().method() !== 'GET') { await route.fallback(); return; }
+    if (opts.fail) {
+      await route.fulfill({
+        status: 500,
+        contentType: 'application/json',
+        body: JSON.stringify({ message: 'Error.' }),
+      });
+      return;
+    }
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({ existe: opts.existe ?? false }),
+    });
+  });
+}
+
+/**
+ * Mockea GET /api/whatsapp/mi-tarjeta (blob de imagen — path EXACTO, sin /existe).
+ * Debe llamarse DESPUÉS de mockBackend().
+ */
+export async function mockTarjetaDescarga(
+  page: Page,
+  opts: TarjetaDescargaMockOptions = {},
+): Promise<void> {
+  if (REAL_BACKEND) return;
+
+  await page.route(
+    (url) => new URL(url).pathname.endsWith('/api/whatsapp/mi-tarjeta'),
+    async (route) => {
+      if (route.request().method() !== 'GET') { await route.fallback(); return; }
+      if (opts.fail) {
+        await route.fulfill({ status: 404, body: '' });
+        return;
+      }
+      // Devolver un PNG mínimo (1x1 px transparente) como blob
+      await route.fulfill({
+        status: 200,
+        contentType: 'image/png',
+        body: Buffer.from(
+          'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==',
+          'base64',
+        ),
+      });
+    },
+  );
+}
+
+/**
+ * Mockea POST /api/whatsapp/usuario/{id}/tarjeta (solo admin).
+ * Debe llamarse DESPUÉS de mockBackend().
+ */
+export async function mockSubirTarjeta(
+  page: Page,
+  opts: SubirTarjetaMockOptions = {},
+): Promise<void> {
+  if (REAL_BACKEND) return;
+
+  await page.route('**/api/whatsapp/usuario/*/tarjeta', async (route) => {
+    if (route.request().method() !== 'POST') { await route.fallback(); return; }
+    if (opts.fail) {
+      await route.fulfill({
+        status: opts.failStatus ?? 400,
+        contentType: 'application/json',
+        body: JSON.stringify({ message: opts.failMessage ?? 'Imagen obligatoria.' }),
+      });
+      return;
+    }
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({ ok: true, bytes: 1024 }),
+    });
+  });
+}
 
 /**
  * Mockea POST /api/contactos (registrar atención — path exacto, sin subpaths).

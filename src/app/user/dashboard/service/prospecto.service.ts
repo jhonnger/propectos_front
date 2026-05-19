@@ -343,6 +343,44 @@ export class ProspectoService {
     );
   }
 
+  // ── WhatsApp (RF-WA) ──────────────────────────────────────────────────────
+
+  /**
+   * GET /api/whatsapp/plantilla
+   * Devuelve la plantilla de mensaje configurada por el admin.
+   */
+  getPlantillaWhatsapp(): Observable<{ plantilla: string }> {
+    return this.http.get<{ plantilla: string }>(
+      `${environment.apiUrl}/api/whatsapp/plantilla`,
+      { headers: this.getAuthHeaders() },
+    );
+  }
+
+  /**
+   * GET /api/whatsapp/mi-tarjeta/existe
+   * Devuelve si el colaborador tiene tarjeta de presentación cargada.
+   */
+  miTarjetaWhatsappExiste(): Observable<{ existe: boolean }> {
+    return this.http.get<{ existe: boolean }>(
+      `${environment.apiUrl}/api/whatsapp/mi-tarjeta/existe`,
+      { headers: this.getAuthHeaders() },
+    );
+  }
+
+  /**
+   * GET /api/whatsapp/mi-tarjeta
+   * Descarga los bytes de la imagen de tarjeta del colaborador (404 si no hay).
+   */
+  descargarMiTarjetaWhatsapp(): Observable<Blob> {
+    return this.http.get(
+      `${environment.apiUrl}/api/whatsapp/mi-tarjeta`,
+      {
+        headers: new HttpHeaders({ Authorization: `Bearer ${this.getToken()}` }),
+        responseType: 'blob',
+      },
+    );
+  }
+
   /** @deprecated Usar registrarAtencion() */
   registrarContacto(contactoData: ContactoRegistro): Observable<unknown> {
     return this.http.post(this.contactoBaseUrl, contactoData, { headers: this.getAuthHeaders() });
