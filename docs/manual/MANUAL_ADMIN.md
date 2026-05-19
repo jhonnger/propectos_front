@@ -1,173 +1,146 @@
 # Manual del Administrador
 ### Sistema de Seguimiento de Prospectos
 
-Guía para el **dueño / administrador**: carga de bases, asignación a colaboradores, control de la operación, cierre de ventas y configuración.
+Esta guía explica, módulo por módulo, **qué problema resuelve** y **cómo le ayuda** al dueño/administrador a vender más y controlar la operación con menos esfuerzo.
 
 ---
 
 ## 1. Acceso al sistema
 
-Ingrese la URL del sistema en el navegador. Verá la pantalla de inicio de sesión.
-
-1. Escriba su **usuario** y **contraseña**.
-2. Presione **Iniciar sesión**.
+Ingrese la URL del sistema, escriba su **usuario** y **contraseña** y presione **Iniciar sesión**.
 
 ![Inicio de sesión](img/admin/01-login.png)
 
-> **Importante (seguridad):** el usuario inicial `admin` trae una contraseña por defecto. En el primer ingreso, cree su usuario real desde **Usuarios** y cambie o desactive el `admin` por defecto.
+> **Seguridad:** el usuario inicial trae una clave por defecto. En el primer ingreso cree su usuario real (sección 5) y cambie/desactive el de fábrica.
 
 ---
 
-## 2. Tablero (Dashboard)
+## 2. Tablero — su operación de un vistazo
 
-Es la primera pantalla al entrar. Resume el estado de toda la operación.
+**El problema:** sin un panel central, el dueño no sabe cómo va el día hasta que pide reportes.
+**Cómo le ayuda:** apenas entra, ve el estado completo y dónde actuar.
 
 ![Dashboard del administrador](img/admin/02-dashboard.png)
 
-Contiene:
-
-- **Métricas de Hoy y del Mes:** ventas cerradas, derivados, atenciones, contactabilidad real, tasa de conversión, % de avance de bases, disponibles sin asignar.
-- **Ranking por colaborador:** desempeño de cada teleoperador.
-- **Embudo:** asignados → gestionados → contactados → interesados → derivados → ventas.
-- **Por cerrar:** cantidad de casos derivados esperando que usted cierre la venta.
-- **Asistencia de hoy:** colaboradores presentes/ausentes (la ausencia se marca solo en días laborables, pasada la hora de inicio + tolerancia).
-- **Casos “En riesgo”:** prospectos de colaboradores ausentes que deben reasignarse para no perderlos. La tarjeta lleva directo a la pantalla de Reasignación.
-- **Estado de bases:** avance de cada base cargada.
+- **Hoy / Mes:** ventas cerradas, derivados, atenciones, contactabilidad real, conversión, % de avance de bases.
+- **Ranking por colaborador:** quién rinde y quién necesita apoyo.
+- **Embudo:** dónde se cae el proceso (asignados → contactados → interesados → derivados → ventas).
+- **Por cerrar:** cuántas ventas dependen de usted ahora mismo.
+- **Asistencia de hoy:** quién está presente/ausente (solo días laborables, tras la hora + tolerancia).
+- **Casos "En riesgo":** prospectos de ausentes que hay que reasignar para no perderlos (la tarjeta lleva directo a Reasignación).
 
 ---
 
 ## 3. Cargar una base (Excel)
 
-Menú **Cargar Excel**.
+**El problema:** cargar prospectos uno por uno es inviable.
+**Cómo le ayuda:** sube cientos de prospectos en segundos y ve qué entró y qué se rechazó (con el motivo).
 
 ![Cargar Excel](img/admin/03-upload-excel.png)
 
-1. Prepare el archivo `.xlsx` con las columnas en este orden: **nombre, apellido, campaña, documento, celular**. La primera fila es el encabezado.
-2. Seleccione el archivo y súbalo.
-3. El sistema muestra cuántos prospectos se **importaron** y cuántas filas se **rechazaron** (con el detalle del motivo).
-
-Cada archivo cargado es una **base**; queda disponible para repartir entre los colaboradores.
+Columnas del archivo, en orden: **nombre, apellido, campaña, documento, celular** (la primera fila es el encabezado). Cada archivo cargado es una **base** lista para repartir.
 
 ---
 
 ## 4. Asignar prospectos a los colaboradores
 
-Menú **Asignar prospectos**.
+**El problema:** repartir trabajo "a ojo" genera desbalance y prospectos sin dueño.
+**Cómo le ayuda:** reparte por **cantidad exacta** entre varios colaboradores en un solo flujo, con saldo visible y **auditoría** de quién asignó y cuándo.
 
 ![Asignar prospectos](img/admin/04-assign-prospects.png)
-
-1. Elija la **base** cargada.
-2. Indique **cuántos** prospectos asignar a cada colaborador (reparto por cantidad exacta).
-3. Confirme. El sistema muestra el **saldo sin asignar** y registra **quién asignó y cuándo** (auditoría).
-
-Puede repartir una misma base entre varios colaboradores en un solo flujo.
 
 ---
 
 ## 5. Gestión de usuarios
 
-Menú **Usuarios**. Lista los usuarios del sistema con su rol y estado.
+**El problema:** controlar accesos y datos de cada colaborador.
+**Cómo le ayuda:** crea, edita o desactiva usuarios con rol (ADMINISTRADOR / TELEOPERADOR). Desactivar no borra el historial.
 
 ![Gestión de usuarios](img/admin/05-manage-users.png)
 
-Para crear o editar, se abre un formulario:
+En la edición de un colaborador puede además **subir su Tarjeta de WhatsApp** (su imagen de presentación con nombre y teléfono). Esa tarjeta es la que el colaborador adjunta al contactar por WhatsApp (ver sección 10) — así cada asesor envía su propia firma profesional.
 
-![Crear / editar usuario](img/admin/06-user-dialog.png)
-
-- **Crear:** nombre, apellidos, usuario, email, contraseña y **rol** (ADMINISTRADOR o TELEOPERADOR).
-- **Editar:** datos y rol; la contraseña solo cambia si la completa.
-- **Desactivar:** el usuario queda inhabilitado para ingresar (no se borra el historial).
-
-> Solo el ADMINISTRADOR puede administrar usuarios.
+![Editar usuario + Tarjeta WhatsApp](img/admin/06-user-dialog.png)
 
 ---
 
-## 6. Configuración
+## 6. Configuración — el sistema trabaja a su medida
 
-Menú **Configuración**. Define el comportamiento del sistema.
+**El problema:** cada operación tiene reglas distintas (plazos, intentos, horarios, mensajes).
+**Cómo le ayuda:** define las reglas una vez y el sistema las aplica solo, sin depender de la memoria de nadie.
 
 ![Configuración](img/admin/07-configuracion.png)
 
-**Correos al dueño:**
-- **Instantáneo:** un correo por cada atención registrada.
-- **Resumen cada 5:** correo cada 5 atenciones de un colaborador.
-- **Resumen diario (9 pm):** consolidado del día con Excel adjunto.
+- **Correos al dueño:** *instantáneo* (cada atención), *resumen cada 5* y *resumen diario 9 pm* con Excel adjunto. **Le ayuda a estar al tanto sin entrar al sistema.**
+- **Días de seguimiento de "Interesado":** cuántos días hábiles después se recontacta a un interesado (evita que el lead se enfríe — ver Manual del Colaborador).
+- **Plantilla de WhatsApp:** el texto del mensaje que envían los colaboradores (variables `{nombre}` del prospecto y `{asesor}`). **Le ayuda a mantener un discurso comercial uniforme y cumplir el guion del convenio.**
+- **SBS:** plazo de reevaluación de observados.
+- **Reintentos "No contestó":** máximo de intentos y regla escalonada (ej. +3 h, +24 h, +48 h…).
+- **Jornada:** hora de inicio esperada y minutos de tolerancia antes de marcar ausencia.
+- **Metas:** ventas mensuales y derivados por colaborador.
 
-**Parámetros operativos:**
-- **Plazo de reevaluación SBS** (días) — cuándo se puede volver a evaluar un OBSERVADO.
-- **Máximo de intentos “No contestó”** — al superarlo el caso se descarta (ILOCALIZABLE).
-- **Regla de reintento** escalonada para “No contestó” (ej. `+3h,+24h,+48h,+72h,+120h`).
-- **Días de seguimiento para “Interesado”** — al marcar Interesado, el caso queda agendado en N días hábiles (sugerencia editable por el colaborador), para no perder al cliente.
-- **Hora de inicio de jornada** y **minutos de tolerancia** antes de marcar ausencia.
-- **Metas** mensuales de ventas y de derivados por colaborador.
-
-> Los correos solo se envían si la cuenta de envío está configurada; si no, el sistema funciona normal y el resumen se “salta” dejando registro.
+> El correo solo se envía si la cuenta de envío está configurada; si no, el sistema funciona igual y el envío se "salta" dejando registro.
 
 ---
 
 ## 7. Calendario laboral
 
-Menú **Calendario**. Define los días no laborables.
+**El problema:** agendar o marcar ausencias en feriados/domingos distorsiona todo.
+**Cómo le ayuda:** feriados de Perú precargados y editables; el sistema **no agenda ni marca ausencia** en días no laborables.
 
 ![Calendario laboral](img/admin/08-calendario.png)
 
-- Los **feriados de Perú** vienen precargados.
-- Puede **agregar o quitar** días propios de la empresa.
-- Domingos y feriados **no** cuentan como laborables: no se agenda en esos días ni se marca ausencia.
-
 ---
 
-## 8. Reasignación y casos “En riesgo”
+## 8. Reasignación y casos "En riesgo"
 
-Menú **Reasignación** (o la tarjeta “En riesgo” del dashboard).
+**El problema:** si un colaborador falta, sus prospectos del día se enfrían y se pierden ventas.
+**Cómo le ayuda:** los casos activos de un ausente quedan **"En riesgo"** y usted los reasigna (todo o lo que elija) a otro colaborador, conservando el historial y con auditoría. La venta futura se sigue atribuyendo a quien corresponde.
 
 ![Reasignación](img/admin/09-reasignacion.png)
-
-Cuando un colaborador **falta** en un día laborable, sus casos activos del día/vencidos quedan **“En riesgo”** para que no se enfríen.
-
-- Seleccione los casos y un **colaborador destino**, o use **“reasignar todo”** de un colaborador.
-- Solo se mueven casos activos (SIN_GESTIONAR / EN_GESTION / EN_SEGUIMIENTO). Nunca DERIVADO / GANADO / DESCARTADO.
-- Se conserva el **historial** y se registra quién reasignó, cuándo y por qué (auditoría). La atribución de una venta futura no cambia.
 
 ---
 
 ## 9. Bitácora global
 
-Menú **Bitácora**. Todas las atenciones de todos los colaboradores.
+**El problema:** auditar "qué pasó con tal cliente" o "qué se hizo hoy" sin una vista central.
+**Cómo le ayuda:** todas las atenciones de todos, con **filtros** (fechas, colaborador, campaña, base, resultado, quién contestó) y **export a Excel**. Ideal para control y auditoría.
 
 ![Bitácora](img/admin/10-bitacora.png)
-
-- Filtros: **rango de fechas, colaborador, campaña, base, resultado, quién contestó**.
-- Tabla paginada con el detalle de cada gestión.
-- **Exportar a Excel** del resultado filtrado (en el export, los datos sensibles van enmascarados).
-
-Úsela para auditoría y consultas puntuales (“ver los del día”).
 
 ---
 
 ## 10. Cerrar ventas (Por cerrar)
 
-Menú **Por cerrar**. Cuando un colaborador marca **Derivar (ACEPTÓ)**, el caso pasa a estado **DERIVADO** y aparece aquí: **usted cierra la venta**, no el colaborador.
+**El problema:** la venta no la cierra el colaborador; necesita un punto de control del dueño.
+**Cómo le ayuda:** cuando el colaborador marca **Derivar (ACEPTÓ)**, el caso llega aquí para que **usted cierre la venta**.
 
 ![Por cerrar](img/admin/11-por-cerrar.png)
 
-Para cada caso derivado:
-
 ![Registrar venta](img/admin/12-cerrar-venta.png)
 
-- **Registrar venta:** marca el caso como **GANADO** (venta concretada). La venta se atribuye al colaborador que derivó.
-- **No cerró:** puede **reintentar** (vuelve a seguimiento con una fecha futura) o **descartar** el caso, según corresponda.
+- **Registrar venta:** marca **GANADO** (venta concretada), atribuida al colaborador que derivó.
+- **No cerró:** **reintentar** (vuelve a seguimiento con fecha futura) o **descartar**.
 
-Un cliente GANADO puede volver a ser elegible más adelante (cliente recurrente): el sistema genera automáticamente un nuevo ciclo cuando corresponde, sin tocar el histórico.
+Un cliente GANADO puede volver a ser elegible más adelante; el sistema genera un nuevo ciclo automáticamente sin tocar el histórico.
 
 ---
 
-## 11. Recomendaciones
+## 11. Novedades que le ahorran trabajo
 
-- Cambie la contraseña por defecto del `admin` y cree usuarios nominales por persona.
-- Mantenga el **calendario** actualizado con los feriados de la empresa.
-- Revise a diario el **dashboard** (asistencia, “En riesgo”, “Por cerrar”).
-- Use la **bitácora** para auditar y la **configuración** para ajustar plazos según resultados.
+- **Correo automático del dueño** (resumen 9 pm + avisos): visibilidad sin entrar al sistema; un solo correo aunque haya varios servidores.
+- **WhatsApp con plantilla y tarjeta por asesor:** mensaje comercial uniforme y firma profesional de cada colaborador, configurados por usted.
+- **"Interesado" ya no se pierde:** queda agendado con fecha de seguimiento automática (usted define los días).
+- **Asistencia y horarios automáticos** (hora de Perú): jornada y ausencias sin trámite manual.
+
+---
+
+## 12. Recomendaciones
+
+- Cambie la clave por defecto y cree usuarios nominales.
+- Revise el **dashboard** a diario (asistencia, "En riesgo", "Por cerrar").
+- Ajuste **Configuración** (plantilla WhatsApp, plazos, metas) según resultados.
+- Suba la **tarjeta de WhatsApp** de cada colaborador para que puedan usar el envío.
 
 ---
 

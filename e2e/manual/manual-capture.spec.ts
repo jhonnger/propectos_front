@@ -9,7 +9,7 @@
  *   docs/manual/img/colab/  — capturas del perfil TELEOPERADOR
  *
  * Ejecucion:
- *   npx playwright test e2e/manual/manual-capture.spec.ts
+ *   npx playwright test e2e/manual/manual-capture.spec.ts --workers=1
  *
  * Reutiliza todos los helpers de e2e/support/mocks.ts (sin backend real).
  */
@@ -41,6 +41,9 @@ import {
   mockVerificacionSbs,
   mockRegistrarAtencion,
   mockJornada,
+  mockSubirTarjeta,
+  mockPlantillaWhatsapp,
+  mockTarjetaExiste,
   seedSession,
   MOCK_FERIADOS_DEFAULT,
   MOCK_EN_RIESGO_ITEMS,
@@ -152,19 +155,25 @@ const PROSPECTOS_MANUAL = [
   },
 ];
 
-/** Prospecto para el wizard de atencion */
+/** Prospecto para el wizard de atencion (celular sin enmascarar para el panel WA) */
 const PROSPECTO_WIZARD = {
   ...MOCK_PROSPECTO_NORMAL,
   asignacionId: 200,
   prospectoId: 300,
   nombre: 'Roberto',
   apellido: 'Salazar Paredes',
-  celular: '******754',
+  // Celular sin enmascarar para que el panel WhatsApp pueda construir wa.me/51...
+  celular: '987654321',
+  celularMasked: false,
   documentoIdentidad: '*****623',
   campania: 'Campana Mayo 2026',
   estado: 'EN_SEGUIMIENTO',
   estadoResultado: null,
 };
+
+/** Plantilla de WhatsApp de ejemplo con variables reales */
+const PLANTILLA_WA_EJEMPLO =
+  'Hola {nombre}, le contactamos de nuestro equipo de prestamos. Mi nombre es {asesor} y me encantaria contarle sobre las opciones disponibles para usted. Por favor, digame si tiene un momento para conversar.';
 
 // ── Helpers compartidos ──────────────────────────────────────────────────────
 
@@ -351,7 +360,7 @@ test.describe('Manual — Admin', () => {
 
     await page.goto('/admin/manage-users');
     // Esperar que la tabla cargue al menos una fila
-    await expect(page.locator('mat-row, tr.mat-mdc-row, tr.mdc-data-table__row').first()).toBeVisible({
+    await expect(page.locator('mat-row, tr.mat-mdc-row, tr.mdc-data-table__row, .mobile-card').first()).toBeVisible({
       timeout: 12_000,
     });
 
@@ -362,29 +371,47 @@ test.describe('Manual — Admin', () => {
   });
 
   // ── 06-user-dialog.png ──────────────────────────────────────────────────────
+  // REFRESCADO: abre el diálogo de EDITAR usuario (no crear) para que aparezca
+  // la sección "Tarjeta WhatsApp" (data-testid="tarjeta-whatsapp-section").
+  // Patron idéntico al manage-users.spec.ts vigente.
 
   test('06-user-dialog', async ({ page }) => {
     await setupAdmin(page);
-    // Mismo mock de usuarios activos para que la pagina cargue
+
+    const MOCK_USERS_ACTIVOS = [
+      {
+        id: 2,
+        nombre: 'Santiago',
+        apellidos: 'Vilchez Ramos',
+        usuario: 'svilchez',
+        email: 'santiago.vilchez@polariscrm.com',
+        estado: true,
+        nombreCompleto: 'Santiago Vilchez Ramos',
+        rolId: 2,
+        rolNombre: 'TELEOPERADOR',
+      },
+      {
+        id: 3,
+        nombre: 'Carmen Rosa',
+        apellidos: 'Huayta Flores',
+        usuario: 'chuayta',
+        email: 'carmen.huayta@polariscrm.com',
+        estado: true,
+        nombreCompleto: 'Carmen Rosa Huayta Flores',
+        rolId: 2,
+        rolNombre: 'TELEOPERADOR',
+      },
+    ];
+
+    // Mock de usuarios activos
     await page.route('**/api/usuarios/activos**', async (route) => {
       await route.fulfill({
         status: 200,
         contentType: 'application/json',
-        body: JSON.stringify([
-          {
-            id: 2,
-            nombre: 'Santiago',
-            apellidos: 'Vilchez Ramos',
-            usuario: 'svilchez',
-            email: 'santiago.vilchez@polariscrm.com',
-            estado: true,
-            nombreCompleto: 'Santiago Vilchez Ramos',
-            rolId: 2,
-            rolNombre: 'TELEOPERADOR',
-          },
-        ]),
+        body: JSON.stringify(MOCK_USERS_ACTIVOS),
       });
     });
+
     // Mock de roles para el formulario del dialogo
     await page.route('**/api/usuarios/roles**', async (route) => {
       await route.fulfill({
@@ -397,20 +424,35 @@ test.describe('Manual — Admin', () => {
       });
     });
 
+    // Mock PUT para que el dialogo no explote al guardar
+    await page.route('**/api/usuarios/*', async (route) => {
+      if (route.request().method() !== 'PUT') { await route.fallback(); return; }
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify(MOCK_USERS_ACTIVOS[0]),
+      });
+    });
+
+    // Mock de subida de tarjeta WhatsApp (necesario para que la seccion aparezca funcional)
+    await mockSubirTarjeta(page);
+
     await page.goto('/admin/manage-users');
-    await expect(page.locator('mat-row, tr.mat-mdc-row, tr.mdc-data-table__row').first()).toBeVisible({
+    await expect(page.locator('tr.mat-mdc-row, tr.mdc-data-table__row, .mobile-card').first()).toBeVisible({
       timeout: 12_000,
     });
 
-    // Abrir el dialogo de nuevo usuario via el boton principal
-    // Buscar el boton "Nuevo Usuario" o similar en la pagina
-    const btnNuevo = page.locator('button').filter({ hasText: /nuevo usuario|agregar|crear/i }).first();
-    await expect(btnNuevo).toBeVisible({ timeout: 5_000 });
-    await btnNuevo.click();
+    // Abrir dialogo de EDICION del primer usuario — mismo patron que manage-users.spec.ts
+    const editBtn = page.locator('button[mattooltip="Editar"], button[ng-reflect-message="Editar"]').first();
+    if (await editBtn.count() > 0) {
+      await editBtn.click();
+    } else {
+      // Fallback: boton con clase edit-btn
+      await page.locator('.edit-btn').first().click();
+    }
 
-    // Esperar que el dialogo de Angular Material este abierto (usar el container externo)
-    const dialog = page.locator('mat-dialog-container').first();
-    await expect(dialog).toBeVisible({ timeout: 8_000 });
+    // Esperar que la seccion tarjeta WhatsApp este visible (indicador de modo edicion)
+    await expect(page.locator('[data-testid="tarjeta-whatsapp-section"]')).toBeVisible({ timeout: 8_000 });
 
     await page.screenshot({
       path: `${ADMIN_DIR}/06-user-dialog.png`,
@@ -419,6 +461,8 @@ test.describe('Manual — Admin', () => {
   });
 
   // ── 07-configuracion.png ────────────────────────────────────────────────────
+  // REFRESCADO: incluye plantillaWhatsapp en la config para que el textarea
+  // aparezca poblado. fullPage: true para que quepan todos los campos.
 
   test('07-configuracion', async ({ page }) => {
     await setupAdmin(page);
@@ -430,11 +474,18 @@ test.describe('Manual — Admin', () => {
         toggleResumenDiario: true,
         metaVentasMensual: 30,
         metaDerivadosPorColaborador: 8,
+        // Dias de seguimiento de Interesado (parametro operativo)
+        plazoReevaluacionSbsDias: 90,
+        maxIntentosNoContesto: 6,
+        // Plantilla WhatsApp poblada con ejemplo realista
+        plantillaWhatsapp: PLANTILLA_WA_EJEMPLO,
       },
     });
 
     await page.goto('/admin/configuracion');
     await expect(page.locator('[data-testid="config-content"]')).toBeVisible({ timeout: 10_000 });
+    // Esperar que el textarea de plantilla WhatsApp este visible y poblado
+    await expect(page.locator('[data-testid="textarea-plantilla-whatsapp"]')).toBeVisible({ timeout: 8_000 });
 
     await page.screenshot({
       path: `${ADMIN_DIR}/07-configuracion.png`,
@@ -743,7 +794,8 @@ test.describe('Manual — Colaborador', () => {
     });
     await mockVerificacionSbs(page, { resultado: 'APTO' });
     await mockRegistrarAtencion(page);
-    await seedSession(page, 'TELEOPERADOR');
+    await mockPlantillaWhatsapp(page, { plantilla: PLANTILLA_WA_EJEMPLO });
+    await mockTarjetaExiste(page, { existe: false });
 
     await abrirWizardColaborador(page);
 
@@ -764,7 +816,8 @@ test.describe('Manual — Colaborador', () => {
     await mockHistorial(page);
     await mockVerificacionSbs(page, { resultado: 'APTO' });
     await mockRegistrarAtencion(page);
-    await seedSession(page, 'TELEOPERADOR');
+    await mockPlantillaWhatsapp(page, { plantilla: PLANTILLA_WA_EJEMPLO });
+    await mockTarjetaExiste(page, { existe: false });
 
     await abrirWizardColaborador(page);
 
@@ -789,7 +842,8 @@ test.describe('Manual — Colaborador', () => {
     await mockHistorial(page);
     await mockVerificacionSbs(page, { resultado: 'APTO' });
     await mockRegistrarAtencion(page);
-    await seedSession(page, 'TELEOPERADOR');
+    await mockPlantillaWhatsapp(page, { plantilla: PLANTILLA_WA_EJEMPLO });
+    await mockTarjetaExiste(page, { existe: false });
 
     await abrirWizardColaborador(page);
 
@@ -817,7 +871,8 @@ test.describe('Manual — Colaborador', () => {
     await mockHistorial(page);
     await mockVerificacionSbs(page, { resultado: 'APTO' });
     await mockRegistrarAtencion(page);
-    await seedSession(page, 'TELEOPERADOR');
+    await mockPlantillaWhatsapp(page, { plantilla: PLANTILLA_WA_EJEMPLO });
+    await mockTarjetaExiste(page, { existe: false });
 
     await abrirWizardColaborador(page);
 
@@ -846,7 +901,8 @@ test.describe('Manual — Colaborador', () => {
     await mockHistorial(page);
     await mockVerificacionSbs(page, { resultado: 'APTO' });
     await mockRegistrarAtencion(page);
-    await seedSession(page, 'TELEOPERADOR');
+    await mockPlantillaWhatsapp(page, { plantilla: PLANTILLA_WA_EJEMPLO });
+    await mockTarjetaExiste(page, { existe: false });
 
     await abrirWizardColaborador(page);
 
@@ -867,6 +923,8 @@ test.describe('Manual — Colaborador', () => {
   });
 
   // ── 07-wizard-interesado.png ────────────────────────────────────────────────
+  // ASEGURADO: opcion "Interesado" seleccionada mostrando el campo de fecha de
+  // seguimiento prellenado. Patron identico al caso 10 de wizard-atencion.spec.ts.
 
   test('07-wizard-interesado', async ({ page }) => {
     await setupColaborador(page);
@@ -878,7 +936,8 @@ test.describe('Manual — Colaborador', () => {
     await mockHistorial(page);
     await mockVerificacionSbs(page, { resultado: 'APTO' });
     await mockRegistrarAtencion(page);
-    await seedSession(page, 'TELEOPERADOR');
+    await mockPlantillaWhatsapp(page, { plantilla: PLANTILLA_WA_EJEMPLO });
+    await mockTarjetaExiste(page, { existe: false });
 
     await abrirWizardColaborador(page);
 
@@ -913,7 +972,8 @@ test.describe('Manual — Colaborador', () => {
     await mockHistorial(page);
     await mockVerificacionSbs(page, { resultado: 'APTO' });
     await mockRegistrarAtencion(page);
-    await seedSession(page, 'TELEOPERADOR');
+    await mockPlantillaWhatsapp(page, { plantilla: PLANTILLA_WA_EJEMPLO });
+    await mockTarjetaExiste(page, { existe: false });
 
     await abrirWizardColaborador(page);
 
@@ -940,9 +1000,54 @@ test.describe('Manual — Colaborador', () => {
     });
   });
 
-  // ── 09-mi-actividad.png ─────────────────────────────────────────────────────
+  // ── 09-wizard-whatsapp.png ──────────────────────────────────────────────────
+  // NUEVO: rama Si → Titular → Interesado, panel "Enviar WhatsApp al prospecto"
+  // visible con textarea prellenado + boton "Abrir WhatsApp" + "Descargar mi tarjeta".
+  // Usa mockPlantillaWhatsapp y mockTarjetaExiste(true) para panel completo.
 
-  test('09-mi-actividad', async ({ page }) => {
+  test('09-wizard-whatsapp', async ({ page }) => {
+    await setupColaborador(page);
+    await mockMisEstadisticas(page);
+    await mockMiActividad(page);
+    await mockMisProspectos(page, { resultados: [PROSPECTO_WIZARD] });
+    await mockApertura(page, { aperturaId: 42 });
+    await mockCerrarApertura(page);
+    await mockHistorial(page);
+    await mockVerificacionSbs(page, { resultado: 'APTO' });
+    await mockRegistrarAtencion(page);
+    // Plantilla con ejemplo realista + tarjeta existente para que muestre boton "Descargar"
+    await mockPlantillaWhatsapp(page, { plantilla: PLANTILLA_WA_EJEMPLO });
+    await mockTarjetaExiste(page, { existe: true });
+
+    await abrirWizardColaborador(page);
+
+    // SBS APTO → Contesto → Titular → INTERESADO (rama que muestra el panel WA)
+    await page.locator('[data-testid="btn-sbs-apto"]').click();
+    await expect(page.locator('[data-testid="sbs-apto-badge"]')).toBeVisible({ timeout: 6_000 });
+    await page.locator('[data-testid="btn-contesto"]').click();
+    await page.locator('[data-testid="btn-quien-titular"]').click();
+    await page.locator('[data-testid="titular-op-INTERESADO"]').click();
+
+    // Esperar que el panel WhatsApp este visible con textarea prellenado
+    const panel = page.locator('[data-testid="whatsapp-panel"]');
+    await expect(panel).toBeVisible({ timeout: 8_000 });
+
+    // Esperar que el textarea tenga contenido (plantilla resuelta con el nombre del prospecto)
+    const textarea = page.locator('[data-testid="textarea-whatsapp"]');
+    await expect(textarea).toBeVisible({ timeout: 5_000 });
+
+    // Esperar el boton "Abrir WhatsApp"
+    await expect(page.locator('[data-testid="btn-abrir-whatsapp"]')).toBeVisible({ timeout: 5_000 });
+
+    await page.screenshot({
+      path: `${COLAB_DIR}/09-wizard-whatsapp.png`,
+      fullPage: true,
+    });
+  });
+
+  // ── 10-mi-actividad.png ─────────────────────────────────────────────────────
+
+  test('10-mi-actividad', async ({ page }) => {
     await setupColaborador(page);
     await mockMisEstadisticas(page);
     await mockMiActividad(page);
@@ -964,10 +1069,9 @@ test.describe('Manual — Colaborador', () => {
     await expect(actividadPanel).toBeVisible({ timeout: 8_000 });
 
     await page.screenshot({
-      path: `${COLAB_DIR}/09-mi-actividad.png`,
+      path: `${COLAB_DIR}/10-mi-actividad.png`,
       fullPage: true,
     });
   });
 
 });
-
