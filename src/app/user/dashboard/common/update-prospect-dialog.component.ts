@@ -597,6 +597,9 @@ export class UpdateProspectDialogComponent implements OnInit, OnDestroy {
           this.cdr.markForCheck();
         },
         error: () => {
+          // Error transitorio: no dejar bloqueado el panel toda la sesión;
+          // permitir reintento la próxima vez que se muestre.
+          this.whatsappPanelInit = false;
           this.whatsappTexto = '';
           this.cdr.markForCheck();
         },
@@ -666,12 +669,19 @@ export class UpdateProspectDialogComponent implements OnInit, OnDestroy {
     this.prospectoService.descargarMiTarjetaWhatsapp().subscribe({
       next: (blob) => {
         this.descargandoTarjeta = false;
+        // Extensión según el tipo MIME real para que WhatsApp/el SO la
+        // reconozcan como imagen al adjuntarla.
+        const ext = (blob.type && blob.type.includes('/'))
+          ? blob.type.split('/')[1].split('+')[0]
+          : 'png';
         const url = window.URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = 'mi-tarjeta-whatsapp';
+        a.download = `mi-tarjeta-whatsapp.${ext}`;
         a.click();
-        window.URL.revokeObjectURL(url);
+        // Diferir el revoke: revocar de inmediato puede cancelar la descarga
+        // en algunos navegadores.
+        setTimeout(() => window.URL.revokeObjectURL(url), 1500);
         this.cdr.markForCheck();
       },
       error: () => {

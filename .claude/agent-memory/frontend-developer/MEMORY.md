@@ -1,1 +1,0 @@
-- [RF-WA WhatsApp feature patterns](project_rf_wa_whatsapp.md) — endpoints, phone normalization, panel trigger, template escaping gotchas

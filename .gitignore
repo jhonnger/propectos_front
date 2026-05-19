@@ -45,3 +45,6 @@ Thumbs.db
 /playwright-report/
 /test-results/
 /.playwright/
+
+# Scratch de agentes (no versionar)
+.claude/
