@@ -154,7 +154,6 @@ export interface ContactoHistorialAdmin {
 
 export interface MetricasPeriodo {
   ventasCerradas: number;
-  derivados: number;
   atenciones: number;
   contactabilidadReal?: number;
   colaboradoresActivos?: number;
@@ -170,7 +169,6 @@ export interface RankingColaborador {
   usuarioId: number;
   nombre: string;
   ventasCerradas: number;
-  derivados: number;
   atenciones: number;
   contactabilidad: number;
   ultimaActividad: string | null;
@@ -181,7 +179,6 @@ export interface Embudo {
   gestionados: number;
   contactadosTitular: number;
   interesados: number;
-  derivados: number;
   ventas: number;
 }
 

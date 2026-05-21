@@ -42,15 +42,6 @@
       </div>
     </div>
     <div class="kpi-card">
-      <div class="kpi-icon-wrapper kpi-blue">
-        <mat-icon>call_made</mat-icon>
-      </div>
-      <div class="kpi-info">
-        <span class="kpi-value" data-testid="hoy-derivados">{{ dashboard.dia.derivados }}</span>
-        <span class="kpi-label">Derivados</span>
-      </div>
-    </div>
-    <div class="kpi-card">
       <div class="kpi-icon-wrapper kpi-purple">
         <mat-icon>headset_mic</mat-icon>
       </div>
@@ -101,15 +92,6 @@
       <div class="kpi-info">
         <span class="kpi-value" data-testid="mes-ventas">{{ dashboard.mes.ventasCerradas }}</span>
         <span class="kpi-label">Prospectos cerrados</span>
-      </div>
-    </div>
-    <div class="kpi-card">
-      <div class="kpi-icon-wrapper kpi-blue">
-        <mat-icon>call_made</mat-icon>
-      </div>
-      <div class="kpi-info">
-        <span class="kpi-value" data-testid="mes-derivados">{{ dashboard.mes.derivados }}</span>
-        <span class="kpi-label">Derivados</span>
       </div>
     </div>
     <div class="kpi-card">
@@ -186,13 +168,6 @@
           <th mat-header-cell *matHeaderCellDef>Cerrados</th>
           <td mat-cell *matCellDef="let r">
             <span class="badge badge-gold">{{ r.ventasCerradas }}</span>
-          </td>
-        </ng-container>
-
-        <ng-container matColumnDef="derivados">
-          <th mat-header-cell *matHeaderCellDef>Derivados</th>
-          <td mat-cell *matCellDef="let r">
-            <span class="badge badge-blue">{{ r.derivados }}</span>
           </td>
         </ng-container>
 

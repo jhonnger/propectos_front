@@ -835,7 +835,6 @@ export interface DashboardMockOptions {
   porEnRiesgo?: number;
   dia?: Partial<{
     ventasCerradas: number;
-    derivados: number;
     atenciones: number;
     contactabilidadReal: number;
     colaboradoresActivos: number;
@@ -844,7 +843,6 @@ export interface DashboardMockOptions {
   }>;
   mes?: Partial<{
     ventasCerradas: number;
-    derivados: number;
     atenciones: number;
     tasaConversion: number;
     avanceBasesPct: number;
@@ -876,7 +874,6 @@ export interface ColaboradorDrilldownMockOptions {
 export const MOCK_DASHBOARD_DATA = {
   dia: {
     ventasCerradas: 3,
-    derivados: 7,
     atenciones: 42,
     contactabilidadReal: 0.68,
     colaboradoresActivos: 4,
@@ -885,7 +882,6 @@ export const MOCK_DASHBOARD_DATA = {
   },
   mes: {
     ventasCerradas: 21,
-    derivados: 48,
     atenciones: 310,
     tasaConversion: 0.44,
     avanceBasesPct: 0.61,
@@ -896,7 +892,6 @@ export const MOCK_DASHBOARD_DATA = {
       usuarioId: 2,
       nombre: 'Cola Uno',
       ventasCerradas: 8,
-      derivados: 15,
       atenciones: 102,
       contactabilidad: 0.72,
       ultimaActividad: '2026-05-17T09:45:00',
@@ -905,7 +900,6 @@ export const MOCK_DASHBOARD_DATA = {
       usuarioId: 3,
       nombre: 'Beta Dos',
       ventasCerradas: 5,
-      derivados: 9,
       atenciones: 88,
       contactabilidad: 0.58,
       ultimaActividad: '2026-05-17T08:30:00',
@@ -916,7 +910,6 @@ export const MOCK_DASHBOARD_DATA = {
     gestionados: 380,
     contactadosTitular: 210,
     interesados: 90,
-    derivados: 48,
     ventas: 21,
   },
   bases: [

@@ -60,7 +60,6 @@ export class ConfiguracionComponent implements OnInit {
       toggleResumenDiario: [false],
       // Metas
       metaVentasMensual: [0, [Validators.required, Validators.min(0)]],
-      metaDerivadosPorColaborador: [0, [Validators.required, Validators.min(0)]],
       // Parámetros operativos
       plazoReevaluacionSbsDias: [90, [Validators.required, Validators.min(1)]],
       maxIntentosNoContesto: [6, [Validators.required, Validators.min(1)]],
@@ -89,7 +88,6 @@ export class ConfiguracionComponent implements OnInit {
           toggleEmailDigest: config.toggleEmailDigest,
           toggleResumenDiario: config.toggleResumenDiario,
           metaVentasMensual: config.metaVentasMensual,
-          metaDerivadosPorColaborador: config.metaDerivadosPorColaborador,
           plazoReevaluacionSbsDias: config.plazoReevaluacionSbsDias,
           maxIntentosNoContesto: config.maxIntentosNoContesto,
           reglaReintentoNoContesto: config.reglaReintentoNoContesto,
@@ -129,7 +127,6 @@ export class ConfiguracionComponent implements OnInit {
       toggleEmailDigest: boolean;
       toggleResumenDiario: boolean;
       metaVentasMensual: number;
-      metaDerivadosPorColaborador: number;
       plazoReevaluacionSbsDias: number;
       maxIntentosNoContesto: number;
       reglaReintentoNoContesto: string;
@@ -144,7 +141,6 @@ export class ConfiguracionComponent implements OnInit {
       toggleEmailDigest: v.toggleEmailDigest,
       toggleResumenDiario: v.toggleResumenDiario,
       metaVentasMensual: v.metaVentasMensual,
-      metaDerivadosPorColaborador: v.metaDerivadosPorColaborador,
       plazoReevaluacionSbsDias: v.plazoReevaluacionSbsDias,
       maxIntentosNoContesto: v.maxIntentosNoContesto,
       reglaReintentoNoContesto: v.reglaReintentoNoContesto,
@@ -162,7 +158,6 @@ export class ConfiguracionComponent implements OnInit {
           toggleEmailDigest: updated.toggleEmailDigest,
           toggleResumenDiario: updated.toggleResumenDiario,
           metaVentasMensual: updated.metaVentasMensual,
-          metaDerivadosPorColaborador: updated.metaDerivadosPorColaborador,
           plazoReevaluacionSbsDias: updated.plazoReevaluacionSbsDias,
           maxIntentosNoContesto: updated.maxIntentosNoContesto,
           reglaReintentoNoContesto: updated.reglaReintentoNoContesto,

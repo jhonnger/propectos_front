@@ -49,9 +49,6 @@ test.describe('Dashboard del dueno — Slice 1.5', () => {
     await expect(page.locator('[data-testid="hoy-ventas"]')).toContainText(
       String(MOCK_DASHBOARD_DATA.dia.ventasCerradas),
     );
-    await expect(page.locator('[data-testid="hoy-derivados"]')).toContainText(
-      String(MOCK_DASHBOARD_DATA.dia.derivados),
-    );
     await expect(page.locator('[data-testid="hoy-atenciones"]')).toContainText(
       String(MOCK_DASHBOARD_DATA.dia.atenciones),
     );
@@ -71,9 +68,6 @@ test.describe('Dashboard del dueno — Slice 1.5', () => {
     // KPIs MES
     await expect(page.locator('[data-testid="mes-ventas"]')).toContainText(
       String(MOCK_DASHBOARD_DATA.mes.ventasCerradas),
-    );
-    await expect(page.locator('[data-testid="mes-derivados"]')).toContainText(
-      String(MOCK_DASHBOARD_DATA.mes.derivados),
     );
     // Tasa de conversion
     await expect(page.locator('[data-testid="mes-conversion"]')).toContainText('44');

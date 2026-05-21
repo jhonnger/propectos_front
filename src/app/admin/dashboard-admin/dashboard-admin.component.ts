@@ -46,7 +46,6 @@ export class DashboardAdminComponent implements OnInit {
   rankingColumns = [
     'nombre',
     'ventasCerradas',
-    'derivados',
     'atenciones',
     'contactabilidad',
     'ultimaActividad',
@@ -60,8 +59,7 @@ export class DashboardAdminComponent implements OnInit {
     { key: 'gestionados', label: 'Gestionados' },
     { key: 'contactadosTitular', label: 'Contactados (titular)' },
     { key: 'interesados', label: 'Interesados' },
-    { key: 'derivados', label: 'Derivados' },
-    { key: 'ventas', label: 'Ventas' },
+    { key: 'ventas', label: 'Prospectos cerrados' },
   ];
 
   constructor(

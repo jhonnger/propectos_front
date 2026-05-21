@@ -53,9 +53,6 @@ test.describe('Configuracion del dueno — Slice 2.1', () => {
     await expect(page.locator('[data-testid="input-meta-ventas"]')).toHaveValue(
       String(MOCK_CONFIGURACION_DEFAULT.metaVentasMensual),
     );
-    await expect(page.locator('[data-testid="input-meta-derivados"]')).toHaveValue(
-      String(MOCK_CONFIGURACION_DEFAULT.metaDerivadosPorColaborador),
-    );
 
     // Parámetros operativos
     await expect(page.locator('[data-testid="input-plazo-sbs"]')).toHaveValue(

@@ -137,20 +137,6 @@
               <mat-error *ngIf="hasError('metaVentasMensual', 'required')">Campo requerido</mat-error>
             </mat-form-field>
 
-            <mat-form-field appearance="outline">
-              <mat-label>Meta de derivados por colaborador</mat-label>
-              <input
-                matInput
-                type="number"
-                formControlName="metaDerivadosPorColaborador"
-                min="0"
-                data-testid="input-meta-derivados"
-              />
-              <mat-hint>Número de derivaciones objetivo por colaborador</mat-hint>
-              <mat-error *ngIf="hasError('metaDerivadosPorColaborador', 'min')">Debe ser mayor o igual a 0</mat-error>
-              <mat-error *ngIf="hasError('metaDerivadosPorColaborador', 'required')">Campo requerido</mat-error>
-            </mat-form-field>
-
           </div>
         </mat-card-content>
       </mat-card>
