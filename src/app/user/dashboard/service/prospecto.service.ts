@@ -186,7 +186,9 @@ export interface GestionResumen {
   nombreProspecto: string;
   celular: string;
   fechaContacto: string;
-  estadoResultado: string;
+  estadoResultado: string | null;
+  /** VerificacionSbs (p. ej. OBSERVADO) para eventos SBS sin resultado de llamada. */
+  verificacionSbs?: string | null;
   comentario: string;
   duracionGestion: number | null;
 }

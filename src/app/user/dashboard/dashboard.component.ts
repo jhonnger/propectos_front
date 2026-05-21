@@ -307,10 +307,11 @@ export class DashboardComponent implements OnInit, OnDestroy {
       NO_CONTESTO: 'No contestó',
       AGENDADO: 'Agendado',
       PROSPECTO: 'Interesado',
-      OBSERVADO: 'Observado',
+      INTERESADO: 'Interesado',
+      OBSERVADO: 'Observado por banco',
       CONCRETO_PRESTAMO: 'Concreto',
       NO_VOLVER_LLAMAR: 'No llamar',
-      DERIVADO: 'Derivado',
+      DERIVADO: 'Cerrado',
       DESCARTADO: 'Descartado',
     };
     return er ? (map[er] ?? er) : 'Sin gestionar';

@@ -434,11 +434,11 @@
                     <strong>{{ g.nombreProspecto }}</strong>
                     <span class="gestion-celular">{{ g.celular }}</span>
                   </div>
-                  <span class="estado-badge" [ngClass]="getEstadoResultadoClass(g.estadoResultado)">
+                  <span class="estado-badge" [ngClass]="getEstadoResultadoClass(g.estadoResultado ?? g.verificacionSbs ?? null)">
                     <mat-icon class="estado-badge-icon" aria-hidden="true">
-                      {{ getEstadoResultadoIcon(g.estadoResultado) }}
+                      {{ getEstadoResultadoIcon(g.estadoResultado ?? g.verificacionSbs ?? null) }}
                     </mat-icon>
-                    {{ getEstadoResultadoLabel(g.estadoResultado) }}
+                    {{ getEstadoResultadoLabel(g.estadoResultado ?? g.verificacionSbs ?? null) }}
                   </span>
                 </div>
                 @if (g.comentario) {
