@@ -219,7 +219,8 @@ export interface DashboardResumen {
   mes: MetricasPeriodo;
   ranking: RankingColaborador[];
   embudo: Embudo;
-  porCerrar: number;
+  /** @deprecated eliminado del backend; ya no se usa */
+  porCerrar?: number;
   bases: BaseResumen[];
   asistencia?: AsistenciaDia;
   porEnRiesgo?: number;
@@ -247,45 +248,6 @@ export interface DrillDownColaborador {
   tamanioPagina: number;
   total: number;
   totalPaginas: number;
-}
-
-// ── Slice 1.4: Derivación + cierre por el dueño ─────────────────────────────
-
-export interface PorCerrarItem {
-  asignacionId: number;
-  prospectoId: number;
-  nombre: string;
-  apellido: string;
-  celular: string;
-  celularMasked: boolean;
-  documentoIdentidad: string;
-  campania: string;
-  derivadoPorId: number;
-  derivadoPorNombre: string;
-  fechaDerivacion: string;
-  nroPrestamosConcretados: number;
-}
-
-export interface PorCerrarResponse {
-  resultados: PorCerrarItem[];
-  pagina: number;
-  tamanioPagina: number;
-  total: number;
-  totalPaginas: number;
-}
-
-export interface CierreVentaResponse {
-  ok: boolean;
-  estado: string;
-  prospectoId: number;
-  derivadoPorId: number;
-  fechaElegibilidad: string;
-  nroPrestamosConcretados: number;
-}
-
-export interface NoCerroResponse {
-  ok: boolean;
-  estado: string;
 }
 
 // ── Slice 2.2: Calendario laboral RF-22 ─────────────────────────────────────
@@ -316,6 +278,8 @@ export interface ConfiguracionDueno {
   ultimoEnvioResumenDetalle: string | null;
   /** Plantilla de mensaje WhatsApp (RF-WA). Variables: {nombre}, {asesor}. */
   plantillaWhatsapp?: string;
+  /** Correo destinatario del resumen diario y notificaciones. */
+  emailReportes?: string;
 }
 
 /** Campos que se envían al PUT /api/reportes/config; null = no modificar. */
@@ -332,6 +296,8 @@ export interface ConfiguracionPatch {
   minutosGraciaAusencia?: number | null;
   /** Plantilla de mensaje WhatsApp (RF-WA). */
   plantillaWhatsapp?: string | null;
+  /** Correo destinatario del resumen diario y notificaciones. */
+  emailReportes?: string | null;
 }
 
 export interface EstadoEmail {
@@ -686,62 +652,6 @@ export class AdminService {
       .set('nuevoUsuarioId', nuevoUsuarioId.toString());
 
     return this.http.post<{ ok: boolean }>(`${this.assignmentUrl}/reasignar`, params.toString(), { headers });
-  }
-
-  // ── Slice 1.4: Derivación + cierre por el dueño ────────────────────────────
-
-  getPorCerrar(pagina: number, tamanioPagina: number): Observable<PorCerrarResponse> {
-    const headers = new HttpHeaders({
-      Authorization: `Bearer ${this.getToken()}`,
-    });
-    const params = new HttpParams()
-      .set('pagina', pagina.toString())
-      .set('tamanioPagina', tamanioPagina.toString());
-
-    return this.http.get<PorCerrarResponse>(
-      `${environment.apiUrl}/api/cierre/por-cerrar`,
-      { headers, params },
-    );
-  }
-
-  registrarVenta(
-    asignacionId: number,
-    fechaElegibilidad: string,
-    comentario?: string,
-  ): Observable<CierreVentaResponse> {
-    const headers = new HttpHeaders({
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${this.getToken()}`,
-    });
-    const body: { fechaElegibilidad: string; comentario?: string } = { fechaElegibilidad };
-    if (comentario) body['comentario'] = comentario;
-
-    return this.http.post<CierreVentaResponse>(
-      `${environment.apiUrl}/api/cierre/${asignacionId}/venta`,
-      body,
-      { headers },
-    );
-  }
-
-  noCerro(
-    asignacionId: number,
-    accion: 'REINTENTAR' | 'DESCARTAR',
-    fecha?: string,
-    comentario?: string,
-  ): Observable<NoCerroResponse> {
-    const headers = new HttpHeaders({
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${this.getToken()}`,
-    });
-    const body: { accion: string; fecha?: string; comentario?: string } = { accion };
-    if (fecha) body['fecha'] = fecha;
-    if (comentario) body['comentario'] = comentario;
-
-    return this.http.post<NoCerroResponse>(
-      `${environment.apiUrl}/api/cierre/${asignacionId}/no-cerro`,
-      body,
-      { headers },
-    );
   }
 
   // ── Slice 2.1: Configuración del dueño (RF-08) ────────────────────────────

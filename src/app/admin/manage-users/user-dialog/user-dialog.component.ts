@@ -75,7 +75,6 @@ export class UserDialogComponent implements OnInit {
       nombre: [user?.nombre || '', [Validators.required, Validators.minLength(2)]],
       apellidos: [user?.apellidos || '', [Validators.required, Validators.minLength(2)]],
       usuario: [{ value: user?.usuario || '', disabled: this.isEditMode }, [Validators.required, Validators.minLength(3)]],
-      email: [user?.email || '', [Validators.required, Validators.email]],
       password: ['', this.isEditMode ? [Validators.minLength(6)] : [Validators.required, Validators.minLength(6)]],
       rolId: [user?.rolId || null, Validators.required],
     });
@@ -101,7 +100,7 @@ export class UserDialogComponent implements OnInit {
       const updateData: UpdateUsuarioRequest = {
         nombre: formValue.nombre,
         apellidos: formValue.apellidos,
-        email: formValue.email,
+        email: '',
         rolId: formValue.rolId,
         estado: this.data.user!.estado,
       };

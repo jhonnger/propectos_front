@@ -831,7 +831,6 @@ export interface DashboardMockOptions {
   fail?: boolean;
   failStatus?: number;
   failMessage?: string;
-  porCerrar?: number;
   asistencia?: AsistenciaDiaMock | null;
   porEnRiesgo?: number;
   dia?: Partial<{
@@ -920,7 +919,6 @@ export const MOCK_DASHBOARD_DATA = {
     derivados: 48,
     ventas: 21,
   },
-  porCerrar: 7,
   bases: [
     {
       id: 1,
@@ -1032,7 +1030,6 @@ export async function mockDashboardAdmin(
       mes: { ...MOCK_DASHBOARD_DATA.mes, ...(opts.mes ?? {}) },
       ranking: MOCK_DASHBOARD_DATA.ranking,
       embudo: MOCK_DASHBOARD_DATA.embudo,
-      porCerrar: opts.porCerrar ?? MOCK_DASHBOARD_DATA.porCerrar,
       bases: MOCK_DASHBOARD_DATA.bases,
       porEnRiesgo: opts.porEnRiesgo ?? MOCK_DASHBOARD_DATA.porEnRiesgo,
     };
@@ -1126,6 +1123,8 @@ export interface ConfiguracionDuenoMock {
   ultimoEnvioResumenDetalle?: string | null;
   /** Plantilla de mensaje WhatsApp (RF-WA). */
   plantillaWhatsapp?: string;
+  /** Email destinatario del resumen diario y notificaciones. */
+  emailReportes?: string | null;
 }
 
 export interface ConfiguracionMockOptions {
@@ -1162,6 +1161,7 @@ export const MOCK_CONFIGURACION_DEFAULT: Required<ConfiguracionDuenoMock> = {
   ultimoEnvioResumenFecha: null,
   ultimoEnvioResumenDetalle: null,
   plantillaWhatsapp: 'Hola {nombre}, le contactamos desde nuestro equipo. Mi nombre es {asesor}.',
+  emailReportes: 'reportes@empresa.com',
 };
 
 /**

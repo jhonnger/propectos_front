@@ -12,11 +12,7 @@
       </div>
     </div>
 
-    <!-- Cronómetro -->
-    <div class="cronometro-badge" aria-label="Tiempo de gestión" title="Tiempo de gestión (informativo)">
-      <mat-icon class="crono-icon" aria-hidden="true">timer</mat-icon>
-      <span class="crono-display" data-testid="cronometro">{{ cronometroDisplay }}</span>
-    </div>
+    <!-- Cronómetro (oculto al teleoperador; sigue corriendo internamente) -->
 
     <button mat-icon-button class="close-btn" (click)="onCerrar()" aria-label="Cerrar modal">
       <mat-icon>close</mat-icon>

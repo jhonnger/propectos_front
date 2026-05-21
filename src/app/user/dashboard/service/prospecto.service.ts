@@ -140,7 +140,7 @@ export const FILTROS_COLA: FiltroChip[] = [
   { valor: 'OBSERVADO_SBS',  etiqueta: 'Observado SBS'   },
   { valor: 'DERIVADOS',      etiqueta: 'Derivados'        },
   { valor: 'INTERESADOS',    etiqueta: 'Interesados'      },
-  { valor: 'MIS_VENTAS',     etiqueta: 'Mis ventas'       },
+  { valor: 'MIS_VENTAS',     etiqueta: 'Mis cerrados'     },
   { valor: 'DESCARTADOS',    etiqueta: 'Descartados'      },
   { valor: 'TODOS',          etiqueta: 'Todos'            },
 ];

@@ -142,31 +142,29 @@ test.describe('Dashboard del dueno — Slice 1.5', () => {
     });
   });
 
-  // ── Caso 3: Tarjeta "Por cerrar" muestra número y botón navega ──────────────
+  // ── Caso 3: "Por cerrar" eliminado — el dashboard NO muestra esa tarjeta ─────
 
-  test('tarjeta por cerrar muestra el numero y el boton navega a /admin/por-cerrar', async ({ page }) => {
+  test('la tarjeta por-cerrar ya no existe en el dashboard (CF-1: funcionalidad eliminada)', async ({ page }) => {
     await setup(page);
-    await mockDashboardAdmin(page, { porCerrar: 7 });
+    await mockDashboardAdmin(page);
     await mockColaboradorDrilldown(page);
     await mockExportarProspectos(page);
 
     await irAlDashboard(page);
 
-    // Tarjeta por cerrar visible
-    const porCerrarCard = page.locator('[data-testid="por-cerrar-card"]');
-    await expect(porCerrarCard).toBeVisible();
+    // El dashboard sigue cargando sin errores
+    await expect(page.locator('[data-testid="dashboard-content"]')).toBeVisible();
 
-    // Número correcto
-    await expect(page.locator('[data-testid="por-cerrar-count"]')).toContainText('7');
+    // La tarjeta "Por cerrar" ya no existe
+    await expect(page.locator('[data-testid="por-cerrar-card"]')).toHaveCount(0);
 
-    // Botón "Ir a Por cerrar"
-    const btnIr = page.locator('[data-testid="btn-ir-por-cerrar"]');
-    await expect(btnIr).toBeVisible();
-    await expect(btnIr).toBeEnabled();
+    // La métrica "Prospectos cerrados" está visible en la banda HOY
+    await expect(page.locator('[data-testid="hoy-ventas"]')).toBeVisible();
 
-    // Navega a la ruta correcta
-    await btnIr.click();
-    await expect(page).toHaveURL(/\/admin\/por-cerrar/, { timeout: 5_000 });
+    await page.screenshot({
+      path: `${SCREENSHOTS_DIR}/dashboard-sin-por-cerrar.png`,
+      fullPage: true,
+    });
   });
 
   // ── Caso 4: Error backend 500 → muestra mensaje, no crashea ─────────────────

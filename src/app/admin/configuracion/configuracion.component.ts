@@ -69,6 +69,8 @@ export class ConfiguracionComponent implements OnInit {
       minutosGraciaAusencia: [45, [Validators.required, Validators.min(0)]],
       // WhatsApp (RF-WA)
       plantillaWhatsapp: [''],
+      // Email de reportes
+      emailReportes: ['', [Validators.email]],
     });
   }
 
@@ -94,6 +96,7 @@ export class ConfiguracionComponent implements OnInit {
           horaInicioJornada: config.horaInicioJornada,
           minutosGraciaAusencia: config.minutosGraciaAusencia,
           plantillaWhatsapp: config.plantillaWhatsapp ?? '',
+          emailReportes: config.emailReportes ?? '',
         });
         this.loading = false;
       },
@@ -133,6 +136,7 @@ export class ConfiguracionComponent implements OnInit {
       horaInicioJornada: string;
       minutosGraciaAusencia: number;
       plantillaWhatsapp: string;
+      emailReportes: string;
     };
 
     const patch: ConfiguracionPatch = {
@@ -147,6 +151,7 @@ export class ConfiguracionComponent implements OnInit {
       horaInicioJornada: v.horaInicioJornada,
       minutosGraciaAusencia: v.minutosGraciaAusencia,
       plantillaWhatsapp: v.plantillaWhatsapp ?? null,
+      emailReportes: v.emailReportes || null,
     };
 
     this.adminService.actualizarConfiguracion(patch).subscribe({
@@ -164,6 +169,7 @@ export class ConfiguracionComponent implements OnInit {
           horaInicioJornada: updated.horaInicioJornada,
           minutosGraciaAusencia: updated.minutosGraciaAusencia,
           plantillaWhatsapp: updated.plantillaWhatsapp ?? '',
+          emailReportes: updated.emailReportes ?? '',
         });
         this.snackBar.open('Configuración guardada', 'Cerrar', {
           duration: 4000,

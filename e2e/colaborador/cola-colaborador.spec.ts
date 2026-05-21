@@ -4,6 +4,13 @@ import {
   mockMisProspectos,
   mockMiActividad,
   mockMisEstadisticas,
+  mockApertura,
+  mockCerrarApertura,
+  mockHistorial,
+  mockVerificacionSbs,
+  mockRegistrarAtencion,
+  mockPlantillaWhatsapp,
+  mockTarjetaExiste,
   seedSession,
   MOCK_PROSPECTO_VENCIDO,
   MOCK_PROSPECTO_RECURRENTE,
@@ -207,6 +214,69 @@ test.describe('Cola del colaborador (TELEOPERADOR)', () => {
     // El contenido del primer elemento .phone-masked debe tener asteriscos
     const firstPhone = await maskedPhones.first().textContent();
     expect(firstPhone).toContain('*');
+  });
+
+  // ── Caso 7: botón de exportar NO está presente en la cola ─────────────────
+
+  test('el botón de exportar Excel no está presente en la cola del colaborador', async ({ page }) => {
+    await page.goto('/user/app/dashboard');
+    await expect(page.locator('.filter-active')).toContainText('Mi cola de hoy', { timeout: 8000 });
+
+    // No debe existir ningún botón de exportar en la toolbar de acciones del colaborador
+    const btnExportar = page.locator('[data-testid="btn-exportar"], button[aria-label*="xportar"], button[aria-label*="escargar"]');
+    await expect(btnExportar).toHaveCount(0);
+  });
+
+  // ── Caso 8: cola se recarga cuando wizard cierra con OBSERVADO ─────────────
+
+  test('la cola se recarga cuando el wizard cierra con resultado OBSERVADO (SBS)', async ({ page }) => {
+    // Fixture con celular sin máscara para el wizard
+    const PROSPECTO_WIZARD = {
+      ...MOCK_PROSPECTO_NORMAL,
+      prospectoId: 88,
+      asignacionId: 88,
+      nombre: 'Testigo',
+      apellido: 'ObservadoSbs',
+      celular: '912345678',
+      celularMasked: false,
+    };
+
+    const reloadRequests: string[] = [];
+    page.on('request', (req) => {
+      if (req.url().includes('/api/asignaciones/mis-prospectos')) {
+        reloadRequests.push(req.url());
+      }
+    });
+
+    // Registrar mocks del wizard DESPUÉS de los del beforeEach (LIFO)
+    await mockMisProspectos(page, { resultados: [PROSPECTO_WIZARD] });
+    await mockApertura(page, { aperturaId: 55 });
+    await mockCerrarApertura(page);
+    await mockHistorial(page);
+    await mockVerificacionSbs(page, { resultado: 'OBSERVADO', fechaReevaluacionSbs: '2026-09-01' });
+    await mockRegistrarAtencion(page);
+    await mockPlantillaWhatsapp(page);
+    await mockTarjetaExiste(page, { existe: false });
+
+    await page.goto('/user/app/dashboard');
+    await expect(page.locator('tr.mat-mdc-row, tr.mdc-data-table__row').first()).toBeVisible({ timeout: 10000 });
+
+    // Limpiar requests previas (carga inicial) para medir solo las del refresh
+    reloadRequests.length = 0;
+
+    // Abrir wizard
+    const btnGestionar = page.locator('button[aria-label="Gestionar prospecto"]').first();
+    await expect(btnGestionar).toBeEnabled({ timeout: 5000 });
+    await btnGestionar.click();
+    await expect(page.locator('[data-testid="sbs-section"]')).toBeVisible({ timeout: 8000 });
+
+    // Marcar SBS OBSERVADO → el modal se auto-cierra
+    await page.locator('[data-testid="btn-sbs-observado"]').click();
+    await expect(page.locator('[data-testid="sbs-section"]')).not.toBeVisible({ timeout: 8000 });
+
+    // Tras cerrarse el wizard, la cola debe haber recargado
+    await page.waitForTimeout(500);
+    expect(reloadRequests.length).toBeGreaterThan(0);
   });
 
 });

@@ -94,14 +94,6 @@
           </td>
         </ng-container>
 
-        <!-- Email Column -->
-        <ng-container matColumnDef="email">
-          <th mat-header-cell *matHeaderCellDef>Email</th>
-          <td mat-cell *matCellDef="let user">
-            <span class="email-text">{{ user.email }}</span>
-          </td>
-        </ng-container>
-
         <!-- Rol Column -->
         <ng-container matColumnDef="rol">
           <th mat-header-cell *matHeaderCellDef>Rol</th>
@@ -165,10 +157,6 @@
         </div>
 
         <div class="mobile-card-content">
-          <div class="mobile-field">
-            <mat-icon>email</mat-icon>
-            <span>{{ user.email }}</span>
-          </div>
           <div class="mobile-field">
             <mat-icon>badge</mat-icon>
             <span>{{ user.rolNombre }}</span>

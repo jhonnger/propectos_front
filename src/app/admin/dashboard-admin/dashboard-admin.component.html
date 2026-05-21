@@ -38,7 +38,7 @@
       </div>
       <div class="kpi-info">
         <span class="kpi-value" data-testid="hoy-ventas">{{ dashboard.dia.ventasCerradas }}</span>
-        <span class="kpi-label">Ventas cerradas</span>
+        <span class="kpi-label">Prospectos cerrados</span>
       </div>
     </div>
     <div class="kpi-card">
@@ -100,7 +100,7 @@
       </div>
       <div class="kpi-info">
         <span class="kpi-value" data-testid="mes-ventas">{{ dashboard.mes.ventasCerradas }}</span>
-        <span class="kpi-label">Ventas cerradas</span>
+        <span class="kpi-label">Prospectos cerrados</span>
       </div>
     </div>
     <div class="kpi-card">
@@ -141,24 +141,8 @@
     </div>
   </div>
 
-  <!-- ── Fila: Por cerrar + Embudo ─────────────────────────────────────────── -->
+  <!-- ── Embudo ────────────────────────────────────────────────────────────── -->
   <div class="mid-row">
-
-    <!-- Por cerrar -->
-    <div class="section-card por-cerrar-card" data-testid="por-cerrar-card">
-      <h3 class="section-title">
-        <mat-icon>pending_actions</mat-icon>
-        Por cerrar
-      </h3>
-      <div class="por-cerrar-body">
-        <span class="por-cerrar-number" data-testid="por-cerrar-count">{{ dashboard.porCerrar }}</span>
-        <span class="por-cerrar-label">casos pendientes de cierre</span>
-      </div>
-      <button mat-flat-button class="por-cerrar-btn" (click)="irAPorCerrar()" data-testid="btn-ir-por-cerrar">
-        <mat-icon>open_in_new</mat-icon>
-        Ir a Por cerrar
-      </button>
-    </div>
 
     <!-- Embudo -->
     <div class="section-card embudo-card" data-testid="embudo-section">
@@ -199,7 +183,7 @@
         </ng-container>
 
         <ng-container matColumnDef="ventasCerradas">
-          <th mat-header-cell *matHeaderCellDef>Ventas</th>
+          <th mat-header-cell *matHeaderCellDef>Cerrados</th>
           <td mat-cell *matCellDef="let r">
             <span class="badge badge-gold">{{ r.ventasCerradas }}</span>
           </td>

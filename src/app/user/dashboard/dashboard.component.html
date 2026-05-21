@@ -66,7 +66,7 @@
       </div>
       <div class="metric-content">
         <span class="metric-value">{{ stats.ganados }}</span>
-        <span class="metric-label">Ganados</span>
+        <span class="metric-label">Prospectos (cerrados)</span>
       </div>
     </div>
 
@@ -126,11 +126,6 @@
         </mat-form-field>
 
         <div class="toolbar-actions">
-          <button mat-stroked-button class="export-btn" (click)="exportarExcel()"
-            aria-label="Exportar a Excel">
-            <mat-icon>download</mat-icon>
-            Exportar
-          </button>
           <button mat-stroked-button class="refresh-btn"
             (click)="cargarProspectos(); loadStats()"
             aria-label="Actualizar lista">
@@ -196,9 +191,9 @@
                 </td>
               </ng-container>
 
-              <!-- Campaña -->
+              <!-- Convenio -->
               <ng-container matColumnDef="campania">
-                <th mat-header-cell *matHeaderCellDef>Campaña</th>
+                <th mat-header-cell *matHeaderCellDef>Convenio</th>
                 <td mat-cell *matCellDef="let p">
                   <span class="campaign-badge">
                     <span class="campaign-dot" aria-hidden="true"></span>
@@ -343,7 +338,7 @@
                   <div class="info-row">
                     <div class="info-label-group">
                       <mat-icon class="info-row-icon" aria-hidden="true">campaign</mat-icon>
-                      <span class="info-label">Campaña</span>
+                      <span class="info-label">Convenio</span>
                     </div>
                     <span class="campaign-badge-mobile">{{ p.campania }}</span>
                   </div>

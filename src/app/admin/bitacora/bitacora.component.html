@@ -76,15 +76,15 @@
         </mat-select>
       </mat-form-field>
 
-      <!-- Campaña (texto libre) -->
+      <!-- Convenio (texto libre) -->
       <mat-form-field appearance="outline" class="filtro-field">
-        <mat-label>Campaña</mat-label>
+        <mat-label>Convenio</mat-label>
         <input
           matInput
           [(ngModel)]="filtroCampania"
           name="campania"
           data-testid="input-campania"
-          placeholder="Nombre exacto de campaña"
+          placeholder="Nombre exacto de convenio"
           maxlength="255"
         />
       </mat-form-field>
@@ -206,9 +206,9 @@
           </td>
         </ng-container>
 
-        <!-- Campaña -->
+        <!-- Convenio -->
         <ng-container matColumnDef="campania">
-          <th mat-header-cell *matHeaderCellDef>Campaña</th>
+          <th mat-header-cell *matHeaderCellDef>Convenio</th>
           <td mat-cell *matCellDef="let row">
             <span class="campania-chip">{{ row.campania }}</span>
           </td>

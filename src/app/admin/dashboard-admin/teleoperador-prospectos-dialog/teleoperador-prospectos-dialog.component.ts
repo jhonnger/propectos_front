@@ -45,7 +45,7 @@ export class TeleoperadorProspectosDialogComponent implements OnInit {
     EN_SEGUIMIENTO: 'En seguimiento',
     FINALIZADO: 'Finalizado',
     DERIVADO: 'Derivado',
-    GANADO: 'Ganado',
+    GANADO: 'Prospecto',
     DESCARTADO: 'Descartado',
   };
 

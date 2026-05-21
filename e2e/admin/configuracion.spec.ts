@@ -171,6 +171,70 @@ test.describe('Configuracion del dueno — Slice 2.1', () => {
     await expect(banner).toContainText('MAIL_ENABLED');
   });
 
+  // ── Caso 5b: emailReportes se carga en el campo y se envía en el PUT ────────
+
+  test('emailReportes se carga en el campo y se envía en el PUT al guardar', async ({ page }) => {
+    const EMAIL = 'reportes@empresa.com';
+    const capturedBodies: Array<Record<string, unknown>> = [];
+
+    page.on('request', (req) => {
+      if (req.url().includes('/api/reportes/config') && req.method() === 'PUT') {
+        try { capturedBodies.push(JSON.parse(req.postData() ?? '{}')); } catch { /* */ }
+      }
+    });
+
+    await setup(page);
+    await mockEstadoEmail(page, { mailConfigurado: true });
+    await mockConfiguracion(page, {
+      config: { ...MOCK_CONFIGURACION_DEFAULT, emailReportes: EMAIL },
+    });
+
+    await irAConfiguracion(page);
+
+    // El campo emailReportes debe estar visible y cargado con el valor del mock
+    const inputEmail = page.locator('[data-testid="input-email-reportes"]');
+    await expect(inputEmail).toBeVisible({ timeout: 8_000 });
+    await expect(inputEmail).toHaveValue(EMAIL);
+
+    // Modificar el email
+    const NUEVO_EMAIL = 'nuevo@empresa.com';
+    await inputEmail.fill(NUEVO_EMAIL);
+
+    // Guardar
+    const btnGuardar = page.locator('[data-testid="btn-guardar"]');
+    await expect(btnGuardar).toBeEnabled();
+    await btnGuardar.click();
+
+    // Snackbar de éxito
+    const snack = page.locator('simple-snack-bar');
+    await expect(snack).toContainText('Configuración guardada', { timeout: 8_000 });
+
+    // El PUT contiene emailReportes con el nuevo valor
+    await page.waitForTimeout(300);
+    expect(capturedBodies.length).toBeGreaterThan(0);
+    expect(capturedBodies[0]['emailReportes']).toBe(NUEVO_EMAIL);
+  });
+
+  // ── Caso 5c: emailReportes con formato inválido bloquea el botón Guardar ────
+
+  test('emailReportes con formato inválido deshabilita el botón Guardar', async ({ page }) => {
+    await setup(page);
+    await mockEstadoEmail(page, { mailConfigurado: true });
+    await mockConfiguracion(page, { config: MOCK_CONFIGURACION_DEFAULT });
+
+    await irAConfiguracion(page);
+
+    const inputEmail = page.locator('[data-testid="input-email-reportes"]');
+    await expect(inputEmail).toBeVisible({ timeout: 8_000 });
+
+    // Ingresar un email malformado
+    await inputEmail.fill('no-es-un-email');
+    await inputEmail.blur();
+
+    const btnGuardar = page.locator('[data-testid="btn-guardar"]');
+    await expect(btnGuardar).toBeDisabled({ timeout: 5_000 });
+  });
+
   // ── Caso 5 (RF-WA): Plantilla de WhatsApp se carga y se guarda ──────────────
 
   test('plantillaWhatsapp se carga en el textarea y se envía en el PUT al guardar', async ({ page }) => {

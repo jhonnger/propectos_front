@@ -228,23 +228,6 @@ export class DashboardComponent implements OnInit, OnDestroy {
     this.cargarActividad();
   }
 
-  exportarExcel(): void {
-    this.prospectoService.exportarMisProspectos(this.filtroActivo).subscribe({
-      next: (blob) => {
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = 'mis_prospectos.xlsx';
-        a.click();
-        window.URL.revokeObjectURL(url);
-        this.snackBar.open('Reporte descargado', 'Cerrar', { duration: 3000 });
-      },
-      error: () => {
-        this.snackBar.open('Error al exportar', 'Cerrar', { duration: 3000 });
-      },
-    });
-  }
-
   openDialog(prospect: MiProspecto): void {
     const wizardData: WizardDialogData = {
       prospectoId: prospect.prospectoId,

@@ -531,6 +531,39 @@ test.describe('Wizard de atención — Slice 1.3 (RF-04/13/14/15)', () => {
     expect(body['fechaAgenda']).toMatch(/^\d{4}-\d{2}-\d{2}T09:00$/);
   });
 
+  // ── Caso WIZ-A: Cronómetro NO visible al abrir el wizard ─────────────────────
+
+  test('el cronómetro NO es visible para el teleoperador al abrir el wizard', async ({ page }) => {
+    await setupWizardMocks(page);
+    await abrirWizard(page);
+
+    // El elemento del cronómetro no debe estar presente (fue eliminado del HTML)
+    const cronometro = page.locator('[data-testid="cronometro"]');
+    await expect(cronometro).not.toBeAttached();
+  });
+
+  // ── Caso WIZ-B: Botón "Cliente aceptó (cerrar)" en opciones titular ──────────
+
+  test('la opción titular DERIVADO muestra la etiqueta "Cliente aceptó (cerrar)"', async ({ page }) => {
+    await setupWizardMocks(page, { resultado: 'APTO' });
+    await abrirWizard(page);
+
+    // SBS APTO → contestó → titular
+    await page.locator('[data-testid="btn-sbs-apto"]').click();
+    await expect(page.locator('[data-testid="sbs-apto-badge"]')).toBeVisible({ timeout: 5000 });
+    await page.locator('[data-testid="btn-contesto"]').click();
+    await page.locator('[data-testid="btn-quien-titular"]').click();
+
+    // El botón con data-testid "titular-op-DERIVADO" debe existir y contener la nueva etiqueta
+    const btnDerivado = page.locator('[data-testid="titular-op-DERIVADO"]');
+    await expect(btnDerivado).toBeVisible({ timeout: 3000 });
+    await expect(btnDerivado).toContainText('Cliente aceptó (cerrar)');
+
+    // La etiqueta antigua NO debe aparecer
+    const pageContent = await page.content();
+    expect(pageContent).not.toContain('Derivar (ACEPTÓ)');
+  });
+
   // ── Caso 9: Cerrar modal sin registrar llama a cerrar-apertura ──────────────
 
   test('cerrar modal sin registrar llama a /api/contactos/apertura/{id}/cerrar', async ({ page }) => {

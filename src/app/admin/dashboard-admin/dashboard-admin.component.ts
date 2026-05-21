@@ -107,10 +107,6 @@ export class DashboardAdminComponent implements OnInit {
     });
   }
 
-  irAPorCerrar(): void {
-    this.router.navigate(['/admin/por-cerrar']);
-  }
-
   verDrillDown(colaborador: RankingColaborador): void {
     this.dialog.open(TeleoperadorProspectosDialogComponent, {
       data: {

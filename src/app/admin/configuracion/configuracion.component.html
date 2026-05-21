@@ -262,6 +262,31 @@
         </mat-card-content>
       </mat-card>
 
+      <!-- ── Sección Email de reportes ──────────────────────────────────── -->
+      <mat-card class="config-card">
+        <mat-card-header>
+          <mat-icon mat-card-avatar>email</mat-icon>
+          <mat-card-title>Email de reportes</mat-card-title>
+          <mat-card-subtitle>Destinatario del resumen diario y notificaciones automáticas</mat-card-subtitle>
+        </mat-card-header>
+
+        <mat-card-content>
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Email de reportes</mat-label>
+            <input
+              matInput
+              type="email"
+              formControlName="emailReportes"
+              placeholder="ejemplo@empresa.com"
+              data-testid="input-email-reportes"
+              aria-label="Email de reportes"
+            />
+            <mat-hint>Correo donde llega el resumen diario y las notificaciones</mat-hint>
+            <mat-error *ngIf="hasError('emailReportes', 'email')">Ingrese un correo electrónico válido</mat-error>
+          </mat-form-field>
+        </mat-card-content>
+      </mat-card>
+
       <!-- Error de guardado -->
       <div *ngIf="errorGuardar" class="error-banner error-guardar" data-testid="error-guardar">
         <mat-icon>error_outline</mat-icon>

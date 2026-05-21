@@ -125,7 +125,7 @@ export class UpdateProspectDialogComponent implements OnInit, OnDestroy {
     { label: 'Interesado',         resultado: 'INTERESADO',       icon: 'star',          needsAgenda: true,  isTerminal: false },
     { label: 'Agendar cita',       resultado: 'AGENDADO',         icon: 'event',         needsAgenda: true,  isTerminal: false },
     { label: 'Llamar después',     resultado: 'VOLVER_LLAMAR',    icon: 'schedule',      needsAgenda: true,  isTerminal: false },
-    { label: 'Derivar (ACEPTÓ)',   resultado: 'DERIVADO',         icon: 'forward',       needsAgenda: false, isTerminal: true  },
+    { label: 'Cliente aceptó (cerrar)', resultado: 'DERIVADO',     icon: 'forward',       needsAgenda: false, isTerminal: true  },
     { label: 'No volver a llamar', resultado: 'NO_VOLVER_LLAMAR', icon: 'block',         needsAgenda: false, isTerminal: true  },
   ];
   titularOpcionSeleccionada: RamaContestoTitularOpcion | null = null;
@@ -272,10 +272,12 @@ export class UpdateProspectDialogComponent implements OnInit, OnDestroy {
           const fechaStr = (resp as { continuar: false; fechaReevaluacionSbs: string }).fechaReevaluacionSbs;
           this.sbsObservadoMensaje =
             `Prospecto observado. Reprogramado para ${fechaStr ?? 'fecha por defecto'}.`;
-          // Cerrar tras un breve delay para que el usuario lea el mensaje
+          // Cerrar tras un breve delay para que el usuario lea el mensaje.
+          // Emite estadoNuevo='OBSERVADO' para que la cola se refresque y el
+          // caso desaparezca de la vista del colaborador.
           setTimeout(() => {
             this.registroConfirmado = true; // no llamar cerrarApertura
-            this.dialogRef.close(null);
+            this.dialogRef.close({ estadoNuevo: 'OBSERVADO', proximaLlamada: null });
           }, 2500);
         }
         this.cdr.markForCheck();
