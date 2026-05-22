@@ -2,8 +2,10 @@ import { test, expect, Page } from '@playwright/test';
 import * as path from 'path';
 import {
   mockBackend,
+  mockBancos,
   mockSubirTarjeta,
   seedSession,
+  MOCK_BANCOS_DEFAULT,
   MOCK_USUARIOS,
 } from '../support/mocks';
 
@@ -22,6 +24,7 @@ const MOCK_USERS_ACTIVOS = MOCK_USUARIOS.map((u) => ({
 
 async function setup(page: Page): Promise<void> {
   await mockBackend(page, { rol: 'ADMINISTRADOR' });
+  await mockBancos(page);
 
   // GET /api/usuarios/activos — lista de usuarios
   await page.route('**/api/usuarios/activos**', async (route) => {
@@ -149,6 +152,45 @@ test.describe('Manage Users — RF-WA: subir tarjeta WhatsApp', () => {
     expect(typeof req.body['base64']).toBe('string');
     // base64 no debe tener el prefijo data:
     expect(req.body['base64'] as string).not.toContain('data:');
+  });
+
+  // ── Caso BK-3: Dialogo de usuario tiene select Banco y lo envía ───────────
+
+  test('el dialogo de edicion tiene select Banco (BK-3) y lo incluye en el PUT', async ({ page }) => {
+    const capturedPuts: Array<Record<string, unknown>> = [];
+
+    await setup(page);
+    page.on('request', (req) => {
+      if (req.method() === 'PUT' && req.url().includes('/api/usuarios/')) {
+        try {
+          capturedPuts.push(JSON.parse(req.postData() ?? '{}') as Record<string, unknown>);
+        } catch { /* */ }
+      }
+    });
+
+    await irAManageUsers(page);
+    await abrirDialogoEdicion(page);
+
+    // El select de banco debe estar presente
+    const selectBanco = page.locator('[data-testid="select-banco-usuario"]');
+    await expect(selectBanco).toBeVisible({ timeout: 8_000 });
+
+    // Seleccionar el primer banco del mock (BBVA, id=1)
+    await selectBanco.click();
+    const opcion = page.locator('mat-option').filter({ hasText: MOCK_BANCOS_DEFAULT[0].nombre }).first();
+    await expect(opcion).toBeVisible({ timeout: 5_000 });
+    await opcion.click();
+
+    // Guardar
+    const btnGuardar = page.locator('.save-btn, [aria-label="Guardar Cambios"]').first();
+    await expect(btnGuardar).toBeEnabled({ timeout: 3_000 });
+    await btnGuardar.click();
+
+    // El PUT debe incluir bancoId
+    await page.waitForTimeout(500);
+    expect(capturedPuts.length).toBeGreaterThan(0);
+    const body = capturedPuts[0];
+    expect(body['bancoId']).toBe(MOCK_BANCOS_DEFAULT[0].id);
   });
 
   // ── Caso 3: Archivo >2MB muestra error de validación de cliente ────────────

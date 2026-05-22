@@ -2,6 +2,7 @@ import { test, expect, Page } from '@playwright/test';
 import * as fs from 'fs';
 import {
   mockBackend,
+  mockEnviarBanco,
   mockMisProspectos,
   mockMisEstadisticas,
   mockMiActividad,
@@ -127,9 +128,9 @@ test.describe('Wizard de atención — Slice 1.3 (RF-04/13/14/15)', () => {
     });
   });
 
-  // ── Caso 2: SBS OBSERVADO → modal se cierra sin llamar a /api/contactos ───
+  // ── Caso 2: SBS OBSERVADO → mensaje visible + botón enviar banco, NO llama a /api/contactos ───
 
-  test('SBS OBSERVADO cierra el modal con mensaje de reprogramación; NO llama a /api/contactos', async ({ page }) => {
+  test('SBS OBSERVADO muestra mensaje de reprogramación y botón "Enviar a otro banco"; NO llama a /api/contactos', async ({ page }) => {
     const contactosPostRequests: string[] = [];
     page.on('request', (req) => {
       // Capturar solo POST /api/contactos exacto (no apertura ni cierre)
@@ -138,7 +139,8 @@ test.describe('Wizard de atención — Slice 1.3 (RF-04/13/14/15)', () => {
         req.method() === 'POST' &&
         url.endsWith('/api/contactos') &&
         !url.includes('/apertura') &&
-        !url.includes('/verificacion')
+        !url.includes('/verificacion') &&
+        !url.includes('/enviar-banco')
       ) {
         contactosPostRequests.push(url);
       }
@@ -155,8 +157,13 @@ test.describe('Wizard de atención — Slice 1.3 (RF-04/13/14/15)', () => {
     await expect(msgObservado).toBeVisible({ timeout: 5000 });
     await expect(msgObservado).toContainText('2026-08-15');
 
-    // Modal debe cerrarse automáticamente (~2.5s)
-    await expect(page.locator('[data-testid="sbs-section"]')).not.toBeVisible({ timeout: 6000 });
+    // El botón "Enviar a otro banco" debe aparecer
+    const btnEnviar = page.locator('[data-testid="btn-enviar-banco"]');
+    await expect(btnEnviar).toBeVisible({ timeout: 3000 });
+
+    // El modal NO se cierra automáticamente (el usuario decide)
+    await page.waitForTimeout(3500);
+    await expect(page.locator('[data-testid="sbs-section"]')).toBeVisible();
 
     // No se llamó a registrar atención
     expect(contactosPostRequests.length).toBe(0);
@@ -711,6 +718,108 @@ test.describe('Wizard de atención — Slice 1.3 (RF-04/13/14/15)', () => {
 
     const panel = page.locator('[data-testid="whatsapp-panel"]');
     await expect(panel).not.toBeVisible();
+  });
+
+  // ── Casos BK-3: OBSERVADO + Enviar a otro banco ──────────────────────────
+
+  test('BK-1: wizard OBSERVADO muestra botón "Enviar a otro banco"', async ({ page }) => {
+    await setupWizardMocks(page, { resultado: 'OBSERVADO', fechaReevaluacionSbs: '2026-09-01' });
+    await abrirWizard(page);
+
+    // Click en OBSERVADO
+    await page.locator('[data-testid="btn-sbs-observado"]').click();
+
+    // Mensaje de reprogramacion visible
+    const msgObservado = page.locator('[data-testid="sbs-observado-msg"]');
+    await expect(msgObservado).toBeVisible({ timeout: 5_000 });
+
+    // El botón "Enviar a otro banco" debe aparecer
+    const btnEnviar = page.locator('[data-testid="btn-enviar-banco"]');
+    await expect(btnEnviar).toBeVisible({ timeout: 5_000 });
+    await expect(btnEnviar).toBeEnabled();
+
+    // Screenshot full-page del wizard en estado OBSERVADO con el botón
+    const screenshotsDir = 'test-results/screenshots';
+    if (!fs.existsSync(screenshotsDir)) {
+      fs.mkdirSync(screenshotsDir, { recursive: true });
+    }
+    await page.screenshot({
+      path: `${screenshotsDir}/wizard-observado-enviar-banco.png`,
+      fullPage: true,
+    });
+  });
+
+  test('BK-2: clic en "Enviar a otro banco" llama POST /api/contactos/enviar-banco y cierra el modal', async ({ page }) => {
+    const enviarRequests: Array<{ url: string; body: Record<string, unknown> }> = [];
+
+    await setupWizardMocks(page, { resultado: 'OBSERVADO', fechaReevaluacionSbs: '2026-09-01' });
+    await mockEnviarBanco(page, { bancoDestino: 'BCP' });
+
+    page.on('request', (req) => {
+      if (new URL(req.url()).pathname.endsWith('/api/contactos/enviar-banco') && req.method() === 'POST') {
+        try {
+          enviarRequests.push({
+            url: req.url(),
+            body: JSON.parse(req.postData() ?? '{}') as Record<string, unknown>,
+          });
+        } catch { /* */ }
+      }
+    });
+
+    await abrirWizard(page);
+
+    // Marcar OBSERVADO
+    await page.locator('[data-testid="btn-sbs-observado"]').click();
+
+    // Esperar botón "Enviar a otro banco"
+    const btnEnviar = page.locator('[data-testid="btn-enviar-banco"]');
+    await expect(btnEnviar).toBeVisible({ timeout: 5_000 });
+
+    // Click
+    await btnEnviar.click();
+
+    // Mensaje de éxito visible brevemente
+    const exitoMsg = page.locator('[data-testid="enviar-banco-exito"]');
+    await expect(exitoMsg).toBeVisible({ timeout: 5_000 });
+    await expect(exitoMsg).toContainText('BCP');
+
+    // Modal se cierra automáticamente (~1.5s)
+    await expect(page.locator('[data-testid="sbs-section"]')).not.toBeVisible({ timeout: 6_000 });
+
+    // Se llamó al endpoint correcto con el prospectoId
+    await page.waitForTimeout(300);
+    expect(enviarRequests.length).toBeGreaterThan(0);
+    expect(enviarRequests[0].body['prospectoId']).toBe(MOCK_WIZARD_PROSPECTO.prospectoId);
+  });
+
+  test('BK-3: error 400 en enviar-banco muestra el mensaje y NO cierra el modal', async ({ page }) => {
+    const MSG_ERROR = 'Este prospecto no tiene banco destino configurado.';
+
+    await setupWizardMocks(page, { resultado: 'OBSERVADO', fechaReevaluacionSbs: '2026-09-01' });
+    await mockEnviarBanco(page, { fail: true, failMessage: MSG_ERROR });
+
+    await abrirWizard(page);
+
+    // Marcar OBSERVADO
+    await page.locator('[data-testid="btn-sbs-observado"]').click();
+
+    // Esperar botón "Enviar a otro banco"
+    const btnEnviar = page.locator('[data-testid="btn-enviar-banco"]');
+    await expect(btnEnviar).toBeVisible({ timeout: 5_000 });
+
+    // Click
+    await btnEnviar.click();
+
+    // Error visible con el mensaje del backend
+    const errorMsg = page.locator('[data-testid="enviar-banco-error"]');
+    await expect(errorMsg).toBeVisible({ timeout: 5_000 });
+    await expect(errorMsg).toContainText(MSG_ERROR);
+
+    // Modal sigue abierto
+    await expect(page.locator('[data-testid="sbs-section"]')).toBeVisible();
+
+    // El botón sigue visible para reintentar
+    await expect(btnEnviar).toBeVisible();
   });
 
   test('WA-5: el flujo de Registrar atención sigue funcionando cuando el panel WhatsApp está visible', async ({ page }) => {

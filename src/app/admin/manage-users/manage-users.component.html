@@ -105,6 +105,21 @@
           </td>
         </ng-container>
 
+        <!-- Banco Column -->
+        <ng-container matColumnDef="banco">
+          <th mat-header-cell *matHeaderCellDef>Banco</th>
+          <td mat-cell *matCellDef="let user" data-testid="user-banco">
+            @if (user.bancoNombre) {
+              <span class="banco-chip">
+                <mat-icon>account_balance</mat-icon>
+                {{ user.bancoNombre }}
+              </span>
+            } @else {
+              <span class="no-banco">—</span>
+            }
+          </td>
+        </ng-container>
+
         <!-- Estado Column -->
         <ng-container matColumnDef="estado">
           <th mat-header-cell *matHeaderCellDef>Estado</th>

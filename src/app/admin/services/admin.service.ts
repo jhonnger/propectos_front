@@ -51,6 +51,26 @@ export interface CargaMasivaDTO {
   resumenAsignaciones: AsignacionResumenDTO[];
 }
 
+// ── Bancos (BK-3) ────────────────────────────────────────────────────────────
+
+export interface Banco {
+  id: number;
+  nombre: string;
+  activo: boolean;
+  esDefault: boolean;
+  bancoDestinoId: number | null;
+  bancoDestinoNombre: string | null;
+}
+
+export interface BancoRequest {
+  nombre?: string;
+  activo?: boolean;
+  esDefault?: boolean;
+  bancoDestinoId?: number | null;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+
 export interface UsuarioDTO {
   id: number;
   nombre: string;
@@ -61,6 +81,8 @@ export interface UsuarioDTO {
   nombreCompleto: string;
   rolId: number;
   rolNombre: string;
+  bancoId: number | null;
+  bancoNombre: string | null;
 }
 
 export interface RolDTO {
@@ -75,6 +97,7 @@ export interface CreateUsuarioRequest {
   email: string;
   password: string;
   rolId: number;
+  bancoId?: number | null;
 }
 
 export interface UpdateUsuarioRequest {
@@ -84,6 +107,7 @@ export interface UpdateUsuarioRequest {
   password?: string;
   rolId: number;
   estado: boolean;
+  bancoId?: number | null;
 }
 
 // ── RF-19: Nuevas interfaces tipadas para importación y asignación multi ──
@@ -823,6 +847,42 @@ export class AdminService {
         }),
       },
     );
+  }
+
+  // ── Bancos (BK-3) ─────────────────────────────────────────────────────────
+
+  /** GET /api/bancos — lista de bancos (autenticado) */
+  getBancos(): Observable<Banco[]> {
+    return this.http.get<Banco[]>(`${environment.apiUrl}/api/bancos`, {
+      headers: new HttpHeaders({ Authorization: `Bearer ${this.getToken()}` }),
+    });
+  }
+
+  /** GET /api/bancos/{id} — detalle (solo admin) */
+  getBanco(id: number): Observable<Banco> {
+    return this.http.get<Banco>(`${environment.apiUrl}/api/bancos/${id}`, {
+      headers: new HttpHeaders({ Authorization: `Bearer ${this.getToken()}` }),
+    });
+  }
+
+  /** POST /api/bancos — crear banco (solo admin) */
+  crearBanco(body: BancoRequest): Observable<Banco> {
+    return this.http.post<Banco>(`${environment.apiUrl}/api/bancos`, body, {
+      headers: new HttpHeaders({
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${this.getToken()}`,
+      }),
+    });
+  }
+
+  /** PUT /api/bancos/{id} — actualizar banco (solo admin) */
+  actualizarBanco(id: number, body: BancoRequest): Observable<Banco> {
+    return this.http.put<Banco>(`${environment.apiUrl}/api/bancos/${id}`, body, {
+      headers: new HttpHeaders({
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${this.getToken()}`,
+      }),
+    });
   }
 
   private getToken(): string | null {

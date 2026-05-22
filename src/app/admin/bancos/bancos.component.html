@@ -1,0 +1,236 @@
+<div class="bancos-container" data-testid="bancos-content">
+
+  <!-- ── Header ─────────────────────────────────────────────────────────────── -->
+  <div class="page-header">
+    <div class="header-icon-wrapper" aria-hidden="true">
+      <mat-icon>account_balance</mat-icon>
+    </div>
+    <div>
+      <h1 class="page-title">Bancos</h1>
+      <p class="page-subtitle">Gestiona el catalogo de bancos y sus destinos de derivacion</p>
+    </div>
+  </div>
+
+  <!-- ── Acciones superiores ────────────────────────────────────────────────── -->
+  <div class="top-actions">
+    <button
+      mat-flat-button
+      class="btn-nuevo"
+      (click)="abrirCrear()"
+      [disabled]="modoForm !== null"
+      data-testid="btn-nuevo-banco"
+      aria-label="Crear nuevo banco">
+      <mat-icon>add</mat-icon>
+      Nuevo banco
+    </button>
+  </div>
+
+  <!-- ── Formulario crear / editar ─────────────────────────────────────────── -->
+  @if (modoForm !== null) {
+    <section class="form-section" aria-label="Formulario de banco" data-testid="banco-form">
+      <h2 class="form-title">
+        <mat-icon aria-hidden="true">{{ modoForm === 'nuevo' ? 'add_circle' : 'edit' }}</mat-icon>
+        {{ modoForm === 'nuevo' ? 'Nuevo banco' : 'Editar banco' }}
+      </h2>
+
+      <form [formGroup]="form" (ngSubmit)="guardar()" class="banco-form" novalidate>
+
+        <mat-form-field appearance="outline" class="field-nombre">
+          <mat-label>Nombre</mat-label>
+          <input
+            matInput
+            formControlName="nombre"
+            placeholder="Ej: BBVA"
+            data-testid="input-banco-nombre"
+            aria-label="Nombre del banco" />
+          @if (nombreCtrl?.invalid && nombreCtrl?.touched) {
+            <mat-error>Minimo 2 caracteres</mat-error>
+          }
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="field-destino">
+          <mat-label>Banco destino (derivacion)</mat-label>
+          <mat-select
+            formControlName="bancoDestinoId"
+            data-testid="select-banco-destino"
+            aria-label="Banco destino para derivacion">
+            <mat-option [value]="null">— Sin destino —</mat-option>
+            @for (b of bancosDestino(modoForm !== 'nuevo' ? +modoForm : undefined); track b.id) {
+              <mat-option [value]="b.id">{{ b.nombre }}</mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
+
+        <div class="toggle-row">
+          <mat-slide-toggle
+            formControlName="activo"
+            color="primary"
+            data-testid="toggle-activo"
+            aria-label="Banco activo">
+            Activo
+          </mat-slide-toggle>
+
+          <mat-slide-toggle
+            formControlName="esDefault"
+            color="accent"
+            data-testid="toggle-default"
+            aria-label="Banco por defecto">
+            Por defecto
+          </mat-slide-toggle>
+        </div>
+
+        @if (errorForm) {
+          <p class="error-form" role="alert" data-testid="error-form">{{ errorForm }}</p>
+        }
+
+        <div class="form-actions">
+          <button
+            mat-stroked-button
+            type="button"
+            class="btn-cancelar"
+            (click)="cancelarForm()"
+            [disabled]="guardando">
+            Cancelar
+          </button>
+          <button
+            mat-flat-button
+            type="submit"
+            class="btn-guardar"
+            [disabled]="guardando || form.invalid"
+            data-testid="btn-guardar-banco"
+            aria-label="Guardar banco">
+            @if (guardando) {
+              <mat-spinner diameter="16"></mat-spinner>
+            } @else {
+              <mat-icon>save</mat-icon>
+            }
+            {{ guardando ? 'Guardando...' : 'Guardar' }}
+          </button>
+        </div>
+
+      </form>
+    </section>
+  }
+
+  <!-- ── Estado de carga ────────────────────────────────────────────────────── -->
+  @if (cargando) {
+    <div class="loading-state" data-testid="cargando-bancos">
+      <mat-spinner diameter="36"></mat-spinner>
+      <p>Cargando bancos...</p>
+    </div>
+  }
+
+  @if (!cargando && errorCarga) {
+    <div class="error-state" role="alert" data-testid="error-carga">
+      <mat-icon color="warn">error_outline</mat-icon>
+      <p>{{ errorCarga }}</p>
+      <button mat-stroked-button (click)="cargarBancos()">Reintentar</button>
+    </div>
+  }
+
+  <!-- ── Tabla ──────────────────────────────────────────────────────────────── -->
+  @if (!cargando && !errorCarga) {
+
+    @if (bancos.length === 0) {
+      <div class="empty-state" data-testid="sin-bancos">
+        <mat-icon>account_balance</mat-icon>
+        <p>No hay bancos registrados. Crea el primero.</p>
+      </div>
+    }
+
+    @if (bancos.length > 0) {
+      <div class="table-wrapper">
+        <table
+          mat-table
+          [dataSource]="bancos"
+          class="bancos-table"
+          data-testid="tabla-bancos"
+          aria-label="Lista de bancos">
+
+          <!-- Nombre -->
+          <ng-container matColumnDef="nombre">
+            <th mat-header-cell *matHeaderCellDef>Banco</th>
+            <td mat-cell *matCellDef="let b" data-testid="banco-nombre">
+              <div class="banco-name-cell">
+                <div class="banco-avatar" aria-hidden="true">
+                  <mat-icon>account_balance</mat-icon>
+                </div>
+                <span class="banco-nombre">{{ b.nombre }}</span>
+              </div>
+            </td>
+          </ng-container>
+
+          <!-- Activo -->
+          <ng-container matColumnDef="activo">
+            <th mat-header-cell *matHeaderCellDef>Estado</th>
+            <td mat-cell *matCellDef="let b">
+              <span
+                class="status-badge"
+                [class]="b.activo ? 'status-active' : 'status-inactive'"
+                data-testid="banco-activo">
+                <span class="status-dot"></span>
+                {{ b.activo ? 'Activo' : 'Inactivo' }}
+              </span>
+            </td>
+          </ng-container>
+
+          <!-- Default -->
+          <ng-container matColumnDef="esDefault">
+            <th mat-header-cell *matHeaderCellDef>Por defecto</th>
+            <td mat-cell *matCellDef="let b">
+              @if (b.esDefault) {
+                <span class="default-badge" data-testid="banco-default">
+                  <mat-icon aria-hidden="true">star</mat-icon>
+                  Sí
+                </span>
+              } @else {
+                <span class="no-default" aria-label="No es el banco por defecto">—</span>
+              }
+            </td>
+          </ng-container>
+
+          <!-- Destino -->
+          <ng-container matColumnDef="destino">
+            <th mat-header-cell *matHeaderCellDef>Banco destino</th>
+            <td mat-cell *matCellDef="let b" data-testid="banco-destino">
+              @if (b.bancoDestinoNombre) {
+                <span class="destino-chip">
+                  <mat-icon aria-hidden="true">arrow_forward</mat-icon>
+                  {{ b.bancoDestinoNombre }}
+                </span>
+              } @else {
+                <span class="no-destino">—</span>
+              }
+            </td>
+          </ng-container>
+
+          <!-- Acciones -->
+          <ng-container matColumnDef="acciones">
+            <th mat-header-cell *matHeaderCellDef>Acciones</th>
+            <td mat-cell *matCellDef="let b">
+              <button
+                mat-icon-button
+                class="edit-btn"
+                (click)="abrirEditar(b)"
+                [disabled]="modoForm !== null"
+                [attr.data-testid]="'btn-editar-banco-' + b.id"
+                matTooltip="Editar banco"
+                aria-label="Editar banco">
+                <mat-icon>edit</mat-icon>
+              </button>
+            </td>
+          </ng-container>
+
+          <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+          <tr
+            mat-row
+            *matRowDef="let row; columns: displayedColumns;"
+            class="banco-row"
+            [attr.data-testid]="'banco-row-' + row.id"></tr>
+        </table>
+      </div>
+    }
+
+  }
+
+</div>

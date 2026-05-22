@@ -1,0 +1,370 @@
+.bancos-container {
+  animation: fadeIn 0.4s ease-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* Header */
+.page-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.header-icon-wrapper {
+  width: 48px;
+  height: 48px;
+  border-radius: 14px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.header-icon-wrapper mat-icon {
+  color: #ffffff;
+  font-size: 24px;
+  width: 24px;
+  height: 24px;
+}
+
+.page-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0;
+  letter-spacing: -0.3px;
+}
+
+.page-subtitle {
+  font-size: 0.875rem;
+  color: #64748b;
+  margin: 2px 0 0;
+}
+
+/* Top actions */
+.top-actions {
+  margin-bottom: 20px;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.btn-nuevo {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+  color: #ffffff !important;
+  border-radius: 10px !important;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.2s ease;
+}
+
+.btn-nuevo:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+}
+
+/* Form section */
+.form-section {
+  background: #ffffff;
+  border-radius: 14px;
+  border: 1px solid #e2e8f0;
+  padding: 24px;
+  margin-bottom: 24px;
+}
+
+.form-title {
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: #0f172a;
+  margin: 0 0 20px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.form-title mat-icon {
+  font-size: 20px;
+  width: 20px;
+  height: 20px;
+  color: #667eea;
+}
+
+.banco-form {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  align-items: flex-start;
+}
+
+.field-nombre {
+  flex: 1 1 200px;
+  min-width: 180px;
+}
+
+.field-destino {
+  flex: 1 1 200px;
+  min-width: 180px;
+}
+
+.toggle-row {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  padding-top: 10px;
+  flex: 0 0 auto;
+}
+
+.form-actions {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  padding-top: 4px;
+  flex: 0 0 auto;
+}
+
+.btn-cancelar {
+  border-radius: 8px !important;
+}
+
+.btn-guardar {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+  color: #ffffff !important;
+  border-radius: 8px !important;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.error-form {
+  width: 100%;
+  color: #dc2626;
+  font-size: 0.875rem;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* Loading / error / empty */
+.loading-state,
+.error-state,
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 64px 24px;
+  text-align: center;
+  background: #ffffff;
+  border-radius: 14px;
+  border: 1px solid #e2e8f0;
+  gap: 12px;
+}
+
+.loading-state p,
+.empty-state p {
+  font-size: 0.9rem;
+  color: #94a3b8;
+  margin: 0;
+}
+
+.empty-state mat-icon {
+  font-size: 48px;
+  width: 48px;
+  height: 48px;
+  color: #cbd5e1;
+}
+
+/* Table */
+.table-wrapper {
+  background: #ffffff;
+  border-radius: 14px;
+  border: 1px solid #e2e8f0;
+  overflow: hidden;
+}
+
+.bancos-table {
+  width: 100%;
+}
+
+.bancos-table th {
+  background: #f8fafc;
+  font-weight: 600;
+  color: #64748b;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding: 12px 20px;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.bancos-table td {
+  padding: 14px 20px;
+  border-bottom: 1px solid #f1f5f9;
+  vertical-align: middle;
+}
+
+.banco-row {
+  transition: background-color 0.15s ease;
+}
+
+.banco-row:hover {
+  background-color: #f8fafc;
+}
+
+/* Bank name cell */
+.banco-name-cell {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.banco-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.banco-avatar mat-icon {
+  color: #ffffff;
+  font-size: 18px;
+  width: 18px;
+  height: 18px;
+}
+
+.banco-nombre {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #0f172a;
+}
+
+/* Status badge */
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 500;
+}
+
+.status-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.status-active {
+  background-color: rgba(16, 185, 129, 0.1);
+  color: #059669;
+}
+
+.status-active .status-dot {
+  background-color: #10b981;
+}
+
+.status-inactive {
+  background-color: rgba(239, 68, 68, 0.1);
+  color: #dc2626;
+}
+
+.status-inactive .status-dot {
+  background-color: #ef4444;
+}
+
+/* Default badge */
+.default-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  border-radius: 6px;
+  background-color: rgba(245, 158, 11, 0.1);
+  color: #d97706;
+  font-size: 0.8rem;
+  font-weight: 500;
+}
+
+.default-badge mat-icon {
+  font-size: 14px;
+  width: 14px;
+  height: 14px;
+}
+
+.no-default {
+  color: #94a3b8;
+  font-size: 0.9rem;
+}
+
+/* Destino chip */
+.destino-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  border-radius: 6px;
+  background-color: rgba(99, 102, 241, 0.08);
+  color: #6366f1;
+  font-size: 0.8rem;
+  font-weight: 500;
+}
+
+.destino-chip mat-icon {
+  font-size: 14px;
+  width: 14px;
+  height: 14px;
+}
+
+.no-destino {
+  color: #94a3b8;
+  font-size: 0.9rem;
+}
+
+/* Edit button */
+.edit-btn {
+  color: #667eea !important;
+  transition: all 0.2s ease;
+}
+
+.edit-btn:hover {
+  background-color: rgba(102, 126, 234, 0.08) !important;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .banco-form {
+    flex-direction: column;
+  }
+
+  .field-nombre,
+  .field-destino {
+    min-width: 100%;
+  }
+
+  .toggle-row {
+    padding-top: 0;
+  }
+
+  .top-actions {
+    justify-content: stretch;
+  }
+
+  .btn-nuevo {
+    width: 100%;
+    justify-content: center;
+  }
+}

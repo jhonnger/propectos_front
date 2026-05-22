@@ -88,6 +88,29 @@
         </div>
       </div>
 
+      <!-- Banco Section -->
+      <div class="form-section">
+        <div class="form-section-label">
+          <mat-icon>account_balance</mat-icon>
+          <span>Banco asignado</span>
+        </div>
+        <div class="form-row">
+          <mat-form-field appearance="outline" class="form-field">
+            <mat-label>Banco</mat-label>
+            <mat-select
+              formControlName="bancoId"
+              placeholder="Seleccionar banco (opcional)"
+              data-testid="select-banco-usuario">
+              <mat-option [value]="null">— Sin banco —</mat-option>
+              <mat-option *ngFor="let banco of bancos" [value]="banco.id">
+                {{ banco.nombre }}
+              </mat-option>
+            </mat-select>
+            <mat-hint>Requerido para colaboradores (teleoperadores)</mat-hint>
+          </mat-form-field>
+        </div>
+      </div>
+
       <!-- WhatsApp tarjeta section — solo en modo edición -->
       <div *ngIf="isEditMode" class="form-section" data-testid="tarjeta-whatsapp-section">
         <div class="form-section-label">

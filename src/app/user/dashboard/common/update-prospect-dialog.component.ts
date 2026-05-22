@@ -96,13 +96,18 @@ export class UpdateProspectDialogComponent implements OnInit, OnDestroy {
   cargandoHistorial = true;
   historialError = false;
 
-  // ── Paso 0: SBS ───────────────────────────────────────────────────────────
+  // ── Paso 0: Evaluación del banco ──────────────────────────────────────────
   pasoSbs: PasoSbs = 'pendiente';
   sbsFechaReevaluacion = '';
   sbsComentario = '';
   sbsProcesando = false;
   sbsError: string | null = null;
   sbsObservadoMensaje: string | null = null;
+
+  // ── Enviar a otro banco (rama OBSERVADO) ──────────────────────────────────
+  enviandoBanco = false;
+  enviarBancoError: string | null = null;
+  enviarBancoExito: string | null = null;
 
   // ── Paso 1: Contestó / No contestó ───────────────────────────────────────
   ramaLlamada: RamaLlamada | null = null;
@@ -272,13 +277,10 @@ export class UpdateProspectDialogComponent implements OnInit, OnDestroy {
           const fechaStr = (resp as { continuar: false; fechaReevaluacionSbs: string }).fechaReevaluacionSbs;
           this.sbsObservadoMensaje =
             `Prospecto observado. Reprogramado para ${fechaStr ?? 'fecha por defecto'}.`;
-          // Cerrar tras un breve delay para que el usuario lea el mensaje.
-          // Emite estadoNuevo='OBSERVADO' para que la cola se refresque y el
-          // caso desaparezca de la vista del colaborador.
-          setTimeout(() => {
-            this.registroConfirmado = true; // no llamar cerrarApertura
-            this.dialogRef.close({ estadoNuevo: 'OBSERVADO', proximaLlamada: null });
-          }, 2500);
+          // El modal ya no se cierra automáticamente: el colaborador puede
+          // usar el botón "Enviar a otro banco" o simplemente cerrar el modal
+          // manualmente (onCerrar), lo que emitirá null y la cola se recargará
+          // igual porque el estado ya cambió a OBSERVADO en el backend.
         }
         this.cdr.markForCheck();
       },
@@ -288,6 +290,36 @@ export class UpdateProspectDialogComponent implements OnInit, OnDestroy {
           err?.error?.message ??
           err?.error?.mensaje ??
           'Error al verificar SBS. Intenta de nuevo.';
+        this.cdr.markForCheck();
+      },
+    });
+  }
+
+  // ── Enviar a otro banco (OBSERVADO) ──────────────────────────────────────
+
+  enviarABanco(): void {
+    if (this.enviandoBanco) return;
+    this.enviandoBanco = true;
+    this.enviarBancoError = null;
+    this.enviarBancoExito = null;
+    this.cdr.markForCheck();
+
+    this.prospectoService.enviarABanco(this.data.prospectoId).subscribe({
+      next: (resp) => {
+        this.enviandoBanco = false;
+        this.enviarBancoExito = `Enviado a ${resp.bancoDestino}`;
+        this.cdr.markForCheck();
+        // Cerrar el modal emitiendo el resultado para que la cola refresque y
+        // el caso desaparezca (igual que al cerrar tras registrar una atención).
+        setTimeout(() => {
+          this.registroConfirmado = true;
+          this.dialogRef.close({ estadoNuevo: 'OBSERVADO', proximaLlamada: null });
+        }, 1500);
+      },
+      error: (err: { status?: number; error?: { message?: string } }) => {
+        this.enviandoBanco = false;
+        this.enviarBancoError =
+          err?.error?.message ?? 'No se pudo enviar al banco destino. Intenta de nuevo.';
         this.cdr.markForCheck();
       },
     });

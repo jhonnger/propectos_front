@@ -116,11 +116,11 @@
         }
       </section>
 
-      <!-- ── Paso 0: Verificación SBS (BLOQUEANTE) ────────────────────────── -->
+      <!-- ── Paso 0: Evaluación del banco (BLOQUEANTE) ────────────────────────── -->
       <section class="sbs-section" aria-labelledby="sbs-heading" data-testid="sbs-section">
         <div class="section-heading" id="sbs-heading">
           <mat-icon aria-hidden="true">verified_user</mat-icon>
-          <span>Paso 0 — Verificación SBS</span>
+          <span>Paso 0 — Evaluación del banco</span>
           @if (sbsCompleto) {
             <span class="sbs-apto-badge" data-testid="sbs-apto-badge">
               <mat-icon aria-hidden="true">check_circle</mat-icon>
@@ -148,14 +148,14 @@
           }
 
           <!-- Botones APTO / OBSERVADO -->
-          <div class="sbs-buttons" role="group" aria-label="Resultado verificación SBS">
+          <div class="sbs-buttons" role="group" aria-label="Resultado de la evaluacion del banco">
             <button
               class="sbs-btn sbs-btn-apto"
               [class.sbs-btn-loading]="sbsProcesando"
               [disabled]="sbsProcesando"
               (click)="registrarSbs('APTO')"
               data-testid="btn-sbs-apto"
-              aria-label="Marcar como APTO en SBS">
+              aria-label="Marcar como APTO">
               @if (sbsProcesando) {
                 <mat-spinner diameter="16" class="sbs-spinner"></mat-spinner>
               } @else {
@@ -170,7 +170,7 @@
               [disabled]="sbsProcesando"
               (click)="registrarSbs('OBSERVADO')"
               data-testid="btn-sbs-observado"
-              aria-label="Marcar como OBSERVADO en SBS">
+              aria-label="Marcar como OBSERVADO">
               @if (sbsProcesando) {
                 <mat-spinner diameter="16" class="sbs-spinner"></mat-spinner>
               } @else {
@@ -182,7 +182,7 @@
 
           <!-- Campos opcionales para OBSERVADO (siempre visibles por si el agente quiere pre-rellenar) -->
           <details class="sbs-observado-extra">
-            <summary class="sbs-extra-toggle">Datos adicionales para OBSERVADO (opcional)</summary>
+            <summary class="sbs-extra-toggle">Datos adicionales para OBSERVADO (opcional — reprogramar)</summary>
             <div class="sbs-extra-fields">
               <div class="form-field-group">
                 <label class="field-label" for="sbs-fecha-reeval">Fecha de re-evaluación</label>
@@ -207,19 +207,52 @@
           </details>
         }
 
-        <!-- Estado: observado → mensaje y cierre automático -->
+        <!-- Estado: observado → mensaje + botón "Enviar a otro banco" -->
         @if (pasoSbs === 'observado') {
           <div class="sbs-observado-msg" role="alert" data-testid="sbs-observado-msg">
             <mat-icon aria-hidden="true">event_busy</mat-icon>
             <span>{{ sbsObservadoMensaje }}</span>
           </div>
+
+          <!-- Error al enviar al banco (400) -->
+          @if (enviarBancoError) {
+            <div class="sbs-error" role="alert" data-testid="enviar-banco-error">
+              <mat-icon aria-hidden="true">error_outline</mat-icon>
+              {{ enviarBancoError }}
+            </div>
+          }
+
+          <!-- Mensaje de éxito al enviar -->
+          @if (enviarBancoExito) {
+            <div class="sbs-banco-exito" role="status" data-testid="enviar-banco-exito">
+              <mat-icon aria-hidden="true">send</mat-icon>
+              {{ enviarBancoExito }}
+            </div>
+          }
+
+          @if (!enviarBancoExito) {
+            <button
+              class="sbs-btn sbs-btn-enviar-banco"
+              [class.sbs-btn-loading]="enviandoBanco"
+              [disabled]="enviandoBanco"
+              (click)="enviarABanco()"
+              data-testid="btn-enviar-banco"
+              aria-label="Enviar a otro banco">
+              @if (enviandoBanco) {
+                <mat-spinner diameter="16" class="sbs-spinner"></mat-spinner>
+              } @else {
+                <mat-icon aria-hidden="true">send</mat-icon>
+              }
+              Enviar a otro banco
+            </button>
+          }
         }
 
         <!-- Estado: apto → check verde -->
         @if (sbsCompleto) {
           <div class="sbs-apto-confirm" role="status" data-testid="sbs-apto-confirm">
             <mat-icon aria-hidden="true">verified</mat-icon>
-            Verificación SBS completada — Prospecto APTO
+            Evaluacion del banco completada — Prospecto APTO
           </div>
         }
       </section>

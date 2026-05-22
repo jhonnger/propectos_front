@@ -9,7 +9,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
-import { AdminService, RolDTO, UpdateUsuarioRequest, UsuarioDTO } from '../../services/admin.service';
+import { AdminService, Banco, RolDTO, UpdateUsuarioRequest, UsuarioDTO } from '../../services/admin.service';
 
 export interface UserDialogData {
   user?: UsuarioDTO;
@@ -36,6 +36,7 @@ export interface UserDialogData {
 export class UserDialogComponent implements OnInit {
   form!: FormGroup;
   roles: RolDTO[] = [];
+  bancos: Banco[] = [];
   isSaving = false;
   hidePassword = true;
 
@@ -66,6 +67,7 @@ export class UserDialogComponent implements OnInit {
   ngOnInit() {
     this.buildForm();
     this.loadRoles();
+    this.loadBancos();
   }
 
   private buildForm() {
@@ -77,6 +79,7 @@ export class UserDialogComponent implements OnInit {
       usuario: [{ value: user?.usuario || '', disabled: this.isEditMode }, [Validators.required, Validators.minLength(3)]],
       password: ['', this.isEditMode ? [Validators.minLength(6)] : [Validators.required, Validators.minLength(6)]],
       rolId: [user?.rolId || null, Validators.required],
+      bancoId: [user?.bancoId ?? null],
     });
   }
 
@@ -84,6 +87,13 @@ export class UserDialogComponent implements OnInit {
     this.adminService.getRoles().subscribe({
       next: (roles) => this.roles = roles,
       error: (err) => console.error('Error loading roles:', err)
+    });
+  }
+
+  private loadBancos() {
+    this.adminService.getBancos().subscribe({
+      next: (bancos) => this.bancos = bancos.filter((b) => b.activo),
+      error: (err) => console.error('Error loading bancos:', err),
     });
   }
 
@@ -103,6 +113,7 @@ export class UserDialogComponent implements OnInit {
         email: '',
         rolId: formValue.rolId,
         estado: this.data.user!.estado,
+        bancoId: (formValue.bancoId as number | null) || null,
       };
       if (formValue.password) {
         updateData.password = formValue.password;
@@ -120,7 +131,16 @@ export class UserDialogComponent implements OnInit {
         }
       });
     } else {
-      this.adminService.createUser(formValue).subscribe({
+      const createPayload = {
+        nombre: formValue.nombre as string,
+        apellidos: formValue.apellidos as string,
+        usuario: formValue.usuario as string,
+        email: '',
+        password: formValue.password as string,
+        rolId: formValue.rolId as number,
+        bancoId: (formValue.bancoId as number | null) || null,
+      };
+      this.adminService.createUser(createPayload).subscribe({
         next: (result) => {
           this.isSaving = false;
           this.dialogRef.close(result);

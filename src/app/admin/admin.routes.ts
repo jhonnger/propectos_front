@@ -8,6 +8,7 @@ import { ConfiguracionComponent } from './configuracion/configuracion.component'
 import { CalendarioComponent } from './calendario/calendario.component';
 import { ReasignacionComponent } from './reasignacion/reasignacion.component';
 import { BitacoraComponent } from './bitacora/bitacora.component';
+import { BancosComponent } from './bancos/bancos.component';
 
 export const adminRoutes: Routes = [
   {
@@ -22,6 +23,7 @@ export const adminRoutes: Routes = [
       { path: 'calendario', component: CalendarioComponent },
       { path: 'reasignacion', component: ReasignacionComponent },
       { path: 'bitacora', component: BitacoraComponent },
+      { path: 'bancos', component: BancosComponent },
       { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
     ],
   },

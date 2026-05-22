@@ -1948,6 +1948,159 @@ export async function mockSubirTarjeta(
   });
 }
 
+// ── BK-3: Bancos helpers ─────────────────────────────────────────────────────
+
+export interface BancoMock {
+  id: number;
+  nombre: string;
+  activo: boolean;
+  esDefault: boolean;
+  bancoDestinoId: number | null;
+  bancoDestinoNombre: string | null;
+}
+
+export interface BancosMockOptions {
+  bancos?: BancoMock[];
+  failGet?: boolean;
+  failPost?: boolean;
+  failPostMessage?: string;
+  failPut?: boolean;
+  failPutMessage?: string;
+}
+
+export interface EnviarBancoMockOptions {
+  fail?: boolean;
+  failStatus?: number;
+  failMessage?: string;
+  bancoDestino?: string;
+}
+
+export const MOCK_BANCOS_DEFAULT: BancoMock[] = [
+  { id: 1, nombre: 'BBVA', activo: true, esDefault: true, bancoDestinoId: 2, bancoDestinoNombre: 'BCP' },
+  { id: 2, nombre: 'BCP',  activo: true, esDefault: false, bancoDestinoId: null, bancoDestinoNombre: null },
+];
+
+/**
+ * Mockea GET /api/bancos, POST /api/bancos y PUT /api/bancos/{id}.
+ * Debe llamarse DESPUÉS de mockBackend().
+ */
+export async function mockBancos(
+  page: Page,
+  opts: BancosMockOptions = {},
+): Promise<void> {
+  if (REAL_BACKEND) return;
+
+  const bancos = opts.bancos ?? MOCK_BANCOS_DEFAULT;
+
+  // PUT /api/bancos/{id} — debe registrarse ANTES que el GET para LIFO
+  await page.route('**/api/bancos/**', async (route) => {
+    if (route.request().method() !== 'PUT') { await route.fallback(); return; }
+    if (opts.failPut) {
+      await route.fulfill({
+        status: 400,
+        contentType: 'application/json',
+        body: JSON.stringify({ message: opts.failPutMessage ?? 'Nombre duplicado.' }),
+      });
+      return;
+    }
+    let body: Partial<BancoMock> = {};
+    try { body = JSON.parse(route.request().postData() ?? '{}') as Partial<BancoMock>; } catch { /* */ }
+    const updated = { ...bancos[0], ...body, id: 1 };
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify(updated),
+    });
+  });
+
+  // GET + POST /api/bancos (path exacto)
+  await page.route(
+    (url) => new URL(url).pathname.endsWith('/api/bancos'),
+    async (route) => {
+      const method = route.request().method();
+
+      if (method === 'GET') {
+        if (opts.failGet) {
+          await route.fulfill({
+            status: 500,
+            contentType: 'application/json',
+            body: JSON.stringify({ message: 'Error al cargar los bancos.' }),
+          });
+          return;
+        }
+        await route.fulfill({
+          status: 200,
+          contentType: 'application/json',
+          body: JSON.stringify(bancos),
+        });
+        return;
+      }
+
+      if (method === 'POST') {
+        if (opts.failPost) {
+          await route.fulfill({
+            status: 400,
+            contentType: 'application/json',
+            body: JSON.stringify({ message: opts.failPostMessage ?? 'Nombre duplicado.' }),
+          });
+          return;
+        }
+        let body: Partial<BancoMock> = {};
+        try { body = JSON.parse(route.request().postData() ?? '{}') as Partial<BancoMock>; } catch { /* */ }
+        const created: BancoMock = {
+          id: 99,
+          nombre: body.nombre ?? 'Nuevo banco',
+          activo: body.activo ?? true,
+          esDefault: body.esDefault ?? false,
+          bancoDestinoId: body.bancoDestinoId ?? null,
+          bancoDestinoNombre: null,
+        };
+        await route.fulfill({
+          status: 200,
+          contentType: 'application/json',
+          body: JSON.stringify(created),
+        });
+        return;
+      }
+
+      await route.fallback();
+    },
+  );
+}
+
+/**
+ * Mockea POST /api/contactos/enviar-banco.
+ * Debe llamarse DESPUÉS de mockBackend().
+ */
+export async function mockEnviarBanco(
+  page: Page,
+  opts: EnviarBancoMockOptions = {},
+): Promise<void> {
+  if (REAL_BACKEND) return;
+
+  await page.route(
+    (url) => new URL(url).pathname.endsWith('/api/contactos/enviar-banco'),
+    async (route) => {
+      if (route.request().method() !== 'POST') { await route.fallback(); return; }
+
+      if (opts.fail) {
+        await route.fulfill({
+          status: opts.failStatus ?? 400,
+          contentType: 'application/json',
+          body: JSON.stringify({ message: opts.failMessage ?? 'El prospecto no tiene banco destino asignado.' }),
+        });
+        return;
+      }
+
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({ ok: true, bancoDestino: opts.bancoDestino ?? 'BCP' }),
+      });
+    },
+  );
+}
+
 /**
  * Mockea POST /api/contactos (registrar atención — path exacto, sin subpaths).
  * Debe llamarse DESPUÉS de mockBackend().

@@ -383,6 +383,19 @@ export class ProspectoService {
     );
   }
 
+  /**
+   * POST /api/contactos/enviar-banco
+   * Envía el prospecto OBSERVADO al banco destino configurado.
+   * Errores: 400 { message } (sin banco destino o estado incorrecto), 403 (sin permiso).
+   */
+  enviarABanco(prospectoId: number): Observable<{ ok: true; bancoDestino: string }> {
+    return this.http.post<{ ok: true; bancoDestino: string }>(
+      `${this.contactoBaseUrl}/enviar-banco`,
+      { prospectoId },
+      { headers: this.getAuthHeaders() },
+    );
+  }
+
   /** @deprecated Usar registrarAtencion() */
   registrarContacto(contactoData: ContactoRegistro): Observable<unknown> {
     return this.http.post(this.contactoBaseUrl, contactoData, { headers: this.getAuthHeaders() });

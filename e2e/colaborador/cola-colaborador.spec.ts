@@ -11,6 +11,7 @@ import {
   mockRegistrarAtencion,
   mockPlantillaWhatsapp,
   mockTarjetaExiste,
+  mockEnviarBanco,
   seedSession,
   MOCK_PROSPECTO_VENCIDO,
   MOCK_PROSPECTO_RECURRENTE,
@@ -257,6 +258,7 @@ test.describe('Cola del colaborador (TELEOPERADOR)', () => {
     await mockRegistrarAtencion(page);
     await mockPlantillaWhatsapp(page);
     await mockTarjetaExiste(page, { existe: false });
+    await mockEnviarBanco(page, { bancoDestino: 'BCP' });
 
     await page.goto('/user/app/dashboard');
     await expect(page.locator('tr.mat-mdc-row, tr.mdc-data-table__row').first()).toBeVisible({ timeout: 10000 });
@@ -270,8 +272,18 @@ test.describe('Cola del colaborador (TELEOPERADOR)', () => {
     await btnGestionar.click();
     await expect(page.locator('[data-testid="sbs-section"]')).toBeVisible({ timeout: 8000 });
 
-    // Marcar SBS OBSERVADO → el modal se auto-cierra
+    // Marcar SBS OBSERVADO → el modal muestra mensaje y botón "Enviar a otro banco"
     await page.locator('[data-testid="btn-sbs-observado"]').click();
+
+    // Mensaje de reprogramación visible
+    const msgObservado = page.locator('[data-testid="sbs-observado-msg"]');
+    await expect(msgObservado).toBeVisible({ timeout: 5000 });
+
+    // Usar "Enviar a otro banco" para cerrar el wizard con un resultado truthy
+    // (esto emite { estadoNuevo: 'OBSERVADO' } que dispara cargarProspectos en el dashboard)
+    const btnEnviar = page.locator('[data-testid="btn-enviar-banco"]');
+    await expect(btnEnviar).toBeVisible({ timeout: 3000 });
+    await btnEnviar.click();
     await expect(page.locator('[data-testid="sbs-section"]')).not.toBeVisible({ timeout: 8000 });
 
     // Tras cerrarse el wizard, la cola debe haber recargado

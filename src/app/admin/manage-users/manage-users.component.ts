@@ -28,7 +28,7 @@ import { UserDialogComponent, UserDialogData } from './user-dialog/user-dialog.c
 export class ManageUsersComponent implements OnInit {
   users: UsuarioDTO[] = [];
   isLoading = false;
-  displayedColumns: string[] = ['nombre', 'rol', 'estado', 'acciones'];
+  displayedColumns: string[] = ['nombre', 'rol', 'banco', 'estado', 'acciones'];
 
   constructor(
     private adminService: AdminService,
