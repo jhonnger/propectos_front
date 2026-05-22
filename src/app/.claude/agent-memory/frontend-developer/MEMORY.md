@@ -1,3 +1,0 @@
-- [RF-19 slice 1.1 patterns](project_rf19_patterns.md) — typed interfaces, result panels, multi-assign flow, E2E mock ordering & strict-mode pitfall
-- [RF-17 slice 1.2 patterns](project_rf17_cola_patterns.md) — cola del colaborador: ProspectoService contract, MiProspecto interface, dashboard ChangeDetectionOnPush, E2E mocks & phone-masked pitfall
-- [RF-13 slice 1.3 wizard patterns](project_rf13_wizard_patterns.md) — wizard de atención: service contract, WizardDialogData, SBS bloqueante, E2E mock pitfalls (predicate routes, "Sin gestionar" locator clash)

@@ -191,17 +191,17 @@
                   type="date"
                   class="native-input"
                   [(ngModel)]="sbsFechaReevaluacion"
-                  aria-label="Fecha de re-evaluación SBS" />
+                  aria-label="Fecha de re-evaluación" />
               </div>
               <div class="form-field-group">
-                <label class="field-label" for="sbs-comentario">Comentario SBS</label>
+                <label class="field-label" for="sbs-comentario">Comentario</label>
                 <textarea
                   id="sbs-comentario"
                   class="native-textarea"
                   rows="2"
                   [(ngModel)]="sbsComentario"
                   placeholder="Motivo de observación…"
-                  aria-label="Comentario verificación SBS"></textarea>
+                  aria-label="Comentario de la evaluación"></textarea>
               </div>
             </div>
           </details>
@@ -257,7 +257,7 @@
         }
       </section>
 
-      <!-- ── Wizard de llamada (solo si SBS=APTO) ──────────────────────────── -->
+      <!-- ── Wizard de llamada (solo si la evaluación del banco = APTO) ─────── -->
       <div
         class="wizard-llamada"
         [class.wizard-disabled]="!sbsCompleto"
@@ -267,7 +267,7 @@
         @if (!sbsCompleto) {
           <div class="wizard-locked-overlay" role="status" aria-live="polite">
             <mat-icon aria-hidden="true">lock</mat-icon>
-            <span>Completa la verificación SBS para continuar</span>
+            <span>Completa la evaluación del banco para continuar</span>
           </div>
         }
 

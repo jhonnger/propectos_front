@@ -120,7 +120,6 @@ export type FiltroColaborador =
   | 'POR_REINTENTAR'
   | 'PROGRAMADOS'
   | 'OBSERVADO_SBS'
-  | 'DERIVADOS'
   | 'INTERESADOS'
   | 'MIS_VENTAS'
   | 'DESCARTADOS'
@@ -137,8 +136,7 @@ export const FILTROS_COLA: FiltroChip[] = [
   { valor: 'AGENDADOS_HOY',  etiqueta: 'Agendados hoy'   },
   { valor: 'POR_REINTENTAR', etiqueta: 'Por reintentar'  },
   { valor: 'PROGRAMADOS',    etiqueta: 'Programados'      },
-  { valor: 'OBSERVADO_SBS',  etiqueta: 'Observado SBS'   },
-  { valor: 'DERIVADOS',      etiqueta: 'Derivados'        },
+  { valor: 'OBSERVADO_SBS',  etiqueta: 'Observado'        },
   { valor: 'INTERESADOS',    etiqueta: 'Interesados'      },
   { valor: 'MIS_VENTAS',     etiqueta: 'Mis cerrados'     },
   { valor: 'DESCARTADOS',    etiqueta: 'Descartados'      },

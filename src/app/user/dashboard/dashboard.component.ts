@@ -39,7 +39,7 @@ import { Subject } from 'rxjs';
 import { debounceTime, distinctUntilChanged, takeUntil } from 'rxjs/operators';
 
 /** Filtros de solo lectura: no se registran acciones de gestión */
-const FILTROS_SOLO_LECTURA: FiltroColaborador[] = ['DERIVADOS', 'MIS_VENTAS', 'DESCARTADOS'];
+const FILTROS_SOLO_LECTURA: FiltroColaborador[] = ['MIS_VENTAS', 'DESCARTADOS'];
 
 @Component({
   selector: 'app-dashboard',
